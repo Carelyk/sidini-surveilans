@@ -339,7 +339,9 @@ function Dashboard() {
                       name={p}
                       stackId="umur"
                       fill={WARNA_PENYAKIT[p]}
-                      radius={i === PENYAKIT.length - 1 ? [6, 6, 0, 0] : 0}
+                      {...(i === PENYAKIT.length - 1
+                        ? { radius: [6, 6, 0, 0] as [number, number, number, number] }
+                        : {})}
                     />
                   ))}
                 </BarChart>
