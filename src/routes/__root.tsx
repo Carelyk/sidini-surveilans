@@ -84,7 +84,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "SIDINI, sistem deteksi dini wheyabah Kabupaten Bandung: pelaporan kasus real-time dari puskesmas dan warga, dashboard SKDR per penyakit, peta sebaran, alert otomatis, dan analisis naratif AI.",
+          "SIDINI, Sistem Deteksi Dini Wabah untuk Kabupaten Bandung: pelaporan kasus real-time dari puskesmas dan warga, dashboard SKDR per penyakit, peta sebaran, alert otomatis, dan analisis naratif AI.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -97,7 +97,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap",
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.ico", sizes: "any" },
+      { rel: "icon", href: "/icon-192.png", type: "image/png", sizes: "192x192" },
+      { rel: "icon", href: "/icon-512.png", type: "image/png", sizes: "512x512" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png", sizes: "180x180" },
     ],
   }),
   shellComponent: RootShell,
