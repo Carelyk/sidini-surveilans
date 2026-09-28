@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Activity,
   ArrowRight,
   ClipboardCheck,
   Clock,
+  Pause,
+  Play,
   Sparkles,
   TrendingUp,
   Users,
@@ -123,6 +125,37 @@ function Dashboard() {
     [],
   );
 
+  // --- Grafik dinamis: tren harian dibuka hari per hari -----------------------
+  // Tombol Putar menampilkan 7 hari pertama, lalu menambah satu hari
+  // sampai ke-28. Berhenti sendiri setelah hari terakhir, atau bisa dijeda.
+  const totalHari = d.tren28.length;
+  const [terlihat, setTerlihat] = useState(totalHari);
+  const [bermain, setBermain] = useState(false);
+
+  useEffect(() => {
+    if (!bermain) return;
+    const id = window.setInterval(() => {
+      setTerlihat((v) => Math.min(v + 1, totalHari));
+    }, 180);
+    return () => window.clearInterval(id);
+  }, [bermain, totalHari]);
+
+  useEffect(() => {
+    if (bermain && terlihat >= totalHari) setBermain(false);
+  }, [bermain, terlihat, totalHari]);
+
+  const trenTampil = useMemo(() => d.tren28.slice(0, terlihat), [d.tren28, terlihat]);
+
+  const klikPutar = () => {
+    if (bermain) {
+      setBermain(false);
+      return;
+    }
+    // Kalau animasi sudah tamat, mulai lagi dari awal; kalau dijeda, lanjutkan.
+    if (terlihat >= totalHari) setTerlihat(Math.min(7, totalHari));
+    setBermain(true);
+  };
+
   return (
     <div className="mx-auto max-w-7xl space-y-8 px-4 py-8">
       <section className="panel overflow-hidden p-6 sm:p-8">
@@ -209,17 +242,33 @@ function Dashboard() {
           />
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-3">
-          <div className="panel p-5 lg:col-span-2">
-            <h3 className="text-base font-semibold">Tren kasus harian (28 hari)</h3>
+        <div className="grid gap-4">
+          <div className="panel p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h3 className="text-base font-semibold">Tren kasus harian (28 hari)</h3>
+              <button
+                type="button"
+                onClick={klikPutar}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              >
+                {bermain ? <Pause className="size-3.5" /> : <Play className="size-3.5" />}
+                {bermain ? "Berhenti" : "Putar animasi"}
+              </button>
+            </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              Berdasarkan tanggal onset gejala; hanya kasus terverifikasi/terkonfirmasi. Tiap garis
-              warna mewakili satu penyakit (hijau DBD, kuning Diare, biru Chikungunya, merah
-              Hepatitis A), sedangkan area teal adalah total kasus.
+              Berdasarkan tanggal onset gejala; hanya kasus terverifikasi/terkonfirmasi. Area teal
+              adalah total kasus, tiap garis warna satu penyakit. Tekan Putar animasi untuk melihat
+              hari demi hari.
             </p>
-            <div className="mt-4 h-72">
+            <LegendaSeri
+              items={[
+                { label: "Total kasus", warna: WARNA_TOTAL },
+                ...PENYAKIT.map((p) => ({ label: p, warna: WARNA_PENYAKIT[p] })),
+              ]}
+            />
+            <div className="mt-2 h-72">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={d.tren28}>
+                <AreaChart data={trenTampil}>
                   <defs>
                     <linearGradient id="gTotal" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor={WARNA_TOTAL} stopOpacity={0.55} />
@@ -260,14 +309,10 @@ function Dashboard() {
                 </AreaChart>
               </ResponsiveContainer>
             </div>
-            <LegendaSeri
-              items={[
-                { label: "Total kasus", warna: WARNA_TOTAL },
-                ...PENYAKIT.map((p) => ({ label: p, warna: WARNA_PENYAKIT[p] })),
-              ]}
-            />
           </div>
+        </div>
 
+        <div className="grid gap-4 lg:grid-cols-2">
           <div className="panel p-5">
             <h3 className="text-base font-semibold">Komposisi penyakit (7 hari)</h3>
             <p className="mt-1 text-xs text-muted-foreground">
@@ -306,9 +351,7 @@ function Dashboard() {
               ))}
             </ul>
           </div>
-        </div>
 
-        <div className="grid gap-4 lg:grid-cols-3">
           <div className="panel p-5">
             <h3 className="flex items-center gap-2 text-base font-semibold">
               <Users className="size-4 text-primary" /> Kelompok umur (7 hari)
@@ -317,7 +360,8 @@ function Dashboard() {
               Tinggi kolom = jumlah kasus di kelompok umur itu, dipecah per penyakit. Jadi terlihat
               kelompok umur yang sakit apa, bukan sekadar akumulasi.
             </p>
-            <div className="mt-4 h-56">
+            <LegendaSeri items={PENYAKIT.map((p) => ({ label: p, warna: WARNA_PENYAKIT[p] }))} />
+            <div className="mt-2 h-56">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={d.umurPenyakit}>
                   <CartesianGrid
@@ -347,10 +391,11 @@ function Dashboard() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <LegendaSeri items={PENYAKIT.map((p) => ({ label: p, warna: WARNA_PENYAKIT[p] }))} />
           </div>
+        </div>
 
-          <div className="panel p-5 lg:col-span-2">
+        <div className="grid gap-4">
+          <div className="panel p-5">
             <AlatTabel
               baris={d.status}
               nama="status-desa-7-hari"
@@ -551,11 +596,12 @@ function Angka({
   );
 }
 
-/** Legenda titik warna kecil yang dipakai di bawah grafik tren dan umur,
- *  supaya tiap warna penyakit selalu bisa dikenali. */
+/** Legenda titik warna kecil yang dipakai di atas grafik tren dan umur.
+ *  Rata kanan supaya tidak menempel di tepi kiri panel dan tidak terlihat
+ *  jauh dari garis-garis yang dijelaskan. */
 function LegendaSeri({ items }: { items: { label: string; warna: string }[] }) {
   return (
-    <ul className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5">
+    <ul className="mt-3 flex flex-wrap items-center justify-end gap-x-4 gap-y-1.5">
       {items.map((it) => (
         <li key={it.label} className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <span className="size-2.5 rounded-full" style={{ background: it.warna }} />
