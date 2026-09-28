@@ -33,13 +33,13 @@ import {
   hitungDalamRentang,
   kasusValid,
   perPenyakit,
-  perUmur,
+  perUmurPenyakit,
   rataKeterlambatan,
   statusPerDesa,
   tren,
 } from "@/lib/analitik";
 import { TAHUN_SKDR } from "@/data/skdr";
-import { TANGGAL_ACUAN } from "@/data/dataset";
+import { PENYAKIT, TANGGAL_ACUAN } from "@/data/dataset";
 import { KABUPATEN, KECAMATAN, PROVINSI, TOTAL_PENDUDUK } from "@/data/wilayah";
 import { AMBANG, bandingkanPenyakit, ringkasan, trenMingguan, type Penyakit } from "@/lib/skdr";
 
@@ -62,12 +62,16 @@ export const Route = createFileRoute("/")({
   component: Dashboard,
 });
 
-const WARNA = [
-  "var(--color-chart-1)",
-  "var(--color-chart-2)",
-  "var(--color-chart-3)",
-  "var(--color-chart-4)",
-];
+/** Warna konsisten per penyakit di semua grafik dashboard, supaya legenda
+ *  selalu bisa dibaca (misal hijau selalu DBD). */
+const WARNA_PENYAKIT: Record<Penyakit, string> = {
+  DBD: "var(--color-chart-5)", // hijau
+  Diare: "var(--color-chart-2)", // kuning
+  Chikungunya: "var(--color-chart-4)", // biru
+  "Hepatitis A": "var(--color-chart-3)", // merah
+};
+/** Warna total kasus (area teal), dipakai di tren harian 28 hari. */
+const WARNA_TOTAL = "var(--color-chart-1)";
 
 const nf = new Intl.NumberFormat("id-ID");
 const TAHUN = TAHUN_SKDR[TAHUN_SKDR.length - 1] ?? 2026;
@@ -95,7 +99,7 @@ function Dashboard() {
       status: statusPerDesa(valid),
       tren28: tren(valid, 28),
       penyakit: perPenyakit(m1),
-      umur: perUmur(m1),
+      umurPenyakit: perUmurPenyakit(m1),
       lag: rataKeterlambatan(hitungDalamRentang(valid, 14)),
       menunggu: kasus.filter(
         (k) => k.sumber === "Warga" && (k.status === "Baru" || k.status === "Investigasi"),
@@ -209,15 +213,17 @@ function Dashboard() {
           <div className="panel p-5 lg:col-span-2">
             <h3 className="text-base font-semibold">Tren kasus harian (28 hari)</h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              Berdasarkan tanggal onset gejala, hanya kasus terverifikasi/terkonfirmasi.
+              Berdasarkan tanggal onset gejala; hanya kasus terverifikasi/terkonfirmasi. Tiap garis
+              warna mewakili satu penyakit (hijau DBD, kuning Diare, biru Chikungunya, merah
+              Hepatitis A), sedangkan area teal adalah total kasus.
             </p>
             <div className="mt-4 h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={d.tren28}>
                   <defs>
                     <linearGradient id="gTotal" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="var(--color-chart-1)" stopOpacity={0.55} />
-                      <stop offset="100%" stopColor="var(--color-chart-1)" stopOpacity={0.04} />
+                      <stop offset="0%" stopColor={WARNA_TOTAL} stopOpacity={0.55} />
+                      <stop offset="100%" stopColor={WARNA_TOTAL} stopOpacity={0.04} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid
@@ -236,20 +242,30 @@ function Dashboard() {
                     type="monotone"
                     dataKey="total"
                     name="Total kasus"
-                    stroke="var(--color-chart-1)"
+                    stroke={WARNA_TOTAL}
                     strokeWidth={2}
                     fill="url(#gTotal)"
                   />
-                  <Area
-                    type="monotone"
-                    dataKey="DBD"
-                    stroke="var(--color-chart-4)"
-                    strokeWidth={1.5}
-                    fill="transparent"
-                  />
+                  {PENYAKIT.map((p) => (
+                    <Area
+                      key={p}
+                      type="monotone"
+                      dataKey={p}
+                      name={p}
+                      stroke={WARNA_PENYAKIT[p]}
+                      strokeWidth={1.5}
+                      fill="transparent"
+                    />
+                  ))}
                 </AreaChart>
               </ResponsiveContainer>
             </div>
+            <LegendaSeri
+              items={[
+                { label: "Total kasus", warna: WARNA_TOTAL },
+                ...PENYAKIT.map((p) => ({ label: p, warna: WARNA_PENYAKIT[p] })),
+              ]}
+            />
           </div>
 
           <div className="panel p-5">
@@ -269,8 +285,8 @@ function Dashboard() {
                     outerRadius={80}
                     paddingAngle={3}
                   >
-                    {d.penyakit.map((_, i) => (
-                      <Cell key={i} fill={WARNA[i % WARNA.length]} />
+                    {d.penyakit.map((p) => (
+                      <Cell key={p.penyakit} fill={WARNA_PENYAKIT[p.penyakit]} />
                     ))}
                   </Pie>
                   <Tooltip contentStyle={TIP} />
@@ -278,11 +294,11 @@ function Dashboard() {
               </ResponsiveContainer>
             </div>
             <ul className="space-y-1.5 text-sm">
-              {d.penyakit.map((p, i) => (
+              {d.penyakit.map((p) => (
                 <li key={p.penyakit} className="flex items-center gap-2">
                   <span
                     className="size-2.5 rounded-full"
-                    style={{ background: WARNA[i % WARNA.length] }}
+                    style={{ background: WARNA_PENYAKIT[p.penyakit] }}
                   />
                   <span className="flex-1">{p.penyakit}</span>
                   <span className="font-mono text-xs text-muted-foreground">{p.jumlah}</span>
@@ -297,9 +313,13 @@ function Dashboard() {
             <h3 className="flex items-center gap-2 text-base font-semibold">
               <Users className="size-4 text-primary" /> Kelompok umur (7 hari)
             </h3>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Tinggi kolom = jumlah kasus di kelompok umur itu, dipecah per penyakit. Jadi terlihat
+              kelompok umur yang sakit apa, bukan sekadar akumulasi.
+            </p>
             <div className="mt-4 h-56">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={d.umur}>
+                <BarChart data={d.umurPenyakit}>
                   <CartesianGrid
                     strokeDasharray="3 3"
                     stroke="var(--color-border)"
@@ -312,15 +332,20 @@ function Dashboard() {
                   />
                   <YAxis tick={{ fontSize: 11 }} stroke="var(--color-muted-foreground)" />
                   <Tooltip contentStyle={TIP} />
-                  <Bar
-                    dataKey="jumlah"
-                    name="Kasus"
-                    fill="var(--color-chart-3)"
-                    radius={[6, 6, 0, 0]}
-                  />
+                  {PENYAKIT.map((p, i) => (
+                    <Bar
+                      key={p}
+                      dataKey={p}
+                      name={p}
+                      stackId="umur"
+                      fill={WARNA_PENYAKIT[p]}
+                      radius={i === PENYAKIT.length - 1 ? [6, 6, 0, 0] : 0}
+                    />
+                  ))}
                 </BarChart>
               </ResponsiveContainer>
             </div>
+            <LegendaSeri items={PENYAKIT.map((p) => ({ label: p, warna: WARNA_PENYAKIT[p] }))} />
           </div>
 
           <div className="panel p-5 lg:col-span-2">
@@ -521,6 +546,21 @@ function Angka({
       <dd className={`font-display text-lg font-bold leading-none ${warna ?? ""}`}>{nilai}</dd>
       <dt className="mt-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">{label}</dt>
     </div>
+  );
+}
+
+/** Legenda titik warna kecil yang dipakai di bawah grafik tren dan umur,
+ *  supaya tiap warna penyakit selalu bisa dikenali. */
+function LegendaSeri({ items }: { items: { label: string; warna: string }[] }) {
+  return (
+    <ul className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5">
+      {items.map((it) => (
+        <li key={it.label} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <span className="size-2.5 rounded-full" style={{ background: it.warna }} />
+          {it.label}
+        </li>
+      ))}
+    </ul>
   );
 }
 

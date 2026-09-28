@@ -136,7 +136,7 @@ function RootComponent() {
             <Outlet />
           </main>
           <footer className="border-t border-border/70 py-6">
-            <div className="mx-auto max-w-7xl px-4 text-xs text-muted-foreground">
+            <div className="mx-auto max-w-3xl px-4 text-center text-xs leading-relaxed text-muted-foreground">
               SIDINI — prototipe studi kasus. Seluruh data kasus bersifat{" "}
               <strong className="text-foreground">sintetis</strong>. Data pelapor warga diperlakukan
               sebagai data pribadi bersifat spesifik (kesehatan) sesuai UU PDP No. 27/2022.

@@ -140,6 +140,33 @@ export function perUmur(kasus: Kasus[]) {
   }));
 }
 
+export interface TitikUmurPenyakit {
+  kelompok: string;
+  jumlah: number;
+  DBD: number;
+  Diare: number;
+  Chikungunya: number;
+  "Hepatitis A": number;
+}
+
+/** Jumlah kasus per kelompok umur, dipecah per penyakit supaya terlihat
+ *  kelompok umur yang sakit apa, bukan sekadar akumulasi. */
+export function perUmurPenyakit(kasus: Kasus[]): TitikUmurPenyakit[] {
+  return KELOMPOK_UMUR.map((u) => {
+    const dalam = kasus.filter((k) => k.kelompokUmur === u);
+    const titik: TitikUmurPenyakit = {
+      kelompok: u,
+      jumlah: dalam.length,
+      DBD: 0,
+      Diare: 0,
+      Chikungunya: 0,
+      "Hepatitis A": 0,
+    };
+    for (const k of dalam) titik[k.penyakit] += 1;
+    return titik;
+  });
+}
+
 export function rataKeterlambatan(kasus: Kasus[]) {
   if (!kasus.length) return 0;
   const total = kasus.reduce((acc, k) => {
