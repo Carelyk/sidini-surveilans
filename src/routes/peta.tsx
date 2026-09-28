@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Layers, MapPin, TrendingUp } from "lucide-react";
 
+import { AlatTabel } from "@/components/AlatTabel";
 import { LevelBadge } from "@/components/LevelBadge";
 import { PetaSKDR, type ModePeta } from "@/components/PetaSKDR";
 import {
@@ -174,75 +175,82 @@ function Peta() {
 
           {statusFokus ? <RincianKecamatan s={statusFokus} f={f} /> : null}
 
-          <section className="panel overflow-hidden">
-            <div className="flex flex-wrap items-center gap-2 p-5 pb-3">
-              <h2 className="text-base font-semibold">Tabel per kecamatan</h2>
-              <p className="text-xs text-muted-foreground">
-                {semuaStatus.length} baris &middot; diurutkan dari jumlah kasus tertinggi
-              </p>
-            </div>
-            <div className="max-h-[32rem] overflow-auto">
-              <table className="w-full text-sm">
-                <thead className="sticky top-0 z-10 bg-surface">
-                  <tr className="border-y border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                    <th className="px-5 py-2.5 font-medium">#</th>
-                    <th className="px-3 py-2.5 font-medium">Kecamatan</th>
-                    <th className="px-3 py-2.5 text-right font-medium">Kasus</th>
-                    <th className="px-3 py-2.5 text-right font-medium">Meninggal</th>
-                    <th className="px-3 py-2.5 text-right font-medium">Insidensi</th>
-                    <th className="px-3 py-2.5 text-right font-medium">Baseline</th>
-                    <th className="px-3 py-2.5 text-right font-medium">Rasio</th>
-                    <th className="px-5 py-2.5 font-medium">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {urut.map((s, i) => (
-                    <tr
-                      key={s.kode}
-                      className={cn(
-                        "border-b border-border/60 transition-colors hover:bg-secondary/60",
-                        kodeFokus === s.kode && "bg-primary/5",
-                      )}
+          <section className="panel p-5">
+            <AlatTabel
+              baris={urut}
+              nama={`status-kecamatan-${f.penyakit.toLowerCase()}-${f.tahun}-m${f.mingguDari}-${f.mingguSampai}`}
+              rowKey={(s) => s.kode}
+              nomor
+              sticky
+              kelasBaris={(s) => (kodeFokus === s.kode ? "bg-primary/5" : undefined)}
+              judul={<h2 className="text-base font-semibold">Tabel per kecamatan</h2>}
+              keterangan={
+                <p className="text-xs text-muted-foreground">
+                  {urut.length} baris &middot; diurutkan dari jumlah kasus tertinggi &middot; minggu{" "}
+                  {f.mingguDari}&ndash;{f.mingguSampai} {f.tahun}
+                </p>
+              }
+              kolom={[
+                {
+                  kunci: "nama",
+                  judul: "Kecamatan",
+                  nilai: (s) => s.nama,
+                  render: (s) => (
+                    <button
+                      type="button"
+                      className="font-medium underline-offset-4 hover:text-primary hover:underline"
+                      onClick={() => setKodeFokus(s.kode)}
                     >
-                      <td className="px-5 py-2 tabular-nums text-muted-foreground">{i + 1}</td>
-                      <td className="px-3 py-2">
-                        <button
-                          type="button"
-                          className="font-medium underline-offset-4 hover:text-primary hover:underline"
-                          onClick={() => setKodeFokus(s.kode)}
-                        >
-                          {s.nama}
-                        </button>
-                      </td>
-                      <td className="px-3 py-2 text-right tabular-nums font-semibold">
-                        {nf.format(s.jumlah)}
-                      </td>
-                      <td className="px-3 py-2 text-right tabular-nums">
-                        {s.meninggal > 0 ? (
-                          <span className="font-semibold text-destructive">
-                            {nf.format(s.meninggal)}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">0</span>
-                        )}
-                      </td>
-                      <td className="px-3 py-2 text-right tabular-nums">
-                        {s.insidensi.toFixed(1)}
-                      </td>
-                      <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">
-                        {s.baseline.toFixed(1)}
-                      </td>
-                      <td className="px-3 py-2 text-right tabular-nums">
-                        {s.rasio > 0 ? `${s.rasio.toFixed(1)}x` : "-"}
-                      </td>
-                      <td className="px-5 py-2">
-                        <LevelBadge level={s.level} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      {s.nama}
+                    </button>
+                  ),
+                },
+                {
+                  kunci: "jumlah",
+                  judul: "Kasus",
+                  angka: true,
+                  nilai: (s) => nf.format(s.jumlah),
+                },
+                {
+                  kunci: "meninggal",
+                  judul: "Meninggal",
+                  angka: true,
+                  nilai: (s) => nf.format(s.meninggal),
+                  render: (s) =>
+                    s.meninggal > 0 ? (
+                      <span className="font-semibold text-destructive">
+                        {nf.format(s.meninggal)}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">0</span>
+                    ),
+                },
+                {
+                  kunci: "insidensi",
+                  judul: "Insidensi/100k",
+                  angka: true,
+                  nilai: (s) => s.insidensi.toFixed(1),
+                },
+                {
+                  kunci: "baseline",
+                  judul: "Baseline",
+                  angka: true,
+                  nilai: (s) => s.baseline.toFixed(1),
+                },
+                {
+                  kunci: "rasio",
+                  judul: "Rasio",
+                  angka: true,
+                  nilai: (s) => (s.rasio > 0 ? `${s.rasio.toFixed(1)}x` : "-"),
+                },
+                {
+                  kunci: "level",
+                  judul: "Status",
+                  nilai: (s) => s.level,
+                  render: (s) => <LevelBadge level={s.level} />,
+                },
+              ]}
+            />
           </section>
         </div>
       </div>

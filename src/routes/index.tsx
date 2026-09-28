@@ -5,7 +5,6 @@ import {
   ArrowRight,
   ClipboardCheck,
   Clock,
-  Siren,
   Sparkles,
   TrendingUp,
   Users,
@@ -26,6 +25,7 @@ import {
 } from "recharts";
 
 import { AlertBanner } from "@/components/AlertBanner";
+import { AlatTabel } from "@/components/AlatTabel";
 import { LevelBadge } from "@/components/LevelBadge";
 import { StatCard } from "@/components/StatCard";
 import { useSurveilans } from "@/lib/store";
@@ -323,41 +323,68 @@ function Dashboard() {
             </div>
           </div>
 
-          <div className="panel overflow-hidden p-5 lg:col-span-2">
-            <h3 className="text-base font-semibold">Status per desa (7 hari terakhir)</h3>
-            <div className="mt-3 overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                    <th className="py-2 pr-3">Desa</th>
-                    <th className="py-2 pr-3">Kasus</th>
-                    <th className="py-2 pr-3">Baseline</th>
-                    <th className="py-2 pr-3">Rasio</th>
-                    <th className="py-2 pr-3">Insidensi</th>
-                    <th className="py-2">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {d.status.map((s) => (
-                    <tr key={s.kode} className="border-b border-border/50 last:border-0">
-                      <td className="py-2.5 pr-3">
-                        <span className="font-medium">{s.desa}</span>
-                        <span className="block text-xs text-muted-foreground">{s.kecamatan}</span>
-                      </td>
-                      <td className="py-2.5 pr-3 font-mono">{s.mingguIni}</td>
-                      <td className="py-2.5 pr-3 font-mono text-muted-foreground">
-                        {s.rataBaseline}
-                      </td>
-                      <td className="py-2.5 pr-3 font-mono">{s.rasio}x</td>
-                      <td className="py-2.5 pr-3 font-mono text-muted-foreground">{s.insidensi}</td>
-                      <td className="py-2.5">
-                        <LevelBadge level={s.level} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          <div className="panel p-5 lg:col-span-2">
+            <AlatTabel
+              baris={d.status}
+              nama="status-desa-7-hari"
+              rowKey={(s) => s.kode}
+              judul={<h3 className="text-base font-semibold">Status per desa (7 hari terakhir)</h3>}
+              keterangan={
+                <p className="text-xs text-muted-foreground">
+                  Ambang: KLB bila rasio &ge; 2x baseline dengan minimal 10 kasus, atau insidensi
+                  &ge; 50 per 100.000 per minggu.
+                </p>
+              }
+              kolom={[
+                {
+                  kunci: "desa",
+                  judul: "Desa",
+                  cari: (s) => `${s.desa} ${s.kecamatan} ${s.puskesmas}`,
+                  nilai: (s) => s.desa,
+                  render: (s) => (
+                    <>
+                      <span className="font-medium">{s.desa}</span>
+                      <span className="block text-xs text-muted-foreground">{s.kecamatan}</span>
+                    </>
+                  ),
+                },
+                {
+                  kunci: "kasus",
+                  judul: "Kasus",
+                  angka: true,
+                  nilai: (s) => String(s.mingguIni),
+                },
+                {
+                  kunci: "baseline",
+                  judul: "Baseline",
+                  angka: true,
+                  nilai: (s) => s.rataBaseline.toFixed(1),
+                },
+                {
+                  kunci: "rasio",
+                  judul: "Rasio",
+                  angka: true,
+                  nilai: (s) => `${s.rasio.toFixed(2)}x`,
+                },
+                {
+                  kunci: "insidensi",
+                  judul: "Insidensi/100k",
+                  angka: true,
+                  nilai: (s) => s.insidensi.toFixed(1),
+                },
+                {
+                  kunci: "status",
+                  judul: "Status",
+                  nilai: (s) => s.level,
+                  render: (s) => <LevelBadge level={s.level} />,
+                },
+                {
+                  kunci: "alasan",
+                  judul: "Alasan",
+                  nilai: (s) => s.alasan,
+                },
+              ]}
+            />
           </div>
         </div>
       </section>
@@ -368,25 +395,8 @@ function Dashboard() {
           <h2 className="text-lg font-semibold">Agregat SKDR mingguan {TAHUN}</h2>
           <p className="text-xs text-muted-foreground">
             Satu kartu per penyakit &middot; {KECAMATAN.length} kecamatan &middot; minggu 1&ndash;52
+            &middot; angka antarpenyakit tidak dijumlahkan
           </p>
-        </div>
-
-        <div className="panel flex items-start gap-3 border-l-4 border-l-primary p-4">
-          <Siren className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden />
-          <div className="space-y-1 text-sm">
-            <p>
-              <strong className="font-semibold">
-                Angka penyakit berbeda tidak boleh dijumlahkan.
-              </strong>{" "}
-              Karena itu halaman ini tidak lagi menampilkan "total kasus seluruh penyakit". Total
-              gabungan kasus DBD dengan diare tidak punya arti epidemiologis: angka DBD bisa naik
-              sementara diare turun, dan penjumlahan akan menutupi kedua perubahan itu.
-            </p>
-            <p className="text-muted-foreground">
-              Angka kasus di bawah adalah agregat mingguan per kecamatan dari formulir SKDR. Jumlah
-              kasus individu per hari ada di lapis pertama, dan keduanya tidak dijumlahkan bersama.
-            </p>
-          </div>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

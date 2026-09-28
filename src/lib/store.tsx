@@ -71,9 +71,10 @@ export function SurveilansProvider({ children }: { children: ReactNode }) {
   }, [kasus, siap]);
 
   const tambah = useCallback((k: Omit<Kasus, "id">) => {
-    // Awalan "U" menandai kasus buatan pengguna: tidak pernah bentrok dengan id
-    // bawaan "SS-00001", dan formatnya selalu sama lebarnya.
-    const baru: Kasus = { ...k, id: `SS-U${Date.now().toString(36)}` };
+    // Awalan "BB-" mengikuti awalan dataset bawaan (Kabupaten Bandung), dan
+    // huruf "U" menandai kasus yang dibuat pengguna supaya tidak pernah
+    // bentrok dengan id bawaan "BB-00001".
+    const baru: Kasus = { ...k, id: `BB-U${Date.now().toString(36)}` };
     setKasus((prev) => [baru, ...prev]);
     return baru;
   }, []);

@@ -18,7 +18,7 @@ export function Navbar() {
   const [buka, setBuka] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/70 bg-background/80 backdrop-blur-xl">
+    <header className="no-print sticky top-0 z-50 border-b border-border/70 bg-background/80 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3">
         <Link to="/" className="flex items-center gap-2.5">
           <span className="relative flex size-9 items-center justify-center rounded-xl bg-primary/15 text-primary">

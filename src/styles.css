@@ -234,3 +234,34 @@
     transform: scale(1.35);
   }
 }
+
+/* Aturan cetak. Tombol "Cetak" memakai dialog cetak browser, dan dari sana
+   pengguna bisa memilih "Simpan sebagai PDF" -- jadi tidak perlu pustaka
+   pembuat PDF. Yang disembunyikan di sini adalah kendali antarmuka yang
+   tidak berguna di atas kertas. */
+@media print {
+  /* Halaman dicetak di atas kertas putih, jadi latar gelap dibalik. */
+  html {
+    color-scheme: light;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  /* Cegah tabel panjang terpotong di tengah baris. */
+  table,
+  tr,
+  .panel {
+    break-inside: avoid;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  /* Kertas lebih sempit daripada layar; biarkan tabel Wrap, bukan digulir. */
+  .overflow-x-auto {
+    overflow: visible !important;
+  }
+}
