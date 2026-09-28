@@ -107,9 +107,10 @@ export function AlatTabel<T>({
   const keCsv = () => {
     // Sel yang memuat pemisah, kutip, atau baris baru harus diapit kutip.
     const sel = (v: string) => (/[";\n\r]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
-    // Awalan BOM supaya Excel membaca berkas ini sebagai UTF-8.
+    // Awalan BOM (EF BB BF) supaya Excel membaca berkas ini sebagai UTF-8.
+    // Ditulis sebagai escape supaya jelas di kode dan tidak tertukar dengan spasi.
     return [
-      "﻿" + selKepala().join(";"),
+      "\uFEFF" + selKepala().join(";"),
       ...hasil.map((b, i) => selBaris(b, i, sel).join(";")),
     ].join("\r\n");
   };

@@ -65,6 +65,9 @@ const PRESET = [
   { label: "Seumur tahun", dari: 1, sampai: 52 },
 ] as const;
 
+/** Daftar nomor minggu yang sah, dipakai oleh kedua kotak pilihan. */
+const MINGGU_SKDR = Array.from({ length: JUMLAH_MINGGU }, (_, i) => i + 1);
+
 export function FilterSKDRBar({
   nilai,
   onUbah,
@@ -76,7 +79,7 @@ export function FilterSKDRBar({
 }) {
   const set = (p: Partial<FilterState>) => onUbah({ ...nilai, ...p });
   // Dua nilai terpisah, bukan tuple, supaya noUncheckedIndexedAccess tidak
-  // membuat setiap pemakaianminggu[0] jadi number | undefined.
+  // membuat setiap pemakaian minggu[0] jadi number | undefined.
   const dari = Math.min(nilai.mingguDari, nilai.mingguSampai);
   const sampai = Math.max(nilai.mingguDari, nilai.mingguSampai);
   const minggu: [number, number] = [dari, sampai];
@@ -109,10 +112,6 @@ export function FilterSKDRBar({
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
-        <p className="text-xs text-muted-foreground">
-          Angka hanya berlaku untuk {nilai.penyakit}. Tidak ada lagi total gabungan seluruh
-          penyakit, karena jumlah kasus dari penyakit berbeda tidak boleh dijumlahkan.
-        </p>
       </div>
 
       {/* 2. Jenis kasus */}
@@ -154,7 +153,7 @@ export function FilterSKDRBar({
         </div>
       </div>
 
-      {/* 4. Minggu SKDR */}
+      {/* 4. Periode SKDR */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <Label className="text-xs uppercase tracking-wide text-muted-foreground">
@@ -165,22 +164,51 @@ export function FilterSKDRBar({
             Minggu {dari}&ndash;{sampai} ({sampai - dari + 1} minggu)
           </p>
         </div>
-        <Slider
-          value={minggu}
-          min={1}
-          max={JUMLAH_MINGGU}
-          step={1}
-          minStepsBetweenThumbs={0}
-          onValueChange={(v) => {
-            const [a, b] = v as [number, number];
-            set({ mingguDari: Math.min(a, b), mingguSampai: Math.max(a, b) });
-          }}
-          aria-label="Rentang minggu SKDR"
-        />
-        <div className="flex justify-between text-[11px] text-muted-foreground">
-          <span>Minggu 1</span>
-          <span>Minggu {JUMLAH_MINGGU}</span>
+
+        {/*
+          Dua kotak pilihan minggu adalah cara utama memilih periode. Slider
+          di bawah hanya pelengkap untuk gesaran kasar: menyeret sepanjang
+          1-52 itu tidak presisi, jadi angka minggu tidak boleh dikejar
+          dengan menyeret. Kotak ini yang dipakai kalau pengguna sudah tahu
+          minggu berapa yang dicari, atau saat memakai papan ketik atau layar
+          sentuh.
+        */}
+        <div className="grid grid-cols-2 gap-2 sm:gap-3">
+          <PemilihMinggu
+            label="Mulai"
+            minggu={dari}
+            tahun={nilai.tahun}
+            onPilih={(m) =>
+              set({ mingguDari: Math.min(m, sampai), mingguSampai: Math.max(m, sampai) })
+            }
+          />
+          <PemilihMinggu
+            label="Selesai"
+            minggu={sampai}
+            tahun={nilai.tahun}
+            onPilih={(m) => set({ mingguDari: Math.min(dari, m), mingguSampai: Math.max(dari, m) })}
+          />
         </div>
+
+        <div className="pt-1">
+          <Slider
+            value={minggu}
+            min={1}
+            max={JUMLAH_MINGGU}
+            step={1}
+            minStepsBetweenThumbs={0}
+            onValueChange={(v) => {
+              const [a, b] = v as [number, number];
+              set({ mingguDari: Math.min(a, b), mingguSampai: Math.max(a, b) });
+            }}
+            aria-label="Rentang minggu SKDR"
+          />
+          <div className="flex justify-between text-[11px] text-muted-foreground">
+            <span>Minggu 1</span>
+            <span>Minggu {JUMLAH_MINGGU}</span>
+          </div>
+        </div>
+
         <div className="flex flex-wrap gap-2">
           {PRESET.map((p) => {
             const aktif = nilai.mingguDari === p.dari && nilai.mingguSampai === p.sampai;
@@ -234,6 +262,45 @@ export function FilterSKDRBar({
         </p>
       </div>
     </section>
+  );
+}
+
+/**
+ * Kotak pilihan satu minggu. Dipakai berpasangan: satu untuk awal periode,
+ * satu untuk akhirnya. Jumlah minggu yang bisa dipilih sengaja tidak diubah
+ * -- hanya cara menentukannya yang diganti.
+ */
+function PemilihMinggu({
+  label,
+  minggu,
+  tahun,
+  onPilih,
+}: {
+  label: string;
+  minggu: number;
+  tahun: number;
+  onPilih: (minggu: number) => void;
+}) {
+  const id = `minggu-${label.toLowerCase()}`;
+  return (
+    <div className="space-y-1.5">
+      <Label htmlFor={id} className="text-[11px] uppercase tracking-wide text-muted-foreground">
+        {label}
+      </Label>
+      <Select value={String(minggu)} onValueChange={(v) => onPilih(Number(v))}>
+        <SelectTrigger id={id} className="w-full" aria-label={`Minggu ${label.toLowerCase()}`}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {MINGGU_SKDR.map((m) => (
+            <SelectItem key={m} value={String(m)}>
+              <span className="font-medium">Minggu {m}</span>
+              <span className="text-muted-foreground">&nbsp;&middot; {namaMinggu(tahun, m)}</span>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   );
 }
 

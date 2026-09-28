@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import {
   BookOpen,
   ClipboardCopy,
+  HeartPulse,
   Info,
   Loader2,
   MessageCircleQuestion,
@@ -15,7 +16,7 @@ import { toast } from "sonner";
 
 import { StatCard } from "@/components/StatCard";
 import { useSurveilans } from "@/lib/store";
-import { analisisNaratif, type ModeAnalisis } from "@/lib/ai.functions";
+import { analisisNaratif, tanyaKesehatan, type ModeAnalisis } from "@/lib/ai.functions";
 import { ringkasanUntukAI } from "@/lib/analitik";
 
 export const Route = createFileRoute("/analisis")({
@@ -354,6 +355,8 @@ function Analisis() {
         </section>
       )}
 
+      <KotakTanyaKesehatan />
+
       <details className="panel p-5">
         <summary className="cursor-pointer text-sm font-semibold">
           Lihat ringkasan data yang dikirim ke AI
@@ -370,6 +373,167 @@ function Analisis() {
   );
 }
 
+const CONTOH_TANYA = [
+  "Anak saya demam tiga hari, tidak mau makan. Kira-kira kenapa ya?",
+  "Batuk anak saya sudah seminggu, kadang ada sesak napas. Perlu ke dokter?",
+  "Ibu saya pusing, mual, dan berat badan turun cepat.",
+  "Anak saya demam dan ada ruam merah. Apakah ini bahaya?",
+];
+
+const BATAS_PANJANG = 1000;
+
+/**
+ * Kotak tanya kesehatan. Sengaja dipisah dari analisis surveilans di atas:
+ * Pertanyaannya berbeda jenis -- satu soal orang, satu soal wilayah -- dan
+ * keduanya memakai prompt yang berbeda di server.
+ *
+ * Yang ditonjolkan di sini adalah batasnya, bukan fiturnya. Jawaban AI
+ * tentang kesehatan tidak boleh diperlakukan sebagai diagnosis, jadi
+ * peringatan untuk berobat ke fasilitas kesehatan ditampilkan selalu, bukan
+ * hanya kalau AI kebetulan menyebutkannya.
+ */
+function KotakTanyaKesehatan() {
+  const [pertanyaan, setPertanyaan] = useState("");
+  const [memuat, setMemuat] = useState(false);
+  const [galat, setGalat] = useState<string | null>(null);
+  const [hasil, setHasil] = useState<{ teks: string; model: string } | null>(null);
+
+  const kirim = async () => {
+    const t = pertanyaan.trim();
+    if (t.length < 3) {
+      setGalat("Tuliskan keluhan lebih dulu, minimal tiga huruf.");
+      return;
+    }
+    setMemuat(true);
+    setGalat(null);
+    setHasil(null);
+    try {
+      const res = await tanyaKesehatan({ data: { pertanyaan: t } });
+      if (res.ok) setHasil({ teks: res.teks, model: res.model });
+      else setGalat(res.error);
+    } catch {
+      setGalat("Tidak bisa menghubungi server. Coba lagi sebentar.");
+    } finally {
+      setMemuat(false);
+    }
+  };
+
+  return (
+    <section className="panel space-y-4 p-5 sm:p-6" aria-label="Tanya kesehatan">
+      <div className="flex items-start gap-3">
+        <HeartPulse className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden />
+        <div className="min-w-0">
+          <h2 className="text-base font-semibold">Tanya soal kesehatan</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Tuliskan keluhan orang yang Anda pedulikan, lalu AI akan menjelaskan tanda bahaya yang
+            perlu diperhatikan, apa yang bisa dilakukan di rumah, dan ke mana harus pergi. Bahasa
+            sehari-hari, tanpa istilah medis.
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-start gap-2 rounded-lg border border-warning/40 bg-warning/10 p-3">
+        <Info className="mt-0.5 size-4 shrink-0 text-warning-text" aria-hidden />
+        <p className="text-xs text-muted-foreground">
+          <span className="font-semibold text-warning-text">Ini bukan diagnosa.</span> AI di sini
+          tidak bisa memeriksa orang dan tidak bisa memastikan penyakit apa yang sedang dialami.
+          Untuk anak demam lebih dari tiga hari, atau bila ada tanda bahaya apa pun, langsung ke
+          puskesmas atau IGD tanpa menunggu jawaban di halaman ini.
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        <label htmlFor="tanya-kesehatan" className="block text-sm font-medium">
+          Keluhan
+        </label>
+        <textarea
+          id="tanya-kesehatan"
+          value={pertanyaan}
+          onChange={(e) => setPertanyaan(e.target.value.slice(0, BATAS_PANJANG))}
+          rows={3}
+          placeholder="Contoh: anak saya demam tiga hari, tidak mau makan. Kira-kira kenapa ya?"
+          className="w-full resize-y rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
+        />
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap gap-2">
+            {CONTOH_TANYA.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setPertanyaan(c)}
+                className="max-w-full truncate rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+          <span className="text-xs text-muted-foreground">
+            {pertanyaan.length}/{BATAS_PANJANG}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={() => void kirim()}
+          disabled={memuat}
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {memuat ? <Loader2 className="size-4 animate-spin" /> : <HeartPulse className="size-4" />}
+          {memuat ? "AI sedang menjawab…" : "Tanyakan"}
+        </button>
+        <p className="text-xs text-muted-foreground">
+          Hanya keluhan yang Anda ketik yang dikirim. Jangan sertakan nama, alamat, atau nomor
+          telepon.
+        </p>
+      </div>
+
+      {galat ? (
+        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3" role="alert">
+          <p className="text-sm font-semibold text-destructive">Gagal menjawab</p>
+          <p className="mt-1 text-xs text-muted-foreground">{galat}</p>
+        </div>
+      ) : null}
+
+      {memuat ? (
+        <div className="flex items-center gap-2 rounded-lg border border-border p-4 text-sm text-muted-foreground">
+          <Loader2 className="size-4 animate-spin text-primary" />
+          Menyusun jawaban…
+        </div>
+      ) : null}
+
+      {hasil ? (
+        <section className="overflow-hidden rounded-xl border border-border">
+          <div className="flex flex-wrap items-center gap-2 border-b border-border/70 bg-secondary/40 px-4 py-3">
+            <BookOpen className="size-4 text-primary" aria-hidden />
+            <h3 className="text-sm font-semibold">Penjelasan</h3>
+            <span className="font-mono text-[10px] text-muted-foreground">{hasil.model}</span>
+            <button
+              type="button"
+              onClick={() => {
+                void navigator.clipboard
+                  .writeText(hasil.teks)
+                  .then(() => toast.success("Tersalin"))
+                  .catch(() => toast.error("Tidak bisa menyalin"));
+              }}
+              className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1 text-xs font-medium transition-colors hover:bg-secondary"
+            >
+              <ClipboardCopy className="size-3.5" aria-hidden /> Salin
+            </button>
+          </div>
+          <div className="p-4">
+            <Narasi teks={hasil.teks} />
+          </div>
+          <p className="border-t border-border/70 px-4 py-2.5 text-xs text-muted-foreground">
+            Penjelasan ini dibuat AI dan bukan hasil pemeriksaan dokter. Yang menentukan tindakan
+            berikutnya adalah petugas puskesmas yang memeriksa langsung.
+          </p>
+        </section>
+      ) : null}
+    </section>
+  );
+}
 /**
  * Render markdown sederhana (judul tebal, daftar bernomor, paragraf) tanpa
  * dependensi tambahan. Teks tetap keluar sebagai elemen React, jadi tidak ada
