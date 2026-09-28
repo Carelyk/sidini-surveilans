@@ -9,13 +9,13 @@ import { DESA, GEJALA_UMUM, KELOMPOK_UMUR, TANGGAL_ACUAN, type KelompokUmur } fr
 export const Route = createFileRoute("/lapor")({
   head: () => ({
     meta: [
-      { title: "Lapor Gejala (Kanal Warga) | SIGAP Sentosa" },
+      { title: "Lapor Gejala (Kanal Warga) | SIDINI" },
       {
         name: "description",
         content:
           "Kanal pelaporan gejala oleh warga: singkat, tanpa nama wajib, dan diverifikasi petugas sebelum dihitung sebagai kasus.",
       },
-      { property: "og:title", content: "Lapor Gejala (Kanal Warga) | SIGAP Sentosa" },
+      { property: "og:title", content: "Lapor Gejala (Kanal Warga) | SIDINI" },
       {
         property: "og:description",
         content: "Laporkan demam, diare, atau kluster keluhan di keluarga Anda dalam 1 menit.",
@@ -27,7 +27,7 @@ export const Route = createFileRoute("/lapor")({
 
 function LaporWarga() {
   const { tambah } = useSurveilans();
-  const [kodeDesa, setKodeDesa] = useState(DESA[0].kode);
+  const [kodeDesa, setKodeDesa] = useState(DESA[0]!.kode);
   const [umur, setUmur] = useState<KelompokUmur>("15-44");
   const [gejala, setGejala] = useState<string[]>([]);
   const [onset, setOnset] = useState(TANGGAL_ACUAN);
@@ -71,7 +71,10 @@ function LaporWarga() {
       status: "Baru",
       sumber: "Warga",
       gejala,
-      catatan: [kluster ? "Ada anggota keluarga lain dengan keluhan sama" : "", kontak ? "Kontak tersedia" : ""]
+      catatan: [
+        kluster ? "Ada anggota keluarga lain dengan keluhan sama" : "",
+        kontak ? "Kontak tersedia" : "",
+      ]
         .filter(Boolean)
         .join(" · "),
     });
@@ -89,17 +92,17 @@ function LaporWarga() {
         <p className="text-xs font-semibold uppercase tracking-wide text-primary">Kanal warga</p>
         <h1 className="mt-1 text-2xl font-bold sm:text-3xl">Lapor gejala dari rumah</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Cukup 5 pertanyaan, tanpa perlu menyebut nama. Laporan Anda masuk ke antrean
-          verifikasi petugas puskesmas — baru dihitung sebagai kasus setelah diverifikasi,
-          sehingga dashboard tidak dipenuhi laporan palsu atau ganda.
+          Cukup 5 pertanyaan, tanpa perlu menyebut nama. Laporan Anda masuk ke antrean verifikasi
+          petugas puskesmas — baru dihitung sebagai kasus setelah diverifikasi, sehingga dashboard
+          tidak dipenuhi laporan palsu atau ganda.
         </p>
       </header>
 
       {terkirim && (
         <div className="panel flex items-start gap-3 border-success/40 bg-success/10 p-4">
-          <CheckCircle2 className="mt-0.5 size-5 text-success" />
+          <CheckCircle2 className="mt-0.5 size-5 text-success-text" />
           <div className="text-sm">
-            <p className="font-semibold text-success">Laporan diterima — nomor {terkirim}</p>
+            <p className="font-semibold text-success-text">Laporan diterima — nomor {terkirim}</p>
             <p className="text-muted-foreground">
               Status: <strong>Menunggu verifikasi</strong>. Petugas dapat menghubungi Anda bila
               perlu penyelidikan lapangan. Lihat antrean di halaman Verifikasi.
@@ -203,9 +206,9 @@ function LaporWarga() {
               className="mt-0.5 size-4 accent-[var(--color-primary)]"
             />
             <span>
-              Saya memahami data kesehatan ini bersifat pribadi spesifik dan hanya digunakan
-              petugas surveilans untuk verifikasi serta respons wabah, sesuai UU PDP No. 27/2022.
-              Data ditampilkan di dashboard hanya dalam bentuk agregat per desa.
+              Saya memahami data kesehatan ini bersifat pribadi spesifik dan hanya digunakan petugas
+              surveilans untuk verifikasi serta respons wabah, sesuai UU PDP No. 27/2022. Data
+              ditampilkan di dashboard hanya dalam bentuk agregat per desa.
             </span>
           </label>
 
@@ -232,7 +235,7 @@ function LaporWarga() {
 
           <div className="panel p-5">
             <h2 className="flex items-center gap-2 text-base font-semibold">
-              <WifiOff className="size-4 text-warning" /> Sinyal lemah?
+              <WifiOff className="size-4 text-warning-text" /> Sinyal lemah?
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
               Formulir ini ringan (&lt;100 KB) dan dapat disimpan sebagai draf di perangkat lalu

@@ -80,11 +80,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "SIGAP Sentosa — Sistem Peringatan Dini Wabah" },
+      { title: "SIDINI — Sistem Deteksi Dini Wabah" },
       {
         name: "description",
         content:
-          "Sistem peringatan dini wabah Kabupaten Sehat Sentosa: pelaporan kasus real-time dari puskesmas dan warga, dashboard, peta sebaran, alert otomatis, dan analisis naratif AI.",
+          "SIDINI, sistem deteksi dini wheyabah Kabupaten Bandung: pelaporan kasus real-time dari puskesmas dan warga, dashboard SKDR per penyakit, peta sebaran, alert otomatis, dan analisis naratif AI.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -134,10 +134,9 @@ function RootComponent() {
           </main>
           <footer className="border-t border-border/70 py-6">
             <div className="mx-auto max-w-7xl px-4 text-xs text-muted-foreground">
-              SIGAP Sentosa — prototipe studi kasus. Seluruh data kasus bersifat{" "}
-              <strong className="text-foreground">sintetis</strong>. Data pelapor warga
-              diperlakukan sebagai data pribadi bersifat spesifik (kesehatan) sesuai UU PDP
-              No. 27/2022.
+              SIDINI — prototipe studi kasus. Seluruh data kasus bersifat{" "}
+              <strong className="text-foreground">sintetis</strong>. Data pelapor warga diperlakukan
+              sebagai data pribadi bersifat spesifik (kesehatan) sesuai UU PDP No. 27/2022.
             </div>
           </footer>
         </div>

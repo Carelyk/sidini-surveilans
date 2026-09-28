@@ -5,9 +5,19 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Design system — Sistem Peringatan Dini Wabah (Sehat Sentosa).
- * Tema: pusat komando kesehatan publik, gelap kebiruan dengan aksen teal & amber.
+ * Design system — Sistem Deteksi Dini Wabah (Kabupaten Bandung).
+ * Tema: "Medis Modern" — hijau toska + putih, untuk sistem surveilans Dinkes.
  * Semua warna oklch dan hanya dipakai lewat token semantik.
+ *
+ * KONTRAS (prinsip IMK: teks harus selalu terbaca). Diukur terhadap
+ * latar #F5FAF6:
+ *   teks utama 13.9:1 | hijau aksen #0F766E 5.2:1 | tautan 5.6:1
+ *   hijau solid #0A847E dengan teks putih 4.6:1
+ * Tiga warna dari palet awal digelapkan agar lolos WCAG AA:
+ *   #14B8A6 -> hanya isian/garis, tidak untuk teks (putih di atasnya 2.5:1)
+ *   #EF4444 -> #DC2626 untuk teks (3.6:1 -> 4.6:1)
+ *   #0284C7 -> #0369A1 untuk teks (3.9:1 -> 5.6:1)
+ * Error/warning TIDAK PERNAH hijau.
  */
 
 @theme inline {
@@ -62,60 +72,101 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  --shadow-panel: 0 18px 50px -24px oklch(0.12 0.05 230 / 0.9);
-  --shadow-glow: 0 0 0 1px oklch(0.72 0.13 185 / 0.35), 0 12px 40px -16px oklch(0.72 0.13 185 / 0.35);
+  --color-link: var(--link);
+  --color-link-foreground: var(--link-foreground);
+
+  /* Varian TEKS untuk warna status.
+     Warna status yang sama dalam versi terang hanya cocok sebagai isian:
+     amber #F59E0B di atas putih cuma 2.0:1 dan hijau #14B8A6 cuma 2.4:1,
+     keduanya gagal WCAG AA untuk teks. Badge memakai versi gelap ini:
+     amber 6.3:1, hijau 5.6:1. Isian aslinya tetap dipakai untuk ikon,
+     garis, dan peta. */
+  --color-warning-text: var(--warning-text);
+  --color-success-text: var(--success-text);
+  --color-primary-text: var(--primary-text);
+
+  /* Ramp peta. Satu hue (merah), makin pekat = makin banyak kasus.
+     Sengaja BUKAN hijau: brand sistem ini hijau, jadi ramp hijau akan
+     dibaca "makin pekat = makin aman" -- persis terbalik dari maksudnya.
+     Hijau dipakai untuk status Aman, merah untuk kepadatan kasus. */
+  --color-peta-0: var(--peta-0);
+  --color-peta-1: var(--peta-1);
+  --color-peta-2: var(--peta-2);
+  --color-peta-3: var(--peta-3);
+  --color-peta-4: var(--peta-4);
+  --color-peta-5: var(--peta-5);
+  --color-peta-6: var(--peta-6);
+
+  --shadow-panel: 0 1px 2px oklch(0.28 0.04 260 / 0.04), 0 8px 24px -12px oklch(0.28 0.04 260 / 0.12);
+  --shadow-glow: 0 0 0 1px oklch(0.7 0.11 185 / 0.28), 0 8px 28px -14px oklch(0.55 0.09 189 / 0.35);
 }
 
 :root {
   --radius: 0.75rem;
 
-  --background: oklch(0.176 0.031 244.5);
-  --foreground: oklch(0.965 0.008 220);
-  --surface: oklch(0.223 0.034 243);
-  --surface-foreground: oklch(0.965 0.008 220);
-  --card: oklch(0.223 0.034 243);
-  --card-foreground: oklch(0.965 0.008 220);
-  --popover: oklch(0.2 0.032 243);
-  --popover-foreground: oklch(0.965 0.008 220);
+  --background: oklch(0.98 0.007 151.9);
+  --foreground: oklch(0.279 0.037 260);
+  --surface: oklch(1 0 0);
+  --surface-foreground: oklch(0.279 0.037 260);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.279 0.037 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.279 0.037 260);
 
-  --primary: oklch(0.762 0.128 183);
-  --primary-foreground: oklch(0.18 0.035 220);
-  --secondary: oklch(0.283 0.038 242);
-  --secondary-foreground: oklch(0.93 0.012 220);
-  --muted: oklch(0.27 0.033 242);
-  --muted-foreground: oklch(0.706 0.027 232);
-  --accent: oklch(0.63 0.152 258);
-  --accent-foreground: oklch(0.97 0.008 220);
+  --primary: oklch(0.554 0.094 189.1);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.968 0.007 247.9);
+  --secondary-foreground: oklch(0.279 0.037 260);
+  --muted: oklch(0.968 0.007 247.9);
+  --muted-foreground: oklch(0.554 0.041 257.4);
+  --accent: oklch(0.704 0.123 182.5);
+  --accent-foreground: oklch(0.208 0.04 265);
 
-  --destructive: oklch(0.62 0.212 22);
-  --destructive-foreground: oklch(0.98 0.008 220);
-  --warning: oklch(0.79 0.155 78);
-  --warning-foreground: oklch(0.2 0.04 70);
-  --success: oklch(0.72 0.144 158);
-  --success-foreground: oklch(0.18 0.035 160);
+  --destructive: oklch(0.577 0.215 27.3);
+  --destructive-foreground: oklch(1 0 0);
+  --warning: oklch(0.769 0.165 70.1);
+  --warning-foreground: oklch(0.279 0.037 260);
+  --success: oklch(0.6 0.13 150);
+  --success-foreground: oklch(1 0 0);
 
-  --border: oklch(0.32 0.037 240);
-  --input: oklch(0.3 0.035 240);
-  --ring: oklch(0.762 0.128 183);
+  /* Varian gelap untuk teks status, lihat catatan di blok @theme di atas. */
+  --warning-text: oklch(0.5 0.13 55); /* #994a00, 6.3:1 */
+  --success-text: oklch(0.5 0.14 150); /* #007834, 5.6:1 */
+  --primary-text: oklch(0.511 0.086 186.4); /* #0F766E, 5.2:1 */
 
-  --chart-1: oklch(0.762 0.128 183);
-  --chart-2: oklch(0.79 0.155 78);
-  --chart-3: oklch(0.63 0.152 258);
-  --chart-4: oklch(0.62 0.212 22);
-  --chart-5: oklch(0.72 0.144 158);
+  --border: oklch(0.929 0.013 255.5);
+  --input: oklch(0.929 0.013 255.5);
+  --ring: oklch(0.511 0.086 186.4);
 
-  --sidebar: oklch(0.2 0.032 243);
-  --sidebar-foreground: oklch(0.94 0.01 220);
-  --sidebar-primary: oklch(0.762 0.128 183);
-  --sidebar-primary-foreground: oklch(0.18 0.035 220);
-  --sidebar-accent: oklch(0.283 0.038 242);
-  --sidebar-accent-foreground: oklch(0.94 0.01 220);
-  --sidebar-border: oklch(0.32 0.037 240);
-  --sidebar-ring: oklch(0.762 0.128 183);
+  --link: oklch(0.5 0.119 242.7);
+  --link-foreground: oklch(1 0 0);
+
+  --chart-1: oklch(0.554 0.094 189.1);
+  --chart-2: oklch(0.769 0.165 70.1);
+  --chart-3: oklch(0.577 0.215 27.3);
+  --chart-4: oklch(0.5 0.119 242.7);
+  --chart-5: oklch(0.6 0.13 150);
+
+  --peta-0: oklch(0.968 0.007 247.9);
+  --peta-1: oklch(0.945 0.03 25);
+  --peta-2: oklch(0.875 0.07 27);
+  --peta-3: oklch(0.78 0.115 30);
+  --peta-4: oklch(0.66 0.175 28);
+  --peta-5: oklch(0.545 0.205 27);
+  --peta-6: oklch(0.43 0.16 27);
+
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.279 0.037 260);
+  --sidebar-primary: oklch(0.554 0.094 189.1);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.968 0.007 247.9);
+  --sidebar-accent-foreground: oklch(0.279 0.037 260);
+  --sidebar-border: oklch(0.929 0.013 255.5);
+  --sidebar-ring: oklch(0.511 0.086 186.4);
 }
 
 .dark {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 @layer base {
@@ -127,9 +178,12 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    /* Kabut hijau tipis di dua sudut. Alpha sengaja rendah (0.10-0.12):
+       pada tema gelap alpha 0.14 hampir tak terlihat, pada tema terang
+       nilai yang sama akan menurunkan kontras teks di area itu. */
     background-image:
-      radial-gradient(900px 500px at 12% -10%, oklch(0.762 0.128 183 / 0.14), transparent 70%),
-      radial-gradient(800px 500px at 90% 0%, oklch(0.63 0.152 258 / 0.14), transparent 70%);
+      radial-gradient(900px 500px at 12% -10%, oklch(0.704 0.123 182.5 / 0.1), transparent 70%),
+      radial-gradient(800px 500px at 90% 0%, oklch(0.6 0.13 150 / 0.08), transparent 70%);
     background-attachment: fixed;
   }
 
@@ -143,19 +197,22 @@
 }
 
 @utility panel {
-  background-color: color-mix(in oklab, var(--color-surface) 82%, transparent);
+  /* Padat, bukan frosted: panel di tema gelap memakai opacity 82% + blur,
+     di tema terang itu hanya menurunkan keterbacaan angka tanpa memberi
+     kesan kedalaman yang berarti. Kedalaman sekarang datang dari
+     --shadow-panel yang tipis. */
+  background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-panel);
-  backdrop-filter: blur(8px);
 }
 
 @utility text-gradient {
   background-image: linear-gradient(
     100deg,
+    oklch(0.511 0.086 186.4),
     var(--color-primary),
-    oklch(0.8 0.12 200),
-    var(--color-accent)
+    oklch(0.6 0.13 150)
   );
   -webkit-background-clip: text;
   background-clip: text;

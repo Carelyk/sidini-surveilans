@@ -26,9 +26,9 @@ export function Navbar() {
             <span className="pulse-dot absolute -right-0.5 -top-0.5 size-2 rounded-full bg-destructive" />
           </span>
           <span className="leading-tight">
-            <span className="block font-display text-sm font-bold tracking-tight">SIGAP Sentosa</span>
+            <span className="block font-display text-sm font-bold tracking-tight">SIDINI</span>
             <span className="block text-[11px] text-muted-foreground">
-              Peringatan Dini Wabah
+              Sistem Deteksi Dini Wabah
             </span>
           </span>
         </Link>

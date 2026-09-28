@@ -17,13 +17,13 @@ import { hitungDalamRentang, kasusValid } from "@/lib/analitik";
 export const Route = createFileRoute("/puskesmas")({
   head: () => ({
     meta: [
-      { title: "Input Kasus Puskesmas (Real-time) | SIGAP Sentosa" },
+      { title: "Input Kasus Puskesmas (Real-time) | SIDINI" },
       {
         name: "description",
         content:
           "Form input kasus terkonfirmasi puskesmas dengan 6 kolom minimum agar laporan cepat namun tetap berguna secara spasial.",
       },
-      { property: "og:title", content: "Input Kasus Puskesmas (Real-time) | SIGAP Sentosa" },
+      { property: "og:title", content: "Input Kasus Puskesmas (Real-time) | SIDINI" },
       {
         property: "og:description",
         content: "Pelaporan kasus terkonfirmasi kurang dari 30 detik, langsung masuk dashboard.",
@@ -36,16 +36,13 @@ export const Route = createFileRoute("/puskesmas")({
 function InputPuskesmas() {
   const { kasus, tambah } = useSurveilans();
   const [penyakit, setPenyakit] = useState<Penyakit>("DBD");
-  const [kodeDesa, setKodeDesa] = useState(DESA[0].kode);
+  const [kodeDesa, setKodeDesa] = useState(DESA[0]!.kode);
   const [onset, setOnset] = useState(TANGGAL_ACUAN);
   const [umur, setUmur] = useState<KelompokUmur>("5-14");
   const [jk, setJk] = useState<"L" | "P">("L");
   const [jumlah, setJumlah] = useState(1);
 
-  const hariIni = useMemo(
-    () => hitungDalamRentang(kasusValid(kasus), 1).length,
-    [kasus],
-  );
+  const hariIni = useMemo(() => hitungDalamRentang(kasusValid(kasus), 1).length, [kasus]);
 
   const kirim = (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,19 +70,25 @@ function InputPuskesmas() {
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">
       <header>
-        <p className="text-xs font-semibold uppercase tracking-wide text-primary">Kanal fasilitas</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+          Kanal fasilitas
+        </p>
         <h1 className="mt-1 text-2xl font-bold sm:text-3xl">Input kasus terkonfirmasi</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Hanya 6 kolom minimum: penyakit, desa (kode wilayah), tanggal onset, kelompok umur,
-          jenis kelamin, dan jumlah kasus. Cukup singkat untuk diisi petugas di tengah pelayanan,
-          tapi sudah memadai untuk analisis spasial dan tren.
+          Hanya 6 kolom minimum: penyakit, desa (kode wilayah), tanggal onset, kelompok umur, jenis
+          kelamin, dan jumlah kasus. Cukup singkat untuk diisi petugas di tengah pelayanan, tapi
+          sudah memadai untuk analisis spasial dan tren.
         </p>
       </header>
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Mini icon={Zap} label="Kasus tercatat hari ini" nilai={String(hariIni)} />
         <Mini icon={Timer} label="Target waktu isi" nilai="< 30 detik" />
-        <Mini icon={Stethoscope} label="Total data di sistem" nilai={kasus.length.toLocaleString("id-ID")} />
+        <Mini
+          icon={Stethoscope}
+          label="Total data di sistem"
+          nilai={kasus.length.toLocaleString("id-ID")}
+        />
       </div>
 
       <form onSubmit={kirim} className="panel grid gap-4 p-5 sm:grid-cols-2 sm:p-6">
@@ -149,7 +152,9 @@ function InputPuskesmas() {
                 type="button"
                 onClick={() => setJk(v)}
                 className={`flex-1 rounded-lg border px-3 py-2.5 text-sm transition-colors ${
-                  jk === v ? "border-primary bg-primary/15 text-primary" : "border-border hover:bg-secondary"
+                  jk === v
+                    ? "border-primary bg-primary/15 text-primary"
+                    : "border-border hover:bg-secondary"
                 }`}
               >
                 {v === "L" ? "Laki-laki" : "Perempuan"}
@@ -187,15 +192,7 @@ function InputPuskesmas() {
   );
 }
 
-function Mini({
-  icon: Icon,
-  label,
-  nilai,
-}: {
-  icon: typeof Zap;
-  label: string;
-  nilai: string;
-}) {
+function Mini({ icon: Icon, label, nilai }: { icon: typeof Zap; label: string; nilai: string }) {
   return (
     <div className="panel flex items-center gap-3 p-4">
       <span className="flex size-9 items-center justify-center rounded-lg bg-primary/15 text-primary">

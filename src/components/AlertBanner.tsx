@@ -8,7 +8,7 @@ export function AlertBanner({ status }: { status: StatusDesa[] }) {
   if (!klb.length && !waspada.length) {
     return (
       <div className="panel flex items-center gap-3 p-4">
-        <ShieldCheck className="size-5 text-success" />
+        <ShieldCheck className="size-5 text-success-text" />
         <p className="text-sm text-muted-foreground">
           Tidak ada desa yang melewati ambang. Semua wilayah dalam fluktuasi normal.
         </p>
@@ -53,10 +53,12 @@ export function AlertBanner({ status }: { status: StatusDesa[] }) {
       {waspada.length > 0 && (
         <div className="panel border-warning/40 bg-warning/10 p-4">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="mt-0.5 size-5 shrink-0 text-warning" />
+            <AlertTriangle className="mt-0.5 size-5 shrink-0 text-warning-text" />
             <p className="text-sm">
-              <span className="font-semibold text-warning">Status waspada:</span>{" "}
-              {waspada.map((w) => `${w.desa} (${w.mingguIni} kasus, ${w.rasio}x baseline)`).join(" · ")}
+              <span className="font-semibold text-warning-text">Status waspada:</span>{" "}
+              {waspada
+                .map((w) => `${w.desa} (${w.mingguIni} kasus, ${w.rasio}x baseline)`)
+                .join(" · ")}
               . Pantau 48 jam ke depan sebelum mobilisasi penuh.
             </p>
           </div>

@@ -1,8 +1,19 @@
-// Dataset sintetis surveilans penyakit — Kabupaten Sehat Sentosa (fiktif, Indonesia).
+// Dataset pelaporan kasus harian — Kabupaten Bandung, Jawa Barat.
+//
+// WILAYAH NYATA, KASUS SINTETIS.
+//   - Nama 23 desa, 8 kecamatan, dan koordinatnya berasal dari data
+//     wilayah nyata (GADM 4.1 + Permendagri 72/2019, lihat wilayah.ts).
+//   - Seluruh baris kasus di bawah SINTETIS sesuai batasan case pack.
+//     Tidak ada satu pun kasus nyata di berkas ini, dan tidak boleh
+//     disajikan sebagai data surveilans asli.
+//
 // Struktur & variabel meniru dataset surveilans DBD/diare Indonesia yang umum
 // dipublikasikan (mis. dataset "Indonesia Dengue Cases" di Kaggle: wilayah,
-// tanggal, jumlah kasus, kelompok umur), namun SELURUH baris di sini sintetis
-// sesuai batasan case pack (use synthetic data only).
+// tanggal, jumlah kasus, kelompok umur).
+//
+// Untuk angka seluruh 31 kecamatan per penyakit, pakai SKDR di
+// src/data/skdr.ts. Dua lapis ini sengaja dipisah: yang di sini kasus
+// individu per hari, yang di sana agregat per minggu per kecamatan.
 
 export type Penyakit = "DBD" | "Diare" | "Chikungunya" | "Hepatitis A";
 
@@ -54,78 +65,227 @@ export const GEJALA_UMUM = [
   "Bintik merah",
 ];
 
+/**
+ * 23 desa asli di 8 kecamatan Kabupaten Bandung.
+ *
+ * NAMA desa dan NAMA kecamatan diambil apa adanya dari daftar Permendagri
+ * (src/data/wilayah.ts). Kordinat di-generate dari sebaran seragam DI DALAM
+ * poligon GADM kecamatan yang bersangkutan -- ini titik yang mewakili letak
+ * desa, bukan koordinat balai desa dari BPS, dan tidak boleh dipakai untuk
+ * menyorot kasus per desa.
+ *
+ * Hanya 8 dari 31 kecamatan yang dipakai, agar daftar "status per desa" di
+ * dashboard masih terbaca. Delapan kecamatan ini mencakup 30% penduduk
+ * kabupaten. Untuk angka seluruh kabupaten per penyakit, pakai SKDR di
+ * src/data/skdr.ts yang memuat 31 kecamatan.
+ */
 export const DESA: Desa[] = [
   {
-    kode: "3204010001",
-    nama: "Sukamaju",
-    kecamatan: "Sentosa Utara",
-    puskesmas: "Puskesmas Sentosa Utara",
-    penduduk: 18400,
-    lat: -6.9312,
-    lon: 107.6098,
+    kode: "3204060001",
+    nama: "Cimenyan",
+    kecamatan: "Cimenyan",
+    puskesmas: "Puskesmas Cimenyan",
+    penduduk: 96195,
+    lat: -6.87966,
+    lon: 107.67353,
   },
   {
-    kode: "3204010002",
+    kode: "3204060002",
+    nama: "Cikadut",
+    kecamatan: "Cimenyan",
+    puskesmas: "Puskesmas Cimenyan",
+    penduduk: 96195,
+    lat: -6.87806,
+    lon: 107.64144,
+  },
+  {
+    kode: "3204060003",
+    nama: "Cibeunying",
+    kecamatan: "Cimenyan",
+    puskesmas: "Puskesmas Cimenyan",
+    penduduk: 96195,
+    lat: -6.83536,
+    lon: 107.69357,
+  },
+  {
+    kode: "3204280004",
+    nama: "Rancaekek Kulon",
+    kecamatan: "Rancaekek",
+    puskesmas: "Puskesmas Rancaekek",
+    penduduk: 78705,
+    lat: -6.97117,
+    lon: 107.77852,
+  },
+  {
+    kode: "3204280005",
+    nama: "Rancaekek Wetan",
+    kecamatan: "Rancaekek",
+    puskesmas: "Puskesmas Rancaekek",
+    penduduk: 78705,
+    lat: -6.9762,
+    lon: 107.71387,
+  },
+  {
+    kode: "3204280006",
+    nama: "Bojongloa",
+    kecamatan: "Rancaekek",
+    puskesmas: "Puskesmas Rancaekek",
+    penduduk: 78705,
+    lat: -6.99078,
+    lon: 107.8058,
+  },
+  {
+    kode: "3204050007",
+    nama: "Cileunyi Kulon",
+    kecamatan: "Cileunyi",
+    puskesmas: "Puskesmas Cileunyi",
+    penduduk: 43725,
+    lat: -6.92578,
+    lon: 107.74287,
+  },
+  {
+    kode: "3204050008",
+    nama: "Cileunyi Wetan",
+    kecamatan: "Cileunyi",
+    puskesmas: "Puskesmas Cileunyi",
+    penduduk: 43725,
+    lat: -6.95475,
+    lon: 107.72087,
+  },
+  {
+    kode: "3204050009",
+    nama: "Cimekar",
+    kecamatan: "Cileunyi",
+    puskesmas: "Puskesmas Cileunyi",
+    penduduk: 43725,
+    lat: -6.96276,
+    lon: 107.72601,
+  },
+  {
+    kode: "3204290010",
     nama: "Cikoneng",
-    kecamatan: "Sentosa Utara",
-    puskesmas: "Puskesmas Sentosa Utara",
-    penduduk: 12100,
-    lat: -6.9188,
-    lon: 107.6321,
+    kecamatan: "Ciparay",
+    puskesmas: "Puskesmas Ciparay",
+    penduduk: 30608,
+    lat: -7.08812,
+    lon: 107.68703,
   },
   {
-    kode: "3204020003",
+    kode: "3204290011",
     nama: "Mekarsari",
-    kecamatan: "Sentosa Timur",
-    puskesmas: "Puskesmas Mekarsari",
-    penduduk: 15600,
-    lat: -6.9455,
-    lon: 107.6612,
+    kecamatan: "Ciparay",
+    puskesmas: "Puskesmas Ciparay",
+    penduduk: 30608,
+    lat: -6.99229,
+    lon: 107.70394,
   },
   {
-    kode: "3204020004",
-    nama: "Babakan Jaya",
-    kecamatan: "Sentosa Timur",
-    puskesmas: "Puskesmas Mekarsari",
-    penduduk: 9800,
-    lat: -6.9601,
-    lon: 107.6489,
+    kode: "3204290012",
+    nama: "Ciparay",
+    kecamatan: "Ciparay",
+    puskesmas: "Puskesmas Ciparay",
+    penduduk: 30608,
+    lat: -7.00738,
+    lon: 107.6939,
   },
   {
-    kode: "3204030005",
-    nama: "Rancaekek Girang",
-    kecamatan: "Sentosa Selatan",
-    puskesmas: "Puskesmas Rancaekek",
-    penduduk: 21300,
-    lat: -6.9844,
-    lon: 107.6075,
+    kode: "3204390013",
+    nama: "Ciwidey",
+    kecamatan: "Ciwidey",
+    puskesmas: "Puskesmas Ciwidey",
+    penduduk: 34980,
+    lat: -7.09103,
+    lon: 107.41142,
   },
   {
-    kode: "3204030006",
-    nama: "Panyileukan",
-    kecamatan: "Sentosa Selatan",
-    puskesmas: "Puskesmas Rancaekek",
-    penduduk: 11200,
-    lat: -6.9738,
-    lon: 107.5852,
+    kode: "3204390014",
+    nama: "Panundaan",
+    kecamatan: "Ciwidey",
+    puskesmas: "Puskesmas Ciwidey",
+    penduduk: 34980,
+    lat: -7.0772,
+    lon: 107.4195,
   },
   {
-    kode: "3204040007",
-    nama: "Cilame",
-    kecamatan: "Sentosa Barat",
-    puskesmas: "Puskesmas Cilame",
-    penduduk: 14500,
-    lat: -6.9256,
-    lon: 107.5661,
+    kode: "3204390015",
+    nama: "Panyocokan",
+    kecamatan: "Ciwidey",
+    puskesmas: "Puskesmas Ciwidey",
+    penduduk: 34980,
+    lat: -7.09686,
+    lon: 107.42908,
   },
   {
-    kode: "3204040008",
-    nama: "Tanjungwangi",
-    kecamatan: "Sentosa Barat",
-    puskesmas: "Puskesmas Cilame",
-    penduduk: 8700,
-    lat: -6.9042,
-    lon: 107.5794,
+    kode: "3204330016",
+    nama: "Sukamaju",
+    kecamatan: "Majalaya",
+    puskesmas: "Puskesmas Majalaya",
+    penduduk: 26235,
+    lat: -7.03729,
+    lon: 107.77367,
+  },
+  {
+    kode: "3204330017",
+    nama: "Majalaya",
+    kecamatan: "Majalaya",
+    puskesmas: "Puskesmas Majalaya",
+    penduduk: 26235,
+    lat: -7.06441,
+    lon: 107.74692,
+  },
+  {
+    kode: "3204130018",
+    nama: "Banjaran",
+    kecamatan: "Banjaran",
+    puskesmas: "Puskesmas Banjaran",
+    penduduk: 61215,
+    lat: -7.08305,
+    lon: 107.60832,
+  },
+  {
+    kode: "3204130019",
+    nama: "Kamasan",
+    kecamatan: "Banjaran",
+    puskesmas: "Puskesmas Banjaran",
+    penduduk: 61215,
+    lat: -7.10378,
+    lon: 107.61665,
+  },
+  {
+    kode: "3204130020",
+    nama: "Ciapus",
+    kecamatan: "Banjaran",
+    puskesmas: "Puskesmas Banjaran",
+    penduduk: 61215,
+    lat: -7.123,
+    lon: 107.61665,
+  },
+  {
+    kode: "3204250021",
+    nama: "Cicalengka Kulon",
+    kecamatan: "Cicalengka",
+    puskesmas: "Puskesmas Cicalengka",
+    penduduk: 43725,
+    lat: -6.98261,
+    lon: 107.83558,
+  },
+  {
+    kode: "3204250022",
+    nama: "Cicalengka Wetan",
+    kecamatan: "Cicalengka",
+    puskesmas: "Puskesmas Cicalengka",
+    penduduk: 43725,
+    lat: -6.98284,
+    lon: 107.85427,
+  },
+  {
+    kode: "3204250023",
+    nama: "Dampit",
+    kecamatan: "Cicalengka",
+    puskesmas: "Puskesmas Cicalengka",
+    penduduk: 43725,
+    lat: -7.00158,
+    lon: 107.8469,
   },
 ];
 
@@ -152,7 +312,7 @@ function addDays(iso: string, days: number) {
 }
 
 function pick<T>(r: () => number, arr: T[]): T {
-  return arr[Math.floor(r() * arr.length)];
+  return arr[Math.floor(r() * arr.length)]!;
 }
 
 const GEJALA_PER_PENYAKIT: Record<Penyakit, string[]> = {
@@ -162,16 +322,53 @@ const GEJALA_PER_PENYAKIT: Record<Penyakit, string[]> = {
   "Hepatitis A": ["Mata kuning", "Mual / muntah", "Demam"],
 };
 
-/** Intensitas dasar kasus per desa per hari. */
+/**
+ * Intensitas dasar kasus per desa per hari, dikunci pada NAMA DESA.
+ *
+ * Nilai dipertahankan dari versi Sentosa agar bentuk grafik 28 hari tidak
+ * berubah hanya karena nama wilayahnya diganti: Cimenyan 1.1 (terdahulu
+ * "Sukamaju"), Rancaekek 0.9 (terdahulu "Rancaekek Girang"), dan seterusnya.
+ * Desa tanpa entri memakai 0.5.
+ */
 const BASE: Record<string, number> = {
-  Sukamaju: 1.1,
-  Cikoneng: 0.5,
+  Cimenyan: 1.1,
+  Cikadut: 1.1,
+  Cibeunying: 1.1,
+  "Rancaekek Kulon": 0.9,
+  "Rancaekek Wetan": 0.9,
+  Bojongloa: 0.9,
+  "Cileunyi Kulon": 0.5,
+  "Cileunyi Wetan": 0.5,
+  Cimekar: 0.5,
+  Cikoneng: 0.35,
   Mekarsari: 0.7,
-  "Babakan Jaya": 0.35,
-  "Rancaekek Girang": 0.9,
-  Panyileukan: 0.4,
-  Cilame: 0.5,
-  Tanjungwangi: 0.3,
+  Ciparay: 0.35,
+  Ciwidey: 0.4,
+  Panundaan: 0.4,
+  Panyocokan: 0.4,
+  Sukamaju: 0.3,
+  Majalaya: 0.3,
+  Banjaran: 0.7,
+  Kamasan: 0.7,
+  Ciapus: 0.7,
+  "Cicalengka Kulon": 0.5,
+  "Cicalengka Wetan": 0.5,
+  Dampit: 0.5,
+};
+
+/**
+ * Kecamatan dengan lonjakan yang direkayasa. Dipakai sebagai Skenario, bukan
+ * data nyata: dipilih supaya cerita pelaporan harian dan grafik SKDR mingguan
+ * menunjuk wilayah yang sama, sehingga narasi AI tidak terlihat bertentangan
+ * dengan peta. Cimenyan dan Rancaekek juga punya SEMU_KEJADIAN di
+ * src/data/skdr.ts.
+ */
+const LONJAKAN: Record<string, { sejakHari: number; pengali: number }> = {
+  Cimenyan: { sejakHari: 12, pengali: 1 },
+  Cikadut: { sejakHari: 12, pengali: 1 },
+  Cibeunying: { sejakHari: 12, pengali: 1 },
+  "Rancaekek Kulon": { sejakHari: 8, pengali: 1.3 },
+  "Rancaekek Wetan": { sejakHari: 8, pengali: 1.3 },
 };
 
 export function buatDataset(): Kasus[] {
@@ -186,29 +383,37 @@ export function buatDataset(): Kasus[] {
     for (const desa of DESA) {
       let lambda = BASE[desa.nama] ?? 0.5;
 
-      // Lonjakan yang direkayasa: Sukamaju melewati ambang pada 12 hari terakhir.
-      if (desa.nama === "Sukamaju" && hariKe >= JUMLAH_HARI - 12) {
-        lambda *= 3.4 + (hariKe - (JUMLAH_HARI - 12)) * 0.35;
-      }
-      // Kenaikan sedang di Rancaekek Girang (kandidat waspada).
-      if (desa.nama === "Rancaekek Girang" && hariKe >= JUMLAH_HARI - 8) {
-        lambda *= 1.9;
+      // Lonjakan Cimenyan mulai 12 hari terakhir dan naik 0,35 per hari,
+      // sehingga kurva terlihat tumbuh bukan melompat. Rancaekek dinaikkan
+      // 1,3x pada 8 hari terakhir supaya menyentuh status Waspada tanpa
+      // melewati ambang KLB (rasio 2x baseline dengan minimal 10 kasus).
+      const lonjakan = LONJAKAN[desa.nama];
+      const sejakLonjakan = JUMLAH_HARI - (lonjakan?.sejakHari ?? 0);
+      const lagiLonjak = lonjakan !== undefined && hariKe >= sejakLonjakan && sejakLonjakan > 0;
+
+      if (lonjakan?.pengali === 1) {
+        // Cimenyan: 3,4x lalu naik 0,35 per hari
+        lambda *= 3.4 + (hariKe - sejakLonjakan) * 0.35;
+      } else if (lagiLonjak) {
+        lambda *= lonjakan!.pengali;
       }
 
       const jumlah = Math.floor(lambda + r() * lambda * 1.4);
       for (let i = 0; i < jumlah; i++) {
-        const penyakit: Penyakit =
-          desa.nama === "Sukamaju" && hariKe >= JUMLAH_HARI - 12
-            ? r() < 0.82
-              ? "DBD"
-              : pick(r, PENYAKIT)
-            : r() < 0.45
-              ? "DBD"
-              : r() < 0.75
-                ? "Diare"
-                : r() < 0.9
-                  ? "Chikungunya"
-                  : "Hepatitis A";
+        // Di kecamatan yang sedang lonjak, DBD mendominasi -- itulah yang
+        // membuat klaster bisa diruzat sebagai outbreak dengue, bukan
+        // penurunan diare.
+        const penyakit: Penyakit = lagiLonjak
+          ? r() < 0.82
+            ? "DBD"
+            : pick(r, PENYAKIT)
+          : r() < 0.45
+            ? "DBD"
+            : r() < 0.75
+              ? "Diare"
+              : r() < 0.9
+                ? "Chikungunya"
+                : "Hepatitis A";
 
         const lagLapor = r() < 0.7 ? 0 : r() < 0.9 ? 1 : 2;
         const sumber: Sumber = r() < 0.72 ? "Puskesmas" : "Warga";
@@ -241,7 +446,7 @@ export function buatDataset(): Kasus[] {
               : pick(r, KELOMPOK_UMUR);
 
         kasus.push({
-          id: `SS-${String(n++).padStart(5, "0")}`,
+          id: `BB-${String(n++).padStart(5, "0")}`,
           penyakit,
           tanggalOnset: tanggal,
           tanggalLapor: addDays(tanggal, lagLapor),

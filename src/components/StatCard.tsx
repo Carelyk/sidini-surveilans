@@ -15,14 +15,16 @@ export function StatCard({
   icon: LucideIcon;
   nada?: "netral" | "baik" | "waspada" | "bahaya";
 }) {
+  // Varian -text untuk teks ikon status, warna penuh untuk ikon. Amber
+  // terang hanya aman sebagai isian, bukan sebagai teks (2,0:1 di putih).
   const warna =
     nada === "baik"
-      ? "bg-success/15 text-success"
+      ? "bg-success/15 text-success-text"
       : nada === "waspada"
-        ? "bg-warning/15 text-warning"
+        ? "bg-warning/15 text-warning-text"
         : nada === "bahaya"
           ? "bg-destructive/15 text-destructive"
-          : "bg-primary/15 text-primary";
+          : "bg-primary/15 text-primary-text";
 
   return (
     <div className="panel p-4">
