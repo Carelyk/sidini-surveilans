@@ -16,6 +16,16 @@ dist-ssr
 .nitro
 *.local
 
+# Lockfile: proyek ini memakai bun, bukan npm.
+# Hanya bun.lock yang boleh ikut ke repository. package-lock.json berasal
+# dari pemasangan npm yang tidak sengaja dan tidak boleh di-commit: dua
+# lockfile untuk satu proyek membuat "dependensi terpasang" berbeda antara
+# mesin, dan yang terpasang bisa tidak cocok dengan bun.lock.
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+npm-shrinkwrap.json
+
 # Environment — JANGAN pernah commit kunci API
 .env
 .env.*
