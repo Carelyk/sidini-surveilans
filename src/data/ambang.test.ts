@@ -19,10 +19,34 @@ describe("konfigurasi ambang SKDR (SSOT)", () => {
     // Nilai ini disalin dari lib/skdr.ts sebelum dipindahkan ke SSOT.
     // Mengubahnya berarti mengubah ambang tanpa persetujuan.
     const sebelum = {
-      DBD: { kasusMin: 5, insidensiMin: 50, rasioWaspada: 1.5, rasioKLB: 2, kematianEskalasi: true },
-      Diare: { kasusMin: 40, insidensiMin: 100, rasioWaspada: 1.5, rasioKLB: 2, kematianEskalasi: false },
-      Chikungunya: { kasusMin: 3, insidensiMin: 15, rasioWaspada: 1.5, rasioKLB: 2, kematianEskalasi: false },
-      "Hepatitis A": { kasusMin: 3, insidensiMin: 15, rasioWaspada: 1.5, rasioKLB: 2, kematianEskalasi: false },
+      DBD: {
+        kasusMin: 5,
+        insidensiMin: 50,
+        rasioWaspada: 1.5,
+        rasioKLB: 2,
+        kematianEskalasi: true,
+      },
+      Diare: {
+        kasusMin: 40,
+        insidensiMin: 100,
+        rasioWaspada: 1.5,
+        rasioKLB: 2,
+        kematianEskalasi: false,
+      },
+      Chikungunya: {
+        kasusMin: 3,
+        insidensiMin: 15,
+        rasioWaspada: 1.5,
+        rasioKLB: 2,
+        kematianEskalasi: false,
+      },
+      "Hepatitis A": {
+        kasusMin: 3,
+        insidensiMin: 15,
+        rasioWaspada: 1.5,
+        rasioKLB: 2,
+        kematianEskalasi: false,
+      },
     };
     for (const p of PENYAKIT) {
       const a = AMBANG_SKDR[p];
