@@ -5,6 +5,8 @@ import { toast } from "sonner";
 
 import { useSurveilans } from "@/lib/store";
 import { DESA, GEJALA_UMUM, KELOMPOK_UMUR, TANGGAL_ACUAN, type KelompokUmur } from "@/data/dataset";
+import { formatTanggal } from "@/data/kronologi";
+import { onsetTerawal, validasiOnset } from "@/lib/formulir";
 
 export const Route = createFileRoute("/lapor")({
   head: () => ({
@@ -47,6 +49,11 @@ function LaporWarga() {
     }
     if (!setuju) {
       toast.error("Mohon setujui pemberitahuan privasi terlebih dahulu.");
+      return;
+    }
+    const onsetValidasi = validasiOnset(onset);
+    if (!onsetValidasi.ok) {
+      toast.error(onsetValidasi.pesan);
       return;
     }
     const desa = DESA.find((d) => d.kode === kodeDesa)!;
@@ -157,10 +164,16 @@ function LaporWarga() {
               <input
                 type="date"
                 value={onset}
+                required
+                min={onsetTerawal()}
                 max={TANGGAL_ACUAN}
                 onChange={(e) => setOnset(e.target.value)}
                 className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
               />
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Wajib diisi, antara {formatTanggal(onsetTerawal())} dan{" "}
+                {formatTanggal(TANGGAL_ACUAN)}.
+              </p>
             </Field>
             <Field label="4. Kelompok umur penderita">
               <select

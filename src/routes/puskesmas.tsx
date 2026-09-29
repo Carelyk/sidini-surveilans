@@ -14,6 +14,12 @@ import {
 } from "@/data/dataset";
 import { formatTanggal } from "@/data/kronologi";
 import { hitungDalamRentang, kasusValid } from "@/lib/analitik";
+import {
+  BATAS_JUMLAH_KASUS,
+  jumlahKasusTersimpan,
+  onsetTerawal,
+  validasiOnset,
+} from "@/lib/formulir";
 
 export const Route = createFileRoute("/puskesmas")({
   head: () => ({
@@ -48,7 +54,16 @@ function InputPuskesmas() {
   const kirim = (e: React.FormEvent) => {
     e.preventDefault();
     const desa = DESA.find((d) => d.kode === kodeDesa)!;
-    for (let i = 0; i < Math.max(1, Math.min(20, jumlah)); i++) {
+    const onsetValidasi = validasiOnset(onset);
+    if (!onsetValidasi.ok) {
+      toast.error(onsetValidasi.pesan);
+      return;
+    }
+    // Angka yang dipakai untuk menyimpan sekaligus untuk pesan toast. Kalau
+    // toast memakai nilai mentah dari input, petugas bisa melihat "50 kasus
+    // masuk" padahal yang tersimpan hanya 20.
+    const tersimpan = jumlahKasusTersimpan(jumlah);
+    for (let i = 0; i < tersimpan; i++) {
       tambah({
         penyakit,
         tanggalOnset: onset,
@@ -64,7 +79,7 @@ function InputPuskesmas() {
         gejala: [],
       });
     }
-    toast.success(`${jumlah} kasus ${penyakit} di Desa ${desa.nama} masuk dashboard seketika.`);
+    toast.success(`${tersimpan} kasus ${penyakit} di Desa ${desa.nama} masuk dashboard seketika.`);
     setJumlah(1);
   };
 
@@ -129,10 +144,16 @@ function InputPuskesmas() {
           <input
             type="date"
             value={onset}
+            required
+            min={onsetTerawal()}
             max={TANGGAL_ACUAN}
             onChange={(e) => setOnset(e.target.value)}
             className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
           />
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Wajib diisi, antara {formatTanggal(onsetTerawal())} dan {formatTanggal(TANGGAL_ACUAN)}{" "}
+            (rentang observasi data).
+          </p>
         </Field>
 
         <Field label="Kelompok umur">
@@ -168,11 +189,13 @@ function InputPuskesmas() {
           </div>
         </Field>
 
-        <Field label="Jumlah kasus (entri massal)">
+        <Field
+          label={`Jumlah kasus (entri massal, ${BATAS_JUMLAH_KASUS.min}-${BATAS_JUMLAH_KASUS.max})`}
+        >
           <input
             type="number"
-            min={1}
-            max={20}
+            min={BATAS_JUMLAH_KASUS.min}
+            max={BATAS_JUMLAH_KASUS.max}
             value={jumlah}
             onChange={(e) => setJumlah(Number(e.target.value))}
             className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
