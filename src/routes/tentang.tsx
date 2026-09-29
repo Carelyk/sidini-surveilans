@@ -353,7 +353,7 @@ function Tentang() {
         </p>
         <p className="mt-3 text-sm text-muted-foreground">
           Level kasus simulasi per penyakit juga buatan, bukan hasil pembacaan laporan. Untuk diare,
-          levelnya justru dibuat lebih rendah dari jangkar resmi Dinkes Jawa Barat (90.337
+          levelnya justru dibuat lebih rendah dari perkiraan acuan Dinkes Jawa Barat (90.337
           kasus/tahun) supaya ambang KLB tidak terlewati setiap minggu; bila kasus dibuat sebesar
           jangkar penuh, 39 dari 39 minggu di 2026 akan berstatus KLB dan ambang kehilangan makna
           sebagai penanda. Angka itu adalah level simulasi, bukan perkiraan epidemiologi.
@@ -363,6 +363,14 @@ function Tentang() {
           punya jadwal unggah, jadi setelah tanggal itu tidak ada data baru dan tidak akan ada
           peringatan bahwa data menjadi basi. Kalau nanti dihubungkan ke sumber data nyata, penanda
           kedaluwarsa perlu dikembalikan.
+        </p>
+        <p className="mt-3 text-sm text-muted-foreground">
+          Perkiraan acuan 90.337 kasus/tahun untuk diare diambil dari dataset Dinas Kesehatan Jawa
+          Barat per kabupaten/kota (terdaftar di data.go.id dan opendata.jabarprov.go.id, cakupan
+          2016 sampai 2023). Yang bisa dilacak adalah nama dataset dan penerbitnya; nilai persisnya
+          belum pernah dicocokkan ulang dengan berkas sumber, sehingga di sini disebut perkiraan
+          acuan, bukan angka resmi. Tabel BPS setara untuk 2016 juga mencantumkan catatan bahwa
+          angka DBD dan diare belum fix 100%.
         </p>
       </section>
 

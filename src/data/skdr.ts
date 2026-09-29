@@ -11,7 +11,7 @@
 //   * Batas wilayah, kode kecamatan, nama desa  : ASLI (lihat wilayah.ts)
 //   * Jumlah penduduk total                     : ASLI (BPS, 3.873.653)
 //   * Angka kasus penyakit                      : SINTETIS, diskalakan ke
-//     angka resmi Dinkes Jawa Barat sebagai jangkar (lihat ANGKA_ACUAN),
+//     perkiraan acuan Dinkes Jawa Barat (lihat ANGKA_ACUAN),
 //     dengan pengecualian diare (lihat TARGET_TAHUNAN).
 //     Tidak ada sumber publik untuk data SKDR per-kecamatan per-minggu -
 //     data itu berada di sistem Kemenkes yang tidak dipublikasikan.
@@ -34,16 +34,52 @@ export const TAHUN_SKDR: number[] = [2025, 2026];
 export const JUMLAH_MINGGU = 52;
 
 /**
- * Jangkar angka resmi yang bisa diverifikasi publik.
- * Sumber: opendata.jabarprov.go.id — Dinkes Jawa Barat,
- * "Jumlah Kasus Penyakit ... Berdasarkan Kabupaten/Kota di Jawa Barat".
- * Hanya tahun 2016 yang benar-benar terverifikasi; dipakai sebagai jangkar
- * untuk menentukan ORDUK BESARSKALA data demonstrasi, bukan sebagai data
- * mingguan.
+ * Perkiraan acuan untuk menentukan ORDUK BESARSKALA data demonstrasi.
+ *
+ * Angka ini bukan angka resmi dan tidak boleh disebut begitu. Yang bisa
+ * dilacak dan yang tidak, dicatat terpisah supaya tidak ada yang mengarang:
+ *
+ * YANG BISA DILACAK
+ *   - Nama dataset dan penerbitnya: "Jumlah Kasus Penyakit Diare
+ *     Berdasarkan Kabupaten/Kota di Jawa Barat", diterbitkan Dinas
+ *     Kesehatan Provinsi Jawa Barat, terdaftar di data.go.id dan
+ *     opendata.jabarprov.go.id, cakupan tahun 2016 sampai 2023.
+ *   - BPS punya tabel setara untuk tahun 2016 ("Jumlah Kasus HIV/AIDS,
+ *     DBD, Diare, TB, dan Malaria Menurut Kabupaten/Kota di Provinsi Jawa
+ *     Barat"). BPS sendiri memberi catatan pada tabel itu: angka DBD dan
+ *     Diare belum fix 100%.
+ *
+ * YANG TIDAK BISA DILACAK
+ *   - Nilai persis 90.337 dan 3.466 di bawah. Berkas sumbernya tidak ada
+ *     di repository ini. Saat diperiksa ulang pada 29 Sep 2026, halaman
+ *     dataset di data.go.id maupun tabel BPS hanya memuat deskripsi dan
+ *     metadata; angka per kabupaten/kota dimuat lewat peramban, jadi tidak
+ *     bisa dibaca tanpa menjalankan skrip halaman.
+ *   - Tidak ada catatan siapa pun yang pernah membaca angka itu dari
+ *     tabel aslinya. Karena itu label yang tadinya tertulis "terverifikasi"
+ *     diturunkan menjadi "perkiraan acuan".
+ *
+ * Karena statusnya perkiraan, angkanya tidak boleh dipakai untuk keputusan
+ * nyata, tidak boleh dipakai untuk membandingkan tahun 2026 dengan tahun
+ * 2016, dan tidak boleh dipakai untuk menyatakan KLB. Dipakai hanya agar
+ * level simulasi punya batas bawah yang bisa dijelaskan: tanpa jangkar,
+ * level simulasi tidak punya asal-usul. Kalau nanti angka resmi diperoleh
+ * dari Dinkes langsung, cukup ganti objek ini beserta statusnya.
  */
 export const ANGKA_ACUAN = {
-  sumber: "opendata.jabarprov.go.id, Dinkes Jawa Barat (2016, terverifikasi)",
+  /** Nama dataset dan penerbitnya. Bisa dilacak, tapi tautannya bisa berubah. */
+  sumber:
+    "Dataset Dinas Kesehatan Jawa Barat, jumlah kasus penyakit diare per kabupaten/kota (data.go.id dan opendata.jabarprov.go.id)",
+  /** Tahun data acuan. Hanya satu tahun yang dipakai, jadi ini 2016. */
   tahun: 2016,
+  /**
+   * "perkiraan acuan", bukan "resmi": nama dataset dan penerbitnya bisa
+   * dilacak, nilai persisnya belum pernah dicocokkan ulang dengan berkas
+   * sumber. Jangan diubah tanpa berkas sumber di tangan.
+   */
+  status: "perkiraan acuan" as const,
+  /** Menandai secara eksplisit bahwa nilai angkanya belum diverifikasi ulang. */
+  nilaiBelumDiverifikasiUlang: true as const,
   dbdKabupatenBandung: 3466,
   diareKabupatenBandung: 90337,
 } as const;
@@ -51,7 +87,7 @@ export const ANGKA_ACUAN = {
 /**
  * Target kasus tahunan untuk data demonstrasi (skala jangkar + tren nasional).
  *
- * PENTING untuk Diare: target ini sengaja DI BAWAH jangkar resmi
+ * PENTING untuk Diare: target ini sengaja DI BAWAH perkiraan acuan
  * ANGKA_ACUAN.diareKabupatenBandung (90.337). Alasannya dinyatakan terbuka,
  * bukan disembunyikan:
  *
@@ -335,9 +371,9 @@ function bangun(): BarisSKDR[] {
           // Skenario outbreak mengalikan ekspektasi sel tersebut. Karena
           // alokasi largest-remainder tetap memaksa total tahunan, outbreak
           // ini MENGOROSOKKAN kasus dari minggu lain, bukan menambah
-          // kasus di luar jangkar resmi. Itu pilihan sadar: total tahunan
-          // adalah angka yang terkalibrasi ke sumber resmi, sehingga tidak
-          // boleh berubah hanya karena kita menyalakan demo.
+          // kasus di luar jangkar. Itu pilihan sadar: total tahunan adalah
+          // angka yang terkalibrasi ke target di atas, sehingga tidak boleh
+          // berubah hanya karena kita menyalakan demo.
           const pengali = pengaliKejadian(tahun, m, k.kode, penyakit);
           hopesPasien.push(dasar * pengali * (1 + (acak() - 0.5) * 0.5));
           hopesMeninggal.push(dasar * pengali * CFR[penyakit] * (1 + (acak() - 0.5) * 0.7));
