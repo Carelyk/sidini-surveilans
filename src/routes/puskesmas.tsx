@@ -12,6 +12,7 @@ import {
   type KelompokUmur,
   type Penyakit,
 } from "@/data/dataset";
+import { formatTanggal } from "@/data/kronologi";
 import { hitungDalamRentang, kasusValid } from "@/lib/analitik";
 
 export const Route = createFileRoute("/puskesmas")({
@@ -82,7 +83,11 @@ function InputPuskesmas() {
       </header>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <Mini icon={Zap} label="Kasus tercatat hari ini" nilai={String(hariIni)} />
+        <Mini
+          icon={Zap}
+          label={`Kasus pada ${formatTanggal(TANGGAL_ACUAN)}`}
+          nilai={String(hariIni)}
+        />
         <Mini icon={Timer} label="Target waktu isi" nilai="< 30 detik" />
         <Mini
           icon={Stethoscope}

@@ -13,6 +13,7 @@ import { Slider } from "@/components/ui/slider";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { KABUPATEN, KECAMATAN, PROVINSI, TOTAL_PENDUDUK } from "@/data/wilayah";
 import { JUMLAH_MINGGU, PENYAKIT, TAHUN_SKDR } from "@/data/skdr";
+import { MINGGU_DATA_TERAKHIR, TAHUN_DATA_TERAKHIR, waktuPembaruan } from "@/data/kronologi";
 import { AMBANG, type JenisKasus, type Penyakit, type FilterSKDR } from "@/lib/skdr";
 import { cn } from "@/lib/utils";
 
@@ -58,11 +59,34 @@ export function namaMinggu(tahun: number, minggu: number): string {
   return tanggal.toLocaleDateString("id-ID", { day: "numeric", month: "short", timeZone: "UTC" });
 }
 
+/**
+ * Preset rentang minggu.
+ *
+ * Dua preset pertama DITURUNKAN dari tanggal data terakhir
+ * (src/data/kronologi.ts, bukan angka 46-52 yang ditulis mati). Sebelumnya
+ * "Seminggu terakhir" berarti minggu 46-52 padahal data terakhirnya hanya
+ * sampai minggu 39, jadi preset itu justru menampilkan minggu tanpa data.
+ * Angka dibatasi ke 1..JUMLAH_MINGGU supaya tidak keluar dari daftar minggu.
+ */
+function mingguTerakhir(n: number): number {
+  return Math.min(JUMLAH_MINGGU, Math.max(1, n));
+}
+
 const PRESET = [
-  { label: "Seminggu terakhir", dari: 46, sampai: 52 },
-  { label: "4 minggu terakhir", dari: 49, sampai: 52 },
-  { label: "Puncak musim hujan", dari: 5, sampai: 9 },
-  { label: "Seumur tahun", dari: 1, sampai: 52 },
+  {
+    label: "Seminggu terakhir",
+    dari: mingguTerakhir(MINGGU_DATA_TERAKHIR),
+    sampai: mingguTerakhir(MINGGU_DATA_TERAKHIR),
+    tahun: TAHUN_DATA_TERAKHIR,
+  },
+  {
+    label: "4 minggu terakhir",
+    dari: mingguTerakhir(MINGGU_DATA_TERAKHIR - 3),
+    sampai: mingguTerakhir(MINGGU_DATA_TERAKHIR),
+    tahun: TAHUN_DATA_TERAKHIR,
+  },
+  { label: "Puncak musim hujan", dari: 5, sampai: 9, tahun: TAHUN_SKDR[0] },
+  { label: "Seumur tahun", dari: 1, sampai: JUMLAH_MINGGU, tahun: undefined },
 ] as const;
 
 /** Daftar nomor minggu yang sah, dipakai oleh kedua kotak pilihan. */
@@ -211,14 +235,23 @@ export function FilterSKDRBar({
 
         <div className="flex flex-wrap gap-2">
           {PRESET.map((p) => {
-            const aktif = nilai.mingguDari === p.dari && nilai.mingguSampai === p.sampai;
+            const aktif =
+              nilai.mingguDari === p.dari &&
+              nilai.mingguSampai === p.sampai &&
+              (p.tahun === undefined || nilai.tahun === p.tahun);
             return (
               <Button
                 key={p.label}
                 type="button"
                 size="sm"
                 variant={aktif ? "default" : "outline"}
-                onClick={() => set({ mingguDari: p.dari, mingguSampai: p.sampai })}
+                onClick={() =>
+                  set({
+                    mingguDari: p.dari,
+                    mingguSampai: p.sampai,
+                    ...(p.tahun ? { tahun: p.tahun } : {}),
+                  })
+                }
               >
                 {p.label}
               </Button>
@@ -228,6 +261,12 @@ export function FilterSKDRBar({
         <p className="text-xs text-muted-foreground">
           {namaMinggu(nilai.tahun, dari)} &ndash;{" "}
           {namaMinggu(nilai.tahun, Math.min(JUMLAH_MINGGU, sampai))} {nilai.tahun}
+        </p>
+        <p className="text-[11px] text-muted-foreground">
+          Data kasus per desa berhenti di minggu {MINGGU_DATA_TERAKHIR} {TAHUN_DATA_TERAKHIR}
+          (diperbarui {waktuPembaruan()}), jadi preset &ldquo;seminggu terakhir&rdquo; memakai angka
+          itu. Deret mingguan SKDR adalah simulasi penuh setahun, sehingga minggu setelahnya masih
+          berisi angka meski belum ada laporan kasus.
         </p>
       </div>
 

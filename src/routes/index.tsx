@@ -46,6 +46,7 @@ import {
 } from "@/lib/analitik";
 import { TAHUN_SKDR } from "@/data/skdr";
 import { PENYAKIT, TANGGAL_ACUAN } from "@/data/dataset";
+import { formatTanggal, waktuPembaruan } from "@/data/kronologi";
 import { KABUPATEN, KECAMATAN, PROVINSI, TOTAL_PENDUDUK } from "@/data/wilayah";
 import { AMBANG, bandingkanPenyakit, ringkasan, trenMingguan, type Penyakit } from "@/lib/skdr";
 
@@ -219,7 +220,8 @@ function Dashboard() {
         <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border pb-2">
           <h2 className="text-lg font-semibold">Pelaporan kasus individu</h2>
           <p className="text-xs text-muted-foreground">
-            7 hari terakhir, per {TANGGAL_ACUAN} &middot; sumber: laporan puskesmas &amp; warga
+            7 hari terakhir, s.d. {formatTanggal(TANGGAL_ACUAN)} &middot; data diperbarui{" "}
+            {waktuPembaruan()} &middot; sumber: laporan puskesmas &amp; warga
           </p>
         </div>
 

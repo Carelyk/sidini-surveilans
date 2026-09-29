@@ -18,6 +18,7 @@ import {
 import { useSurveilans } from "@/lib/store";
 import { kasusValid, rataKeterlambatan } from "@/lib/analitik";
 import { DESA, PENYAKIT, TANGGAL_ACUAN, type Kasus } from "@/data/dataset";
+import { formatTanggal, waktuPembaruan } from "@/data/kronologi";
 
 export const Route = createFileRoute("/kasus")({
   head: () => ({
@@ -127,10 +128,11 @@ function DataKasus() {
           )}
         </div>
         <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-          Daftar kasus dari pelaporan Puskesmas dan laporan warga per {TANGGAL_ACUAN}. Baris yang
-          masih berstatus Baru atau Investigasi belum dihitung sebagai kasus resmi di dashboard.
-          Data kasus yang Anda tambahkan tersimpan di peramban ini dan tetap ada setelah halaman
-          dimuat ulang.
+          Daftar kasus dari pelaporan Puskesmas dan laporan warga, per{" "}
+          {formatTanggal(TANGGAL_ACUAN)} (data diperbarui {waktuPembaruan()}). Baris yang masih
+          berstatus Baru atau Investigasi belum dihitung sebagai kasus resmi di dashboard. Data
+          kasus yang Anda tambahkan tersimpan di peramban ini dan tetap ada setelah halaman dimuat
+          ulang.
         </p>
       </header>
 
