@@ -5,6 +5,7 @@ import {
   ArrowRight,
   ClipboardCheck,
   Clock,
+  Info,
   Pause,
   Play,
   Sparkles,
@@ -32,6 +33,7 @@ import { LevelBadge } from "@/components/LevelBadge";
 import { StatCard } from "@/components/StatCard";
 import { useSurveilans } from "@/lib/store";
 import {
+  formatInsidensi,
   hitungDalamRentang,
   kasusValid,
   perPenyakit,
@@ -39,6 +41,8 @@ import {
   rataKeterlambatan,
   statusPerDesa,
   tren,
+  type StatusDesa,
+  type StatusPenyakitDesa,
 } from "@/lib/analitik";
 import { TAHUN_SKDR } from "@/data/skdr";
 import { PENYAKIT, TANGGAL_ACUAN } from "@/data/dataset";
@@ -78,6 +82,17 @@ const WARNA_TOTAL = "var(--color-chart-1)";
 const nf = new Intl.NumberFormat("id-ID");
 const TAHUN = TAHUN_SKDR[TAHUN_SKDR.length - 1] ?? 2026;
 
+/**
+ * Status penyakit yang menjelaskan level desa: penyakit dengan level
+ * tertinggi. Kolom tabel (kasus, baseline, rasio, insidensi) memakai angka
+ * penyakit INI, bukan gabungan semua penyakit, supaya tabel tidak pernah
+ * menampilkan rasio gabungan yang tidak ada ambangnya.
+ */
+function pemicu(s: StatusDesa): StatusPenyakitDesa {
+  const urut = { Aman: 0, Waspada: 1, Sinyal: 2 } as const;
+  return s.perPenyakit.reduce((best, p) => (urut[p.level] > urut[best.level] ? p : best));
+}
+
 const TIP = {
   background: "var(--color-popover)",
   border: "1px solid var(--color-border)",
@@ -115,7 +130,7 @@ function Dashboard() {
     };
   }, [kasus]);
 
-  const jumlahKLBDesa = d.status.filter((s) => s.level === "KLB").length;
+  const jumlahSinyalDesa = d.status.filter((s) => s.level === "Sinyal").length;
 
   // --- Bagian 2: SKDR mingguan, SELALU dipisah per penyakit ------------------
   // Tiap penyakit punya kartu dan grafik sendiri. Jumlah kasus dari penyakit
@@ -220,13 +235,15 @@ function Dashboard() {
           />
           <StatCard
             icon={TrendingUp}
-            label="Desa status KLB"
-            nilai={jumlahKLBDesa}
+            label="Desa berstatus sinyal"
+            nilai={jumlahSinyalDesa}
             satuan={`/ ${d.status.length} desa`}
             keterangan={
-              jumlahKLBDesa ? "Alert otomatis sudah terkirim" : "Tidak ada ambang terlampaui"
+              jumlahSinyalDesa
+                ? "Dugaan KLB per penyakit, belum status KLB resmi"
+                : "Tidak ada ambang terlampaui"
             }
-            nada={jumlahKLBDesa ? "bahaya" : "baik"}
+            nada={jumlahSinyalDesa ? "bahaya" : "baik"}
           />
           <StatCard
             icon={Clock}
@@ -244,6 +261,17 @@ function Dashboard() {
             nada={d.menunggu > 20 ? "waspada" : "netral"}
           />
         </div>
+
+        <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground">
+          <Info className="mt-px size-3.5 shrink-0" aria-hidden />
+          <span>
+            Lapis ini menghitung <strong className="font-semibold">sinyal harian</strong> per
+            penyakit dari kasus individu 7 hari. Kata &ldquo;KLB&rdquo; sebagai status resmi hanya
+            dipakai di lapis SKDR mingguan di bawah, yang datanya agregat per kecamatan per minggu.
+            Sinyal di sini berarti kecurigaan lapangan yang perlu ditindaklanjuti, bukan penetapan
+            status KLB.
+          </span>
+        </p>
 
         <div className="grid gap-4">
           <div className="panel p-5">
@@ -417,8 +445,10 @@ function Dashboard() {
               judul={<h3 className="text-base font-semibold">Status per desa (7 hari terakhir)</h3>}
               keterangan={
                 <p className="text-xs text-muted-foreground">
-                  Ambang: KLB bila rasio &ge; 2x baseline dengan minimal 10 kasus, atau insidensi
-                  &ge; 50 per 100.000 per minggu.
+                  Status dihitung per penyakit memakai ambang penyakit itu sendiri (tabel
+                  &ldquo;Sumber acuan ambang&rdquo; di bawah). Angka gabungan semua penyakit hanya
+                  informasi konteks, bukan penentu status. Insidensi hanya dihitung bila jumlah
+                  penduduk desa tersedia.
                 </p>
               }
               kolom={[
@@ -435,28 +465,33 @@ function Dashboard() {
                   ),
                 },
                 {
+                  kunci: "pemicu",
+                  judul: "Penyakit pemicu",
+                  cari: (s) => s.penyakitPemicu ?? "",
+                  nilai: (s) => s.penyakitPemicu ?? "-",
+                },
+                {
                   kunci: "kasus",
-                  judul: "Kasus",
+                  judul: "Kasus (penyakit pemicu)",
                   angka: true,
-                  nilai: (s) => String(s.mingguIni),
+                  nilai: (s) => String(pemicu(s).mingguIni),
                 },
                 {
                   kunci: "baseline",
                   judul: "Baseline",
                   angka: true,
-                  nilai: (s) => s.rataBaseline.toFixed(1),
+                  nilai: (s) => pemicu(s).rataBaseline.toFixed(1),
                 },
                 {
                   kunci: "rasio",
                   judul: "Rasio",
                   angka: true,
-                  nilai: (s) => `${s.rasio.toFixed(2)}x`,
+                  nilai: (s) => `${pemicu(s).rasio.toFixed(2)}x`,
                 },
                 {
                   kunci: "insidensi",
                   judul: "Insidensi/100k",
-                  angka: true,
-                  nilai: (s) => s.insidensi.toFixed(1),
+                  nilai: (s) => formatInsidensi(pemicu(s).insidensi),
                 },
                 {
                   kunci: "status",

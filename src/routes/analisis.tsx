@@ -140,7 +140,7 @@ function Analisis() {
           100,
       )
     : 0;
-  const jumlahKLB = ringkasan.statusDesa.filter((d) => d.level === "KLB").length;
+  const jumlahSinyal = ringkasan.statusDesa.filter((d) => d.level === "Sinyal").length;
   const jumlahWaspada = ringkasan.statusDesa.filter((d) => d.level === "Waspada").length;
 
   return (
@@ -167,11 +167,13 @@ function Analisis() {
         />
         <StatCard
           icon={ShieldCheck}
-          label="Desa status bahaya"
-          nilai={jumlahKLB}
+          label="Desa berstatus sinyal"
+          nilai={jumlahSinyal}
           satuan={`/ ${ringkasan.statusDesa.length} desa`}
-          keterangan={jumlahKLB ? "Perlu tindakan segera" : "Tidak ada ambang terlampaui"}
-          nada={jumlahKLB ? "bahaya" : "baik"}
+          keterangan={
+            jumlahSinyal ? "Dugaan KLB, perlu tindakan segera" : "Tidak ada ambang terlampaui"
+          }
+          nada={jumlahSinyal ? "bahaya" : "baik"}
         />
         <StatCard
           icon={Info}
