@@ -5,6 +5,9 @@ import { toast } from "sonner";
 
 import { useSurveilans } from "@/lib/store";
 
+/** Jumlah laporan per halaman pada antrean verifikasi. */
+const UKUR_HALAMAN = 10;
+
 export const Route = createFileRoute("/verifikasi")({
   head: () => ({
     meta: [
@@ -27,8 +30,14 @@ export const Route = createFileRoute("/verifikasi")({
 function Verifikasi() {
   const { kasus, ubahStatus } = useSurveilans();
   const [cari, setCari] = useState("");
+  const [halaman, setHalaman] = useState(1);
 
-  const antrean = useMemo(
+  /**
+   * Antrean TIDAK dipotong lagi. Sebelumnya hanya 40 laporan pertama yang
+   * pernah tampil, padahal ada 94 laporan menunggu verifikasi, jadi 54 laporan
+   * tidak pernah bisa ditangani petugas tanpa mengubah kode.
+   */
+  const semua = useMemo(
     () =>
       kasus
         .filter((k) => k.sumber === "Warga" && (k.status === "Baru" || k.status === "Investigasi"))
@@ -38,10 +47,16 @@ function Verifikasi() {
             k.desa.toLowerCase().includes(cari.toLowerCase()) ||
             k.id.toLowerCase().includes(cari.toLowerCase()),
         )
-        .sort((a, b) => (a.tanggalLapor < b.tanggalLapor ? 1 : -1))
-        .slice(0, 40),
+        .sort((a, b) => (a.tanggalLapor < b.tanggalLapor ? 1 : -1)),
     [kasus, cari],
   );
+
+  const totalHalaman = Math.max(1, Math.ceil(semua.length / UKUR_HALAMAN));
+  // Pencarian atau tindakan yang mengubah jumlah antrean bisa membuat halaman
+  // aktif kosong; diklem ke rentang yang benar.
+  const halamanAman = Math.min(halaman, totalHalaman);
+  const mulai = (halamanAman - 1) * UKUR_HALAMAN;
+  const antrean = semua.slice(mulai, mulai + UKUR_HALAMAN);
 
   const skorPrioritas = (gejalaJumlah: number, kluster: boolean) =>
     (kluster ? 2 : 0) + (gejalaJumlah >= 3 ? 2 : 1);
@@ -52,9 +67,8 @@ function Verifikasi() {
         <p className="text-xs font-semibold uppercase tracking-wide text-primary">Triase</p>
         <h1 className="mt-1 text-2xl font-bold sm:text-3xl">Verifikasi laporan warga</h1>
         <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-          Laporan warga tidak langsung menjadi kasus. Sistem mengurutkan berdasarkan skor prioritas
-          (kluster keluarga + jumlah gejala), menandai kemungkinan duplikat pada desa dan tanggal
-          yang sama, lalu petugas memutuskan: sahkan, investigasi, atau tolak.
+          Laporan warga tidak langsung menjadi kasus. Petugas memutuskan: sahkan, investigasi, atau
+          tolak.
         </p>
       </header>
 
@@ -62,11 +76,14 @@ function Verifikasi() {
         <Search className="size-4 text-muted-foreground" />
         <input
           value={cari}
-          onChange={(e) => setCari(e.target.value)}
+          onChange={(e) => {
+            setCari(e.target.value);
+            setHalaman(1);
+          }}
           placeholder="Cari nomor laporan atau desa…"
           className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
         />
-        <span className="shrink-0 text-xs text-muted-foreground">{antrean.length} menunggu</span>
+        <span className="shrink-0 text-xs text-muted-foreground">{semua.length} menunggu</span>
       </div>
 
       <div className="space-y-3">
@@ -146,6 +163,36 @@ function Verifikasi() {
           );
         })}
       </div>
+
+      {semua.length > UKUR_HALAMAN && (
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4 text-xs text-muted-foreground">
+          <span>
+            Menampilkan {mulai + 1}&ndash;{Math.min(mulai + UKUR_HALAMAN, semua.length)} dari{" "}
+            {semua.length} laporan
+          </span>
+          <span className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setHalaman(halamanAman - 1)}
+              disabled={halamanAman <= 1}
+              className="rounded-lg border border-border px-3 py-1.5 font-medium transition-colors hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Sebelumnya
+            </button>
+            <span className="tabular-nums">
+              Halaman {halamanAman} / {totalHalaman}
+            </span>
+            <button
+              type="button"
+              onClick={() => setHalaman(halamanAman + 1)}
+              disabled={halamanAman >= totalHalaman}
+              className="rounded-lg border border-border px-3 py-1.5 font-medium transition-colors hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Berikutnya
+            </button>
+          </span>
+        </div>
+      )}
     </div>
   );
 }
