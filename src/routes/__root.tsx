@@ -11,7 +11,9 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { BannerDemo } from "@/components/BannerDemo";
 import { Navbar } from "@/components/Navbar";
+import { waktuPembaruan } from "@/data/kronologi";
 import { Toaster } from "@/components/ui/sonner";
 import { SurveilansProvider } from "@/lib/store";
 
@@ -130,16 +132,21 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <SurveilansProvider>
         <div className="flex min-h-screen flex-col">
+          <BannerDemo />
           <Navbar />
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <main className="flex-1">
             <Outlet />
           </main>
           <footer className="border-t border-border/70 py-6">
-            <div className="mx-auto max-w-3xl px-4 text-center text-xs leading-relaxed text-muted-foreground">
-              SIDINI · prototipe studi kasus. Seluruh data kasus bersifat{" "}
-              <strong className="text-foreground">sintetis</strong>. Data pelapor warga diperlakukan
-              sebagai data pribadi bersifat spesifik (kesehatan) sesuai UU PDP No. 27/2022.
+            <div className="mx-auto max-w-3xl space-y-1 px-4 text-center text-xs leading-relaxed text-muted-foreground">
+              <p>
+                SIDINI &middot; prototipe studi kasus. Seluruh data kasus bersifat{" "}
+                <strong className="text-foreground">sintetis</strong>. Data pelapor warga
+                diperlakukan sebagai data pribadi bersifat spesifik (kesehatan) sesuai UU PDP No.
+                27/2022.
+              </p>
+              <p>Terakhir diperbarui {waktuPembaruan()}.</p>
             </div>
           </footer>
         </div>
