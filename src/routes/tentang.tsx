@@ -179,6 +179,18 @@ function Tentang() {
                   dijumlahkan.
                 </li>
                 <li>
+                  Status tiap kecamatan diuji dengan tiga kriteria: rasio terhadap baseline sendiri,
+                  insidensi per 100.000, dan jumlah kematian.{" "}
+                  <strong className="text-foreground">
+                    Keduanya kriteria rasio hanya dibaca bila kasus penyakit itu di kecamatan
+                    tersebut mencapai jumlah minimum pada tabel di bawah
+                  </strong>{" "}
+                  (5 kasus untuk DBD, 40 untuk Diare, 3 untuk Chikungunya dan Hepatitis A). Tanpa
+                  syarat itu, satu kasus di tengah baseline pecahan menghasilkan rasio seperti 3x
+                  dan langsung menyalakan peringatan. Kriteria insidensi dan kematian tidak memakai
+                  syarat kasus minimum, dan angka ambangnya sendiri tidak diubah.
+                </li>
+                <li>
                   Deret mingguan pada prototipe adalah simulasi, dan sekarang dipotong di minggu{" "}
                   {MINGGU_SKDR_TERAKHIR}: minggu {MINGGU_SKDR_TERAKHIR + 1}-{JUMLAH_MINGGU} tidak
                   pernah ditampilkan sebagai data karena tidak ada laporan kasus yang masuk pada
@@ -200,7 +212,7 @@ function Tentang() {
                 <thead className="bg-secondary/50 text-left text-xs text-muted-foreground">
                   <tr>
                     <th className="px-3 py-2 font-semibold">Penyakit</th>
-                    <th className="px-3 py-2 font-semibold">Kasus minimum</th>
+                    <th className="px-3 py-2 font-semibold">Min. kasus rasio</th>
                     <th className="px-3 py-2 font-semibold">Insidensi minimum</th>
                     <th className="px-3 py-2 font-semibold">Rasio Waspada</th>
                     <th className="px-3 py-2 font-semibold">Rasio KLB</th>

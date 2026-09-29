@@ -304,10 +304,14 @@ export function statusMingguanKecamatan(
       } else if ((rasio >= a.rasioKLB && c.jumlah >= a.kasusMin) || ins >= a.insidensiMin) {
         level = "KLB";
       } else if (
-        rasio >= a.rasioWaspada ||
+        (rasio >= a.rasioWaspada && c.jumlah >= a.kasusMin) ||
         ins >= a.insidensiMin * 0.6 ||
         (a.kematianEskalasi && c.meninggal >= 1)
       ) {
+        // Syarat kasus minimum pada kriteria rasio: lihat AMBANG_SKDR.kasusMin.
+        // Tanpa itu, 1 kasus di tengah baseline pecahan (mis. baseline 0,3)
+        // memberi rasio 3,3x dan langsung menyalakan Waspada. Diuji per
+        // penyakit, bukan sebagai angka baru.
         level = "Waspada";
       }
 

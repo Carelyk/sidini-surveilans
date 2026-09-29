@@ -10,7 +10,15 @@ import type { Penyakit } from "@/data/skdr";
 export type StatusSumberAmbang = "tercatat" | "perlu verifikasi acuan Dinkes";
 
 export interface AmbangSKDR {
-  /** Kasus absolut minimum per minggu (mencegah alert fatigue di kecamatan kecil) */
+  /**
+   * Kasus absolut minimum per minggu agar KABUPATEN yang dihitung dari
+   * KRITERIA RASIO boleh naik status, baik ke Waspada maupun ke KLB
+   * (pencegahan alert fatigue di kecamatan kecil).
+   *
+   * Angka ini sudah ada sebelumnya dan tidak diubah. Yang berubah pada
+   * adalah cakupannya: tadinya hanya dipakai untuk KLB, sekarang juga untuk
+   * Waspada.
+   */
   kasusMin: number;
   /** Insidensi minimum per 100.000 penduduk per minggu */
   insidensiMin: number;
@@ -39,8 +47,10 @@ export const AMBANG_SKDR: Record<Penyakit, AmbangSKDR> = {
       "mingguan sendiri dengan minimal 5 kasus, ATAU ada 2 kematian dalam " +
       "satu minggu. Kematian tunggal tidak otomatis memicu KLB karena " +
       "kematian dengue di Jawa Barat sudah menjadi latar endemik tahunan; " +
-      "satu kematian tetap menaikkan status minimal ke Waspada. Acuan: " +
-      "Pedoman Penanganan Kejadian Luar Biasa Kemenkes.",
+      "satu kematian tetap menaikkan status minimal ke Waspada. Kedua " +
+      "kriteria rasio hanya dibaca bila kasus minggu itu mencapai minimal 5 " +
+      "kasus; kriteria insidensi dan kematian tidak memerlukan syarat itu. " +
+      "Acuan: Pedoman Penanganan Kejadian Luar Biasa Kemenkes.",
     sumber: "Pedoman Penanganan Kejadian Luar Biasa Kemenkes RI.",
     statusSumber: "perlu verifikasi acuan Dinkes",
   },
@@ -53,7 +63,9 @@ export const AMBANG_SKDR: Record<Penyakit, AmbangSKDR> = {
     dasar:
       "Diare tidak punya kriteria KLB nasional tunggal, jadi ambangnya dibuat " +
       "relatif terhadap baseline kecamatan itu sendiri (>= 2x selama 2 minggu) " +
-      "ditambah lantai insidensi, supaya wilayah besar tidak memicu alarm palsu.",
+      "ditambah lantai insidensi, supaya wilayah besar tidak memicu alarm palsu. " +
+      "Kedua kriteria rasio hanya dibaca bila kasus minggu itu mencapai minimal " +
+      "40 kasus; kriteria insidensi tidak memerlukan syarat itu.",
     sumber: "Belum tercatat dalam pedoman nasional tunggal (ambang operasional).",
     statusSumber: "perlu verifikasi acuan Dinkes",
   },
@@ -65,7 +77,9 @@ export const AMBANG_SKDR: Record<Penyakit, AmbangSKDR> = {
     kematianEskalasi: false,
     dasar:
       "Chikungunya berbagi vektor nyamuk dengan dengue, jadi ambangnya dibuat " +
-      "lebih rendah: penyakit ini bisa meledak cepat pada musim hujan.",
+      "lebih rendah: penyakit ini bisa meledak cepat pada musim hujan. Kedua " +
+      "kriteria rasio hanya dibaca bila kasus minggu itu mencapai minimal 3 kasus; " +
+      "kriteria insidensi tidak memerlukan syarat itu.",
     sumber: "Belum tercatat dalam pedoman nasional tunggal (ambang operasional).",
     statusSumber: "perlu verifikasi acuan Dinkes",
   },
@@ -78,7 +92,10 @@ export const AMBANG_SKDR: Record<Penyakit, AmbangSKDR> = {
     dasar:
       "Hepatitis A menular lewat makanan dan air, sehingga ledakannya biasanya " +
       "muncul di klaster padat. Ambang diuji dari baseline sendiri dengan " +
-      "lantai absolut agar klaster kecil di daerah padat tetap terlihat.",
+      "lantai absolut agar klaster kecil di daerah padat tetap terlihat. Kedua " +
+      "kriteria rasio hanya dibaca bila kasus minggu itu mencapai minimal 3 kasus; " +
+      "tanpa syarat itu satu kasus di tengah baseline pecahan memberi rasio besar " +
+      "yang tidak bermakna. Kriteria insidensi tidak memerlukan syarat itu.",
     sumber: "Belum tercatat dalam pedoman nasional tunggal (ambang operasional).",
     statusSumber: "perlu verifikasi acuan Dinkes",
   },
