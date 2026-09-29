@@ -1,28 +1,35 @@
-import { AlertTriangle, FlaskConical, ShieldAlert } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Clock, FlaskConical, ShieldAlert } from "lucide-react";
 
-import { BATAS_KEDALUWARSA_JAM, dataKedaluwarsa, usiaData, waktuPembaruan } from "@/data/kronologi";
+import { labelSnapshot, waktuPembaruan } from "@/data/kronologi";
 
 /**
  * Banner demo global.
  *
  * Dua hal yang harus selalu terlihat di setiap halaman:
  *  1) Bahwa seluruh angka adalah simulasi, bukan laporan kasus nyata.
- *  2) Kapan data terakhir diperbarui, dan apakah sudah melewati batas
- *     kedaluwarsa yang dikonfigurasi (src/data/kronologi.ts).
+ *  2) Kapan data terakhir diperbarui, dan bahwa setelah tanggal itu
+ *     tidak ada data baru.
  *
- * Umur data dihitung setelah komponen ter-mount supaya hasil render di server
- * dan di peramban sama; sebelum itu hanya waktu pembaruan tetap yang tampil.
+ * PENTING: banner ini tidak lagi menampilkan peringatan "data
+ * kedaluwarsa". Sebelumnya, begitu jam sistem melewati batas 24 jam,
+ * banner menampilkan tanda bahaya "Data lebih dari 24 jam sejak
+ * pembaruan" -- padahal prototipe ini tidak punya jadwal unggah sama
+ * sekali. Peringatan itu akan menyala setiap hari tanpa ada yang bisa
+ * diperbaiki, sehingga pembaca belajar mengabaikannya. Nilai yang
+ * sebenarnya dibaca bukan "data ini basi" tapi "prototipe ini memang
+ * statis". Sekarang yang ditampilkan adalah label tetap: "snapshot
+ * simulasi per 25 Sep 2026".
+ *
+ * Fungsi dataKedaluwarsa() dan BATAS_KEDALUWARSA_JAM tetap ada di
+ * src/data/kronologi.ts; hanya pemakaiannya di sini yang dihapus.
+ * Saat prototipe dihubungkan ke sumber data nyata, penanda
+ * kedaluwarsa justru dibutuhkan.
+ *
+ * Karena label dan waktu pembaruan keduanya konstan, komponen ini
+ * tidak lagi memakai useState/useEffect: render di server dan di
+ * peramban selalu sama tanpa menunggu mount.
  */
 export function BannerDemo() {
-  const [umur, setUmur] = useState<string | null>(null);
-  const [basi, setBasi] = useState(false);
-
-  useEffect(() => {
-    setUmur(usiaData());
-    setBasi(dataKedaluwarsa());
-  }, []);
-
   return (
     <div
       className="border-b border-warning/40 bg-warning/10"
@@ -34,17 +41,12 @@ export function BannerDemo() {
           <FlaskConical className="size-3.5 shrink-0" aria-hidden />
           DEMO &mdash; data simulasi, bukan laporan kasus sebenarnya.
         </span>
-        <span className="text-muted-foreground">
-          Terakhir diperbarui {waktuPembaruan()}
-          {umur ? ` (${umur})` : ""}. Jumlah penduduk desa, ambang KLB, dan data kasus di prototipe
-          ini belum diverifikasi sebagai angka Dinkes.
+        <span className="inline-flex items-center gap-1 text-muted-foreground">
+          <Clock className="size-3.5 shrink-0" aria-hidden />
+          {`Data demo ini adalah ${labelSnapshot()}, diambil terakhir ${waktuPembaruan()}. `}
+          Tidak ada pembaruan setelah tanggal itu. Jumlah penduduk desa, ambang KLB, dan data kasus
+          di prototipe ini belum diverifikasi sebagai angka Dinkes.
         </span>
-        {basi ? (
-          <span className="inline-flex items-center gap-1 font-semibold text-destructive">
-            <AlertTriangle className="size-3.5 shrink-0" aria-hidden />
-            Data lebih dari {BATAS_KEDALUWARSA_JAM} jam sejak pembaruan.
-          </span>
-        ) : null}
         <span className="inline-flex items-center gap-1 text-muted-foreground">
           <ShieldAlert className="size-3.5 shrink-0" aria-hidden />
           Tanpa autentikasi: semua peran dapat membuka semua halaman.

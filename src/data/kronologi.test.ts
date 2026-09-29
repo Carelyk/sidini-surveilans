@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -5,8 +6,11 @@ import {
   MINGGU_DATA_TERAKHIR,
   PEMBARUAN_TERAKHIR,
   TAHUN_DATA_TERAKHIR,
+  TANGGAL_PEMBARUAN,
   dataKedaluwarsa,
+  formatTanggal,
   jamSejakPembaruan,
+  labelSnapshot,
   mingguISO,
   usiaData,
   waktuPembaruan,
@@ -68,3 +72,57 @@ describe("preset mingguan diturunkan dari tanggal data", () => {
     expect(TAHUN_DATA_TERAKHIR).toBe(2026);
   });
 });
+
+/**
+ * Butir 5 lanjutan: penanda "kedaluwarsa" pada demo statis diganti label
+ * snapshot. Demo ini tidak punya unggah otomatis, jadi penanda basi akan
+ * menyala terus tanpa ada yang bisa diperbaiki.
+ */
+describe("label snapshot menggantikan penanda kedaluwarsa", () => {
+  it("label menyebut tanggal snapshot secara langsung", () => {
+    expect(labelSnapshot()).toBe("snapshot simulasi per 25 Sep 2026");
+  });
+
+  it("label tidak berubah seiring waktu berjalan", () => {
+    // Ini inti perlakuannya: kalau label ikut jam sistem, bunyinya berubah
+    // setiap hari tanpa ada data yang diperbarui.
+    expect(labelSnapshot()).toBe(labelSnapshot());
+  });
+
+  it("label memuat tanggal data, bukan tanggal hari ini", () => {
+    expect(labelSnapshot()).toContain(formatTanggal(TANGGAL_PEMBARUAN));
+  });
+
+  it("banner tidak lagi menampilkan peringatan kedaluwarsa", () => {
+    // Komentar berkas diabaikan: yang diperiksa hanya bagian JSX yang
+    // benar-benar dirender ke pembaca.
+    const banner = jsx(readFileSync("src/components/BannerDemo.tsx", "utf8"));
+    expect(banner).not.toMatch(/jam sejak pembaruan/i);
+    expect(banner).not.toMatch(/Data lebih dari/);
+    expect(banner).toContain("labelSnapshot");
+    expect(banner).toMatch(/Tidak ada pembaruan setelah tanggal itu/);
+  });
+
+  it("halaman Konsep menyebut sifat snapshot dan tidak ada unggah", () => {
+    const isi = teks(readFileSync("src/routes/tentang.tsx", "utf8"));
+    expect(isi).toMatch(/snapshot simulasi per 25 Sep 2026/);
+    expect(isi).toMatch(/tidak punya jadwal unggah/);
+  });
+
+  it("fungsi kedaluwarsa tetap ada untuk dipakai saat ada sumber data nyata", () => {
+    // Dihapus dari UI, bukan dihapus dari kode: begitu prototipe
+    // dihubungkan ke unggah berkala, penanda ini diperlukan lagi.
+    expect(typeof dataKedaluwarsa).toBe("function");
+    expect(BATAS_KEDALUWARSA_JAM).toBe(24);
+  });
+});
+
+/** Buang komentar berkas, sisakan kode yang benar-benar dirender. */
+function jsx(isi: string): string {
+  return isi.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^\s*\/\/.*$/gm, " ");
+}
+
+/** Rapatkan baris yang terpotong oleh prettier agar bisa dicocokkan utuh. */
+function teks(isi: string): string {
+  return isi.replace(/\s+/g, " ");
+}

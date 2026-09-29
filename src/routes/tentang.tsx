@@ -358,6 +358,12 @@ function Tentang() {
           jangkar penuh, 39 dari 39 minggu di 2026 akan berstatus KLB dan ambang kehilangan makna
           sebagai penanda. Angka itu adalah level simulasi, bukan perkiraan epidemiologi.
         </p>
+        <p className="mt-3 text-sm text-muted-foreground">
+          Seluruh angka berasal dari satu snapshot simulasi per 25 Sep 2026. Prototipe ini tidak
+          punya jadwal unggah, jadi setelah tanggal itu tidak ada data baru dan tidak akan ada
+          peringatan bahwa data menjadi basi. Kalau nanti dihubungkan ke sumber data nyata, penanda
+          kedaluwarsa perlu dikembalikan.
+        </p>
       </section>
 
       <section className="panel p-5 sm:p-6">

@@ -26,9 +26,18 @@ export const PEMBARUAN_TERAKHIR = "2026-09-25T16:30:00+07:00";
 /**
  * Batas kedaluwarsa data dalam jam, dapat dikonfigurasi.
  *
- * Prototipe ini tidak punya jadwal unggah otomatis, jadi nilai ini hanya
- * penanda tampilan: kalau jam sejak pembaruan melewati batas, UI
- * menampilkan peringatan bahwa angka bisa sudah basi.
+ * PENTING: nilai ini tidak lagi dipakai untuk menampilkan peringatan di
+ * banner demo. Data prototipe ini statis -- tidak ada unggah otomatis --
+ * sehingga setelah 24 jam penanda "kedaluwarsa" akan menyala terus
+ * walaupun tidak ada yang perlu diperbarui. Peringatan yang selalu menyala
+ * membuat pembaca mengira ada masalah, padahal yang ada hanya ketiadaan
+ * data baru. Banner sekarang memakai label tetap
+ * `labelSnapshot()` yang menyebut tanggal snapshot secara terbuka.
+ *
+ * Fungsi dan konstanta ini tetap ada karena dua alasan: (1) test masih
+ * memverifikasi perhitungan batasnya, (2) saat prototipe dihubungkan ke
+ * sumber data nyata, penanda kedaluwarsa yang seperti ini justru
+ * diperlukan. Yang berubah hanya pemakaiannya di UI.
  */
 export const BATAS_KEDALUWARSA_JAM = 24;
 
@@ -44,6 +53,23 @@ export function jamSejakPembaruan(sekarang: Date = new Date()): number {
 /** true bila data melewati batas kedaluwarsa yang dikonfigurasi. */
 export function dataKedaluwarsa(sekarang: Date = new Date()): boolean {
   return jamSejakPembaruan(sekarang) >= BATAS_KEDALUWARSA_JAM;
+}
+
+/**
+ * Label snapshot untuk banner demo: "snapshot simulasi per 25 Sep 2026".
+ *
+ * Menggantikan penanda "data kedaluwarsa", dan alasannya bukan estetika.
+ * Penanda kedaluwarsa mengukur jarak antara waktu unggah dan jam sistem,
+ * sedangkan demo ini tidak punya unggah sama sekali. Kalau yang ditunjuk
+ * adalah jam sistem yang berjalan terus, bunyi labelnya berubah setiap hari
+ * tanpa ada yang diperbarui -- pembaca tidak bisa membedakan "data lama"
+ * dengan "data salah".
+ *
+ * Yang jujur untuk demo statis adalah menyebut tanggal snapshot-nya secara
+ * langsung, dan menyatakan bahwa setelah tanggal itu tidak ada data baru.
+ */
+export function labelSnapshot(): string {
+  return `snapshot simulasi per ${formatTanggal(TANGGAL_PEMBARUAN)}`;
 }
 
 /** "25 Sep 2026, 16.30 WIB" -- format tetap, sama di server dan peramban. */
