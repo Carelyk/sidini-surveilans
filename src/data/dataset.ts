@@ -26,7 +26,6 @@ export interface Desa {
   nama: string;
   kecamatan: string;
   puskesmas: string;
-  penduduk: number;
   lat: number;
   lon: number;
 }
@@ -78,6 +77,15 @@ export const GEJALA_UMUM = [
  * dashboard masih terbaca. Delapan kecamatan ini mencakup 30% penduduk
  * kabupaten. Untuk angka seluruh kabupaten per penyakit, pakai SKDR di
  * src/data/skdr.ts yang memuat 31 kecamatan.
+ *
+ * PENDUDUK DESA TIDAK ADA DI SINI. Versi lama menyalin angka penduduk
+ * KECAMATAN ke setiap desa (Cimenyan 96.195 per desa dari kecamatan
+ * 113.982), sehingga satu kecamatan dengan 3 desa dihitung seolah 3x
+ * penduduknya dan insidensi desa jadi 3x terlalu kecil. Angka itu sudah
+ * dihapus. Sumber acuan per desa ada di src/data/populasi-desa.ts dan
+ * sengaja bernilai null sampai diisi sumber resmi beserta tahun dan
+ * sumbernya; sampai itu terjadi, insidensi per desa tidak dihitung dan
+ * status desa hanya berasal dari aturan rasio terhadap baseline.
  */
 export const DESA: Desa[] = [
   {
@@ -85,7 +93,6 @@ export const DESA: Desa[] = [
     nama: "Cimenyan",
     kecamatan: "Cimenyan",
     puskesmas: "Puskesmas Cimenyan",
-    penduduk: 96195,
     lat: -6.87966,
     lon: 107.67353,
   },
@@ -94,7 +101,6 @@ export const DESA: Desa[] = [
     nama: "Cikadut",
     kecamatan: "Cimenyan",
     puskesmas: "Puskesmas Cimenyan",
-    penduduk: 96195,
     lat: -6.87806,
     lon: 107.64144,
   },
@@ -103,7 +109,6 @@ export const DESA: Desa[] = [
     nama: "Cibeunying",
     kecamatan: "Cimenyan",
     puskesmas: "Puskesmas Cimenyan",
-    penduduk: 96195,
     lat: -6.83536,
     lon: 107.69357,
   },
@@ -112,7 +117,6 @@ export const DESA: Desa[] = [
     nama: "Rancaekek Kulon",
     kecamatan: "Rancaekek",
     puskesmas: "Puskesmas Rancaekek",
-    penduduk: 78705,
     lat: -6.97117,
     lon: 107.77852,
   },
@@ -121,7 +125,6 @@ export const DESA: Desa[] = [
     nama: "Rancaekek Wetan",
     kecamatan: "Rancaekek",
     puskesmas: "Puskesmas Rancaekek",
-    penduduk: 78705,
     lat: -6.9762,
     lon: 107.71387,
   },
@@ -130,7 +133,6 @@ export const DESA: Desa[] = [
     nama: "Bojongloa",
     kecamatan: "Rancaekek",
     puskesmas: "Puskesmas Rancaekek",
-    penduduk: 78705,
     lat: -6.99078,
     lon: 107.8058,
   },
@@ -139,7 +141,6 @@ export const DESA: Desa[] = [
     nama: "Cileunyi Kulon",
     kecamatan: "Cileunyi",
     puskesmas: "Puskesmas Cileunyi",
-    penduduk: 43725,
     lat: -6.92578,
     lon: 107.74287,
   },
@@ -148,7 +149,6 @@ export const DESA: Desa[] = [
     nama: "Cileunyi Wetan",
     kecamatan: "Cileunyi",
     puskesmas: "Puskesmas Cileunyi",
-    penduduk: 43725,
     lat: -6.95475,
     lon: 107.72087,
   },
@@ -157,7 +157,6 @@ export const DESA: Desa[] = [
     nama: "Cimekar",
     kecamatan: "Cileunyi",
     puskesmas: "Puskesmas Cileunyi",
-    penduduk: 43725,
     lat: -6.96276,
     lon: 107.72601,
   },
@@ -166,7 +165,6 @@ export const DESA: Desa[] = [
     nama: "Cikoneng",
     kecamatan: "Ciparay",
     puskesmas: "Puskesmas Ciparay",
-    penduduk: 30608,
     lat: -7.08812,
     lon: 107.68703,
   },
@@ -175,7 +173,6 @@ export const DESA: Desa[] = [
     nama: "Mekarsari",
     kecamatan: "Ciparay",
     puskesmas: "Puskesmas Ciparay",
-    penduduk: 30608,
     lat: -6.99229,
     lon: 107.70394,
   },
@@ -184,7 +181,6 @@ export const DESA: Desa[] = [
     nama: "Ciparay",
     kecamatan: "Ciparay",
     puskesmas: "Puskesmas Ciparay",
-    penduduk: 30608,
     lat: -7.00738,
     lon: 107.6939,
   },
@@ -193,7 +189,6 @@ export const DESA: Desa[] = [
     nama: "Ciwidey",
     kecamatan: "Ciwidey",
     puskesmas: "Puskesmas Ciwidey",
-    penduduk: 34980,
     lat: -7.09103,
     lon: 107.41142,
   },
@@ -202,7 +197,6 @@ export const DESA: Desa[] = [
     nama: "Panundaan",
     kecamatan: "Ciwidey",
     puskesmas: "Puskesmas Ciwidey",
-    penduduk: 34980,
     lat: -7.0772,
     lon: 107.4195,
   },
@@ -211,7 +205,6 @@ export const DESA: Desa[] = [
     nama: "Panyocokan",
     kecamatan: "Ciwidey",
     puskesmas: "Puskesmas Ciwidey",
-    penduduk: 34980,
     lat: -7.09686,
     lon: 107.42908,
   },
@@ -220,7 +213,6 @@ export const DESA: Desa[] = [
     nama: "Sukamaju",
     kecamatan: "Majalaya",
     puskesmas: "Puskesmas Majalaya",
-    penduduk: 26235,
     lat: -7.03729,
     lon: 107.77367,
   },
@@ -229,7 +221,6 @@ export const DESA: Desa[] = [
     nama: "Majalaya",
     kecamatan: "Majalaya",
     puskesmas: "Puskesmas Majalaya",
-    penduduk: 26235,
     lat: -7.06441,
     lon: 107.74692,
   },
@@ -238,7 +229,6 @@ export const DESA: Desa[] = [
     nama: "Banjaran",
     kecamatan: "Banjaran",
     puskesmas: "Puskesmas Banjaran",
-    penduduk: 61215,
     lat: -7.08305,
     lon: 107.60832,
   },
@@ -247,7 +237,6 @@ export const DESA: Desa[] = [
     nama: "Kamasan",
     kecamatan: "Banjaran",
     puskesmas: "Puskesmas Banjaran",
-    penduduk: 61215,
     lat: -7.10378,
     lon: 107.61665,
   },
@@ -256,7 +245,6 @@ export const DESA: Desa[] = [
     nama: "Ciapus",
     kecamatan: "Banjaran",
     puskesmas: "Puskesmas Banjaran",
-    penduduk: 61215,
     lat: -7.123,
     lon: 107.61665,
   },
@@ -265,7 +253,6 @@ export const DESA: Desa[] = [
     nama: "Cicalengka Kulon",
     kecamatan: "Cicalengka",
     puskesmas: "Puskesmas Cicalengka",
-    penduduk: 43725,
     lat: -6.98261,
     lon: 107.83558,
   },
@@ -274,7 +261,6 @@ export const DESA: Desa[] = [
     nama: "Cicalengka Wetan",
     kecamatan: "Cicalengka",
     puskesmas: "Puskesmas Cicalengka",
-    penduduk: 43725,
     lat: -6.98284,
     lon: 107.85427,
   },
@@ -283,7 +269,6 @@ export const DESA: Desa[] = [
     nama: "Dampit",
     kecamatan: "Cicalengka",
     puskesmas: "Puskesmas Cicalengka",
-    penduduk: 43725,
     lat: -7.00158,
     lon: 107.8469,
   },
