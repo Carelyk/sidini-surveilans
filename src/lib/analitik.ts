@@ -1,4 +1,13 @@
-import { DESA, KELOMPOK_UMUR, PENYAKIT, TANGGAL_ACUAN, type Kasus } from "@/data/dataset";
+import { AMBANG } from "@/data/ambang";
+import {
+  DESA,
+  KELOMPOK_UMUR,
+  PENYAKIT,
+  TANGGAL_ACUAN,
+  type Kasus,
+  type Penyakit,
+} from "@/data/dataset";
+import { jumlahPendudukDesa } from "@/data/populasi-desa";
 
 export const DIHITUNG: Kasus["status"][] = ["Baru", "Investigasi", "Terverifikasi", "Selesai"];
 
@@ -60,70 +69,193 @@ export function hitungDalamRentang(kasus: Kasus[], hari: number, offset = 0) {
   return kasus.filter((k) => k.tanggalOnset >= awal && k.tanggalOnset <= akhir);
 }
 
+/** Teks yang ditampilkan ketika jumlah penduduk desa belum tersedia. */
+export const PENDUDUK_BELUM_TERSEDIA = "penduduk belum tersedia";
+
+/**
+ * Level lapis harian. Kata "KLB" tidak dipakai sebagai level di sini: KLB
+ * adalah status resmi hasil penilaian SKDR mingguan (src/lib/skdr.ts). Lapis
+ * harian hanya menyatakan "Sinyal", dan kalimat alert memakai frasa
+ * "Dugaan KLB" yang menandai sifatnya sebagai perkiraan, bukan status resmi. */
+export type LevelHarian = "Aman" | "Waspada" | "Sinyal";
+
+export const URUT_LEVEL_HARIAN: Record<LevelHarian, number> = { Aman: 0, Waspada: 1, Sinyal: 2 };
+
+/** Status satu desa untuk SATU penyakit, memakai ambang penyakit tersebut. */
+export interface StatusPenyakitDesa {
+  penyakit: Penyakit;
+  /** kasus 7 hari terakhir penyakit ini di desa tersebut */
+  mingguIni: number;
+  /** rata-rata kasus per 7 hari pada 3 jendela sebelumnya (penyakit ini) */
+  rataBaseline: number;
+  rasio: number;
+  /** per 100.000 penduduk per minggu; null bila penduduk desa belum tersedia */
+  insidensi: number | null;
+  level: LevelHarian;
+  /** kalimat lengkap: penyakit, periode, jumlah, baseline, rasio */
+  alasan: string;
+}
+
 export interface StatusDesa {
   kode: string;
   desa: string;
   kecamatan: string;
   puskesmas: string;
-  penduduk: number;
+  /** jumlah penduduk desa dari tabel referensi; null = belum tersedia */
+  penduduk: number | null;
   lat: number;
   lon: number;
+  /**
+   * Total kasus 7 hari dari SEMUA penyakit. Angka gabungan ini hanya
+   * informasi konteks: status desa TIDAK pernah dihitung dari gabungan ini.
+   */
   mingguIni: number;
   rataBaseline: number;
-  insidensi: number; // per 100.000 penduduk / minggu
   rasio: number;
-  level: "Aman" | "Waspada" | "KLB";
+  insidensi: number | null;
+  /** status per penyakit; status desa = level tertinggi di sini */
+  perPenyakit: StatusPenyakitDesa[];
+  /** penyakit pemicu level tertinggi; null bila semua Aman */
+  penyakitPemicu: Penyakit | null;
+  level: LevelHarian;
   alasan: string;
 }
 
+/** Rasio kasus terhadap baseline, dengan aturan kasus tanpa baseline. */
+function hitungRasio(ini: number, baseline: number): number {
+  if (baseline > 0) return ini / baseline;
+  return ini > 0 ? 99 : 0;
+}
+
+function insidensiPer100k(jumlah: number, penduduk: number | null): number | null {
+  if (penduduk === null || penduduk <= 0) return null;
+  return (jumlah / penduduk) * 100000;
+}
+
+/** Teks insidensi untuk UI: angka, atau "penduduk belum tersedia". */
+export function formatInsidensi(insidensi: number | null): string {
+  return insidensi === null ? PENDUDUK_BELUM_TERSEDIA : insidensi.toFixed(1);
+}
+
 /**
- * Logika ambang (threshold) peringatan dini:
- * - Baseline = rata-rata kasus per minggu pada 3 minggu sebelumnya (minggu -2..-4).
- * - KLB      : kasus 7 hari terakhir >= 2x baseline DAN minimal 10 kasus,
- *              atau insidensi mingguan >= 50 / 100.000 penduduk.
- * - Waspada  : kasus 7 hari terakhir >= 1,5x baseline DAN minimal 5 kasus.
- * Ambang minimum absolut mencegah alert fatigue dari desa berpenduduk kecil.
+ * Status satu desa untuk satu penyakit.
+ *
+ * Ambang yang dipakai PERSIS sama dengan lapis SKDR (src/data/ambang.ts):
+ * Sinyal bila rasio >= rasioKLB dengan minimal kasusMin kasus, atau insidensi
+ * mingguan >= insidensiMin; Waspada bila rasio >= rasioWaspada atau insidensi
+ * >= 60% insidensiMin. Tidak ada lagi angka ambang yang ditulis ulang di sini.
+ *
+ * Aturan insidensi hanya berlaku bila jumlah penduduk desa tersedia. Kalau
+ * belum, insidensi bernilai null, ambang insidensi dilewati, dan alasannya
+ * menyebutkan bahwa aturan itu tidak dinilai -- bukan diam-diam dianggap 0.
+ */
+function statusPenyakit(
+  kasusJendela: Kasus[],
+  kasusSemua: Kasus[],
+  penyakit: Penyakit,
+  penduduk: number | null,
+): StatusPenyakitDesa {
+  const a = AMBANG[penyakit];
+  const ini = kasusJendela.filter((k) => k.penyakit === penyakit).length;
+  const baseJendela = [7, 14, 21].map(
+    (off) => hitungDalamRentang(kasusSemua, 7, off).filter((k) => k.penyakit === penyakit).length,
+  );
+  const rataBaseline = baseJendela.reduce((a2, b) => a2 + b, 0) / baseJendela.length;
+  const rasio = hitungRasio(ini, rataBaseline);
+  const insidensi = insidensiPer100k(ini, penduduk);
+  const lewatInsidensi = insidensi !== null && insidensi >= a.insidensiMin;
+  const lewatRasio = rasio >= a.rasioKLB && ini >= a.kasusMin;
+
+  let level: LevelHarian = "Aman";
+  if (lewatRasio || lewatInsidensi) level = "Sinyal";
+  else if (rasio >= a.rasioWaspada || (insidensi !== null && insidensi >= a.insidensiMin * 0.6)) {
+    level = "Waspada";
+  }
+
+  const angka = `${ini} kasus ${penyakit} dalam 7 hari (${rasio.toFixed(1)}x baseline, ${rataBaseline.toFixed(1)})`;
+  const catatanInsidensi =
+    insidensi === null
+      ? ` Aturan insidensi tidak dinilai (${PENDUDUK_BELUM_TERSEDIA}).`
+      : ` Insidensi ${insidensi.toFixed(1)}/100.000/mgg.`;
+
+  let alasan: string;
+  if (level === "Sinyal") {
+    alasan =
+      lewatRasio && lewatInsidensi
+        ? `Dugaan KLB ${penyakit}: ${angka}, melewati ambang rasio ${a.rasioKLB}x dan insidensi ${a.insidensiMin}/100.000/mgg.${catatanInsidensi}`
+        : lewatRasio
+          ? `Dugaan KLB ${penyakit}: ${angka}, melewati ambang rasio ${a.rasioKLB}x dengan minimal ${a.kasusMin} kasus.${catatanInsidensi}`
+          : `Dugaan KLB ${penyakit}: ${angka}, insidensi melewati ambang ${a.insidensiMin}/100.000/mgg.${catatanInsidensi}`;
+  } else if (level === "Waspada") {
+    alasan = `Waspada ${penyakit}: ${angka}, melewati ambang rasio ${a.rasioWaspada}x.${catatanInsidensi}`;
+  } else {
+    alasan = `${penyakit} dalam rentang fluktuasi normal: ${angka}.${catatanInsidensi}`;
+  }
+
+  return {
+    penyakit,
+    mingguIni: ini,
+    rataBaseline: Number(rataBaseline.toFixed(1)),
+    rasio: Number(rasio.toFixed(2)),
+    insidensi: insidensi === null ? null : Number(insidensi.toFixed(1)),
+    level,
+    alasan,
+  };
+}
+
+/**
+ * Status seluruh desa, TANPA mencampur penyakit.
+ *
+ * Dua aturan yang dijaga di sini:
+ * 1) Status satu desa berasal dari ambang penyakit itu sendiri,
+ *    bukan dari gabungan semua penyakit. Angka gabungan tetap ada sebagai
+ *    informasi konteks (`mingguIni`, `rasio`, `insidensi`) tetapi tidak
+ *    pernah dipakai menetapkan level.
+ * 2) Insidensi hanya dihitung bila jumlah penduduk desa tersedia di
+ *    src/data/populasi-desa.ts. Kalau belum, level hanya berasal dari aturan
+ *    rasio terhadap baseline.
  */
 export function statusPerDesa(kasus: Kasus[]): StatusDesa[] {
   const mingguIni = hitungDalamRentang(kasus, 7, 0);
-  const baselineKasus = [7, 14, 21].map((off) => hitungDalamRentang(kasus, 7, off));
+  const jendelaBaseline = [7, 14, 21].map((off) => hitungDalamRentang(kasus, 7, off));
 
   return DESA.map((d) => {
-    const ini = mingguIni.filter((k) => k.kodeDesa === d.kode).length;
-    const base = baselineKasus.map((g) => g.filter((k) => k.kodeDesa === d.kode).length);
-    const rataBaseline = base.reduce((a, b) => a + b, 0) / base.length;
-    const rasio = rataBaseline > 0 ? ini / rataBaseline : ini > 0 ? 99 : 0;
-    const insidensi = (ini / d.penduduk) * 100000;
+    const semua = kasus.filter((k) => k.kodeDesa === d.kode);
+    const mingguIniDesa = mingguIni.filter((k) => k.kodeDesa === d.kode);
+    const ini = mingguIniDesa.length;
+    const base = jendelaBaseline.map((g) => g.filter((k) => k.kodeDesa === d.kode).length);
+    const rataBaselineGabungan = base.reduce((a, b) => a + b, 0) / base.length;
 
-    let level: StatusDesa["level"] = "Aman";
-    let alasan = "Kasus dalam rentang fluktuasi normal.";
-    if ((rasio >= 2 && ini >= 10) || insidensi >= 50) {
-      level = "KLB";
-      alasan =
-        insidensi >= 50 && !(rasio >= 2 && ini >= 10)
-          ? `Insidensi ${insidensi.toFixed(1)}/100.000 melewati ambang 50.`
-          : `Kasus 7 hari (${ini}) = ${rasio.toFixed(1)}x baseline (${rataBaseline.toFixed(1)}).`;
-    } else if (rasio >= 1.5 && ini >= 5) {
-      level = "Waspada";
-      alasan = `Kenaikan ${rasio.toFixed(1)}x baseline dengan ${ini} kasus dalam 7 hari.`;
-    }
+    const penduduk = jumlahPendudukDesa(d.kode);
+    const perPenyakit = PENYAKIT.map((p) => statusPenyakit(mingguIniDesa, semua, p, penduduk));
+    const insidensiGabungan = insidensiPer100k(ini, penduduk);
+
+    const pemicu = perPenyakit.reduce<StatusPenyakitDesa | null>(
+      (best, s) => (!best || URUT_LEVEL_HARIAN[s.level] > URUT_LEVEL_HARIAN[best.level] ? s : best),
+      null,
+    );
+    const level: LevelHarian = pemicu?.level ?? "Aman";
 
     return {
       kode: d.kode,
       desa: d.nama,
       kecamatan: d.kecamatan,
       puskesmas: d.puskesmas,
-      penduduk: d.penduduk,
+      penduduk,
       lat: d.lat,
       lon: d.lon,
       mingguIni: ini,
-      rataBaseline: Number(rataBaseline.toFixed(1)),
-      insidensi: Number(insidensi.toFixed(1)),
-      rasio: Number(rasio.toFixed(2)),
+      rataBaseline: Number(rataBaselineGabungan.toFixed(1)),
+      rasio: Number(hitungRasio(ini, rataBaselineGabungan).toFixed(2)),
+      insidensi: insidensiGabungan === null ? null : Number(insidensiGabungan.toFixed(1)),
+      perPenyakit,
+      penyakitPemicu: pemicu && pemicu.level !== "Aman" ? pemicu.penyakit : null,
       level,
-      alasan,
+      alasan: pemicu?.alasan ?? "Semua penyakit dalam rentang fluktuasi normal.",
     };
-  }).sort((a, b) => b.mingguIni - a.mingguIni);
+  }).sort(
+    (a, b) => URUT_LEVEL_HARIAN[b.level] - URUT_LEVEL_HARIAN[a.level] || b.mingguIni - a.mingguIni,
+  );
 }
 
 export function perPenyakit(kasus: Kasus[]) {
@@ -194,16 +326,28 @@ export function ringkasanUntukAI(semua: Kasus[]) {
     ).length,
     distribusiPenyakit7Hari: perPenyakit(mingguIni),
     distribusiUmur7Hari: perUmur(mingguIni),
-    statusDesa: desa.map((d) => ({
-      desa: d.desa,
-      kecamatan: d.kecamatan,
-      puskesmas: d.puskesmas,
-      kasus7Hari: d.mingguIni,
-      baselineMingguan: d.rataBaseline,
-      rasio: d.rasio,
-      insidensiPer100k: d.insidensi,
-      level: d.level,
-    })),
+    statusDesa: desa.map((d) => {
+      const p = d.perPenyakit.reduce((best, s) =>
+        URUT_LEVEL_HARIAN[s.level] > URUT_LEVEL_HARIAN[best.level] ? s : best,
+      );
+      return {
+        desa: d.desa,
+        kecamatan: d.kecamatan,
+        puskesmas: d.puskesmas,
+        // Angka gabungan 7 hari hanya konteks; yang menentukan status adalah
+        // angka penyakit pemicu di bawah ini.
+        kasus7Hari: d.mingguIni,
+        // null = jumlah penduduk desa belum tersedia, insidensi tidak dihitung
+        insidensiPer100k: d.insidensi,
+        // level lapis harian: "Aman" | "Waspada" | "Sinyal" (bukan "KLB")
+        level: d.level,
+        penyakitPemicu: d.penyakitPemicu,
+        kasusPenyakitPemicu7Hari: p.mingguIni,
+        baselinePenyakitPemicu: p.rataBaseline,
+        rasioPenyakitPemicu: p.rasio,
+        insidensiPenyakitPemicuPer100k: p.insidensi,
+      };
+    }),
     trenHarian14: tren(valid, 14).map((t) => ({ tanggal: t.tanggal, total: t.total })),
   };
 }
