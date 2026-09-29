@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -7,7 +8,11 @@ import {
   KASUS_MIN_WASPADA_HARIAN,
 } from "@/data/ambang";
 import { AMBANG as AMBANG_DARI_LIB, type Ambang as AmbangDariLib } from "@/lib/skdr";
+
+/** Halaman yang harus menyebut status acuan dan sifat simulasi angka ambang. */
+const HALAMAN_AMBANG = ["src/routes/tentang.tsx", "src/components/FilterSKDRBar.tsx"];
 import { PENYAKIT } from "@/data/skdr";
+import { POPULASI_DESA, referensiDesaLengkap } from "@/data/populasi-desa";
 
 describe("konfigurasi ambang SKDR (SSOT)", () => {
   it("menutupi seluruh penyakit dengan kolom sumber acuan", () => {
@@ -97,5 +102,98 @@ describe("syarat kasus minimum lapis harian (SSOT terpisah dari kasusMin SKDR)",
     expect(ATURAN_HARIAN.kasusMinWaspada).toBe(KASUS_MIN_WASPADA_HARIAN);
     expect(ATURAN_HARIAN.alasan).toContain("alert");
     expect(ATURAN_HARIAN.alasan.toLowerCase()).toContain("alert fatigue");
+  });
+});
+
+/**
+ * Butir 3 lanjutan: status "perlu verifikasi acuan Dinkes" dibiarkan apa
+ * adanya. Angka ambang TIDAK boleh diubah diam-diam, dan halaman (UI +
+ * Konsep) harus menyebut bahwa ambang dan penduduk desa adalah nilai
+ * simulasi yang ditetapkan bersama Dinkes saat implementasi.
+ */
+describe("verifikasi acuan Dinkes: status dibiarkan, angka tidak bergerak", () => {
+  it("seluruh penyakit masih berstatus perlu verifikasi acuan Dinkes", () => {
+    for (const p of PENYAKIT) {
+      expect(AMBANG_SKDR[p].statusSumber).toBe("perlu verifikasi acuan Dinkes");
+    }
+  });
+
+  it("tidak ada penyakit yang diam-diam ditandai 'tercatat'", () => {
+    // Menandai "tercatat" tanpa bukti acuan sama saja dengan mengarang
+    // sumber, jadi harus gagal kalau ditambahkan tanpa keputusan Dinkes.
+    const tercatat = PENYAKIT.filter((p) => AMBANG_SKDR[p].statusSumber === "tercatat");
+    expect(tercatat).toEqual([]);
+  });
+  it("kolom sumber jujur: menyebut pedoman, bukan keputusan Dinkes", () => {
+    // Kolom sumber menunjuk dokumen acuan (pedoman nasional), bukan
+    // mengklaim angka ini sudah disahkan Dinkes. Kalau suatu saat diubah
+    // menjadi keputusan Dinkes, statusSumber juga harus ikut berubah.
+    for (const p of PENYAKIT) {
+      const s = AMBANG_SKDR[p].sumber;
+      expect(s.length).toBeGreaterThan(0);
+      expect(s.toLowerCase()).not.toContain("disahkan");
+      expect(s.toLowerCase()).not.toContain("ditetapkan");
+    }
+  });
+
+  it("penduduk desa tetap kosong: tidak ada angka yang dikarang", () => {
+    for (const p of POPULASI_DESA) {
+      expect(p.penduduk).toBeNull();
+      expect(p.sumber).toBeNull();
+      expect(p.tahun).toBeNull();
+    }
+    expect(referensiDesaLengkap()).toBe(false);
+  });
+
+  it("halaman menyebut ambang dan penduduk desa sebagai nilai simulasi Dinkes", () => {
+    // Membaca berkas sumber halaman, bukan merender: tujuannya menjaga
+    // kejujuran teks, bukan tampilan.
+    for (const f of HALAMAN_AMBANG) {
+      const isi = readFileSync(f, "utf8");
+      expect(isi).toContain("perlu verifikasi acuan Dinkes");
+      expect(isi).toMatch(/bersama Dinkes/i);
+      expect(isi).toMatch(/ simulasi/i);
+    }
+  });
+});
+
+/**
+ * Butir 3 lanjutan: status "perlu verifikasi acuan Dinkes" dibiarkan apa
+ * adanya. Angka ambang TIDAK boleh diubah diam-diam, dan halaman (UI +
+ * Konsep) harus menyebut bahwa ambang dan penduduk desa adalah nilai
+ * simulasi yang ditetapkan bersama Dinkes saat implementasi.
+ */
+describe("verifikasi acuan Dinkes: status dibiarkan, angka tidak bergerak", () => {
+  it("seluruh penyakit masih berstatus perlu verifikasi acuan Dinkes", () => {
+    for (const p of PENYAKIT) {
+      expect(AMBANG_SKDR[p].statusSumber).toBe("perlu verifikasi acuan Dinkes");
+    }
+  });
+
+  it("tidak ada penyakit yang diam-diam ditandai 'tercatat'", () => {
+    // Menandai "tercatat" tanpa bukti acuan sama saja dengan mengarang
+    // sumber, jadi harus gagal kalau ditambahkan tanpa keputusan Dinkes.
+    const tercatat = PENYAKIT.filter((p) => AMBANG_SKDR[p].statusSumber === "tercatat");
+    expect(tercatat).toEqual([]);
+  });
+
+  it("penduduk desa tetap kosong: tidak ada angka yang dikarang", () => {
+    for (const p of POPULASI_DESA) {
+      expect(p.penduduk).toBeNull();
+      expect(p.sumber).toBeNull();
+      expect(p.tahun).toBeNull();
+    }
+    expect(referensiDesaLengkap()).toBe(false);
+  });
+
+  it("halaman menyebut ambang dan penduduk desa sebagai nilai simulasi Dinkes", () => {
+    // Membaca berkas sumber halaman, bukan merender: tujuannya menjaga
+    // kejujuran teks, bukan tampilan.
+    for (const f of HALAMAN_AMBANG) {
+      const isi = readFileSync(f, "utf8");
+      expect(isi).toContain("perlu verifikasi acuan Dinkes");
+      expect(isi).toMatch(/bersama Dinkes/i);
+      expect(isi).toMatch(/ simulasi/i);
+    }
   });
 });

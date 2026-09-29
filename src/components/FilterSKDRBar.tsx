@@ -329,6 +329,12 @@ export function FilterSKDRBar({
               <span className="text-success-text">(tercatat)</span>
             )}
           </p>
+          <p className="text-[11px]">
+            Angka ambang ini nilai simulasi, bukan ketetapan. Saat implementasi angkanya akan
+            ditetapkan bersama Dinkes Kabupaten Bandung, lalu ditulis satu kali di
+            src/data/ambang.ts. Jumlah penduduk desa juga masih kosong dan diisi dari sumber resmi
+            bersama Dinkes sebelum aturan insidensi boleh dipakai.
+          </p>
         </div>
       </div>
     </section>

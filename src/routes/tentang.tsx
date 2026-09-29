@@ -232,6 +232,15 @@ function Tentang() {
               ambang dipakai apa adanya supaya perbandingan dengan versi sebelumnya tetap sama,
               tetapi belum disahkan untuk dipakai pada keputusan nyata.
             </p>
+            <p className="mt-2 text-xs">
+              Angka ambang di tabel ini adalah{" "}
+              <strong className="text-foreground">nilai simulasi</strong>. Saat implementasi, angka
+              itu akan ditetapkan bersama Dinkes Kabupaten Bandung, lalu ditulis satu kali di
+              konfigurasi tunggal (
+              <code className="rounded bg-secondary px-1">src/data/ambang.ts</code>). Jumlah
+              penduduk desa di tabel referensi perlakuan sama: kosong sekarang, diisi dari sumber
+              resmi bersama Dinkes sebelum aturan insidensi boleh dipakai.
+            </p>
           </div>
 
           <div>
