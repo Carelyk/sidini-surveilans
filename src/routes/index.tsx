@@ -30,6 +30,7 @@ import {
 import { AlertBanner } from "@/components/AlertBanner";
 import { AlatTabel } from "@/components/AlatTabel";
 import { LevelBadge } from "@/components/LevelBadge";
+import { PanelDampak } from "@/components/PanelDampak";
 import { StatCard } from "@/components/StatCard";
 import { useSurveilans } from "@/lib/store";
 import {
@@ -510,6 +511,11 @@ function Dashboard() {
             />
           </div>
         </div>
+      </section>
+
+      {/* ============ PANEL DAMPAK: KECEPATAN DETEKSI ============ */}
+      <section className="space-y-4">
+        <PanelDampak kasus={kasus} />
       </section>
 
       {/* ============ LAPIS 2: SKDR MINGGUAN PER PENYAKIT ============ */}
