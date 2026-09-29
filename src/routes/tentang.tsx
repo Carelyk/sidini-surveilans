@@ -173,7 +173,7 @@ function Tentang() {
         <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-sm text-muted-foreground">
           <li>Salin berkas contoh env lalu isi kunci API Groq.</li>
           <li>Pasang dependensi dan jalankan server pengembangan.</li>
-          <li>Buka halaman Analisis AI dan tekan tombol Buat analisis.</li>
+          <li>Buka halaman Tanya AI dan tekan tombol Tanyakan.</li>
         </ol>
         <pre className="mt-3 overflow-x-auto rounded-lg border border-border bg-background/50 p-3 font-mono text-[11px] text-muted-foreground">
           {`cp .env.example .env\nnpm install\nnpm run dev`}

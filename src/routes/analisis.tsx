@@ -22,17 +22,17 @@ import { ringkasanUntukAI } from "@/lib/analitik";
 export const Route = createFileRoute("/analisis")({
   head: () => ({
     meta: [
-      { title: "Analisis Naratif AI | SIDINI" },
+      { title: "Tanya AI | SIDINI" },
       {
         name: "description",
         content:
-          "Ubah data surveilans menjadi penjelasan naratif. Mode Warga memakai bahasa sehari-hari, mode Petugas memakai istilah epidemiologi.",
+          "Tanyakan hal apa pun soal kondisi kesehatan masyarakat atau data surveilans Kabupaten Bandung, dan dapatkan jawaban dari data terbaru.",
       },
-      { property: "og:title", content: "Analisis Naratif AI | SIDINI" },
+      { property: "og:title", content: "Tanya AI | SIDINI" },
       {
         property: "og:description",
         content:
-          "Ringkasan data surveilans dijelaskan dalam bahasa yang mudah dipahami, lengkap dengan yang perlu dilakukan.",
+          "AI menjawab pertanyaan Anda berdasarkan ringkasan data surveilans terbaru, dengan bahasa yang mudah dipahami.",
       },
     ],
   }),
@@ -146,14 +146,14 @@ function Analisis() {
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-8">
       <header>
-        <p className="text-xs font-semibold uppercase tracking-wide text-primary">Naratif AI</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-primary">Tanya AI</p>
         <h1 className="mt-1 text-2xl font-bold sm:text-3xl">
-          Data diubah jadi cerita yang dimengerti
+          Tanyakan, jawabannya dari data surveilans
         </h1>
         <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-          Angka surveilans di dashboard biasanya sulit dibaca sendiri. Halaman ini mengubahnya
-          menjadi penjelasan naratif: bukan sekadar tabel angka, tapi kondisi apa yang terjadi,
-          mengapa, dan apa yang harus dilakukan. Pilih mode pembaca agar bahasanya pas.
+          Angka di dashboard sulit dibaca sendiri. Di sini Anda bertanya langsung — misalnya desa
+          mana yang perlu diwaspadai, atau mengapa kasus naik — dan AI menjawab berdasarkan data
+          surveilans terbaru. Pilih mode pembaca agar bahasanya pas.
         </p>
       </header>
 
@@ -273,12 +273,8 @@ function Analisis() {
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {memuat ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
-            {memuat ? "AI sedang menganalisis…" : "Buat analisis naratif"}
+            {memuat ? "AI sedang menjawab…" : "Tanyakan"}
           </button>
-          <p className="text-xs text-muted-foreground">
-            Data dikirim ke Groq API untuk ditulis ulang menjadi narasi. Tidak ada identitas
-            individu yang dikirim.
-          </p>
         </div>
       </section>
 
@@ -302,7 +298,7 @@ function Analisis() {
         <div className="panel space-y-4 p-5 sm:p-6">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Loader2 className="size-4 animate-spin text-primary" />
-            Menyusun narasi untuk mode {MODE[mode].label} dari data {ringkasan.statusDesa.length}{" "}
+            Menyusun jawaban untuk mode {MODE[mode].label} dari data {ringkasan.statusDesa.length}{" "}
             desa…
           </div>
           {[70, 45, 90, 35].map((w, i) => (
@@ -319,7 +315,7 @@ function Analisis() {
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/70 bg-secondary/40 px-5 py-4">
             <div className="flex flex-wrap items-center gap-2">
               <BookOpen className="size-4 text-primary" />
-              <h2 className="font-display text-base font-bold">Hasil Analisis</h2>
+              <h2 className="font-display text-base font-bold">Jawaban</h2>
               <span className="rounded-full border border-primary/40 bg-primary/15 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
                 Mode {MODE[hasil.mode].label}
               </span>
@@ -356,19 +352,6 @@ function Analisis() {
       )}
 
       <KotakTanyaKesehatan />
-
-      <details className="panel p-5">
-        <summary className="cursor-pointer text-sm font-semibold">
-          Lihat ringkasan data yang dikirim ke AI
-        </summary>
-        <p className="mt-2 text-xs text-muted-foreground">
-          Ringkasan ini dihitung otomatis dari data surveilans di dashboard. Hanya berisi angka
-          agregat per desa — tidak ada nama, alamat, atau nomor telepon.
-        </p>
-        <pre className="mt-3 max-h-96 overflow-auto rounded-lg border border-border bg-background/50 p-3 font-mono text-[11px] leading-relaxed text-muted-foreground">
-          {JSON.stringify(ringkasan, null, 2)}
-        </pre>
-      </details>
     </div>
   );
 }
@@ -435,10 +418,7 @@ function KotakTanyaKesehatan() {
       <div className="flex items-start gap-2 rounded-lg border border-warning/40 bg-warning/10 p-3">
         <Info className="mt-0.5 size-4 shrink-0 text-warning-text" aria-hidden />
         <p className="text-xs text-muted-foreground">
-          <span className="font-semibold text-warning-text">Ini bukan diagnosa.</span> AI di sini
-          tidak bisa memeriksa orang dan tidak bisa memastikan penyakit apa yang sedang dialami.
-          Untuk anak demam lebih dari tiga hari, atau bila ada tanda bahaya apa pun, langsung ke
-          puskesmas atau IGD tanpa menunggu jawaban di halaman ini.
+          <span className="font-semibold text-warning-text">Ini bukan diagnosa.</span>
         </p>
       </div>
 

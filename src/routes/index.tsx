@@ -93,6 +93,8 @@ function Dashboard() {
     const valid = kasusValid(kasus);
     const m1 = hitungDalamRentang(valid, 7);
     const m0 = hitungDalamRentang(valid, 7, 7);
+    const penyakit = perPenyakit(m1);
+    const totalKasus = penyakit.reduce((m, p) => m + p.jumlah, 0);
     return {
       valid,
       m1,
@@ -100,7 +102,11 @@ function Dashboard() {
       delta: m0.length ? Math.round(((m1.length - m0.length) / m0.length) * 100) : 0,
       status: statusPerDesa(valid),
       tren28: tren(valid, 28),
-      penyakit: perPenyakit(m1),
+      penyakit,
+      komposisi: penyakit.map((p) => ({
+        ...p,
+        persen: Math.round((p.jumlah / Math.max(1, totalKasus)) * 100),
+      })),
       umurPenyakit: perUmurPenyakit(m1),
       lag: rataKeterlambatan(hitungDalamRentang(valid, 14)),
       menunggu: kasus.filter(
@@ -164,15 +170,12 @@ function Dashboard() {
           {PROVINSI} &middot; {KABUPATEN} &middot; {nf.format(TOTAL_PENDUDUK)} jiwa
         </p>
         <h1 className="mt-4 max-w-3xl text-3xl font-bold sm:text-4xl">
-          Dari pelaporan reaktif menjadi{" "}
-          <span className="text-gradient">peringatan dini wabah</span> di {KABUPATEN}
+          Surveilans terpadu untuk <span className="text-gradient">deteksi dini KLB</span>
         </h1>
         <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
-          Dua lapis data, satu untuk setiap pertanyaan. Lapis pertama{" "}
-          <strong className="text-foreground">pelaporan kasus individu</strong> per hari untuk
-          operasional lapangan. Lapis kedua{" "}
-          <strong className="text-foreground">agregat SKDR per minggu</strong> untuk status KLB,
-          karena itulah formulir yang diisi puskesmas dan acuan ambangnya.
+          <strong className="text-foreground">Pelaporan kasus harian</strong> mempercepat respons
+          petugas lapangan. <strong className="text-foreground">Rekapitulasi SKDR mingguan</strong>{" "}
+          dari puskesmas digunakan untuk menilai status KLB berdasarkan ambang yang berlaku.
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
           <Link
@@ -185,7 +188,7 @@ function Dashboard() {
             to="/analisis"
             className="inline-flex items-center gap-2 rounded-lg border border-border bg-secondary px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-secondary/70"
           >
-            <Sparkles className="size-4 text-primary" /> Analisis naratif AI
+            <Sparkles className="size-4 text-primary" /> Tanya AI
           </Link>
           <Link
             to="/lapor"
@@ -316,37 +319,48 @@ function Dashboard() {
           <div className="panel p-5">
             <h3 className="text-base font-semibold">Komposisi penyakit (7 hari)</h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              Hanya untuk melihat apakah satu penyakit mendominasi pelaporan. Panjang slice tidak
-              boleh dijumlahkan menjadi "total kasus".
+              Pembagian kasus 7 hari terakhir menurut jenis penyakitnya — berapa persen dari seluruh
+              pelaporan yang berasal dari tiap penyakit.
             </p>
             <div className="mt-2 h-56">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={d.penyakit}
+                    data={d.komposisi}
                     dataKey="jumlah"
                     nameKey="penyakit"
                     innerRadius={45}
                     outerRadius={80}
                     paddingAngle={3}
+                    labelLine={false}
+                    label={(props) => {
+                      const persen = props.payload?.persen ?? 0;
+                      return persen >= 6 ? `${persen}%` : "";
+                    }}
                   >
-                    {d.penyakit.map((p) => (
+                    {d.komposisi.map((p) => (
                       <Cell key={p.penyakit} fill={WARNA_PENYAKIT[p.penyakit]} />
                     ))}
                   </Pie>
-                  <Tooltip contentStyle={TIP} />
+                  <Tooltip
+                    contentStyle={TIP}
+                    formatter={(value, name, item) => [
+                      `${(item.payload as { persen?: number } | undefined)?.persen ?? 0}%`,
+                      name,
+                    ]}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
             <ul className="space-y-1.5 text-sm">
-              {d.penyakit.map((p) => (
+              {d.komposisi.map((p) => (
                 <li key={p.penyakit} className="flex items-center gap-2">
                   <span
                     className="size-2.5 rounded-full"
                     style={{ background: WARNA_PENYAKIT[p.penyakit] }}
                   />
                   <span className="flex-1">{p.penyakit}</span>
-                  <span className="font-mono text-xs text-muted-foreground">{p.jumlah}</span>
+                  <span className="font-mono text-xs text-muted-foreground">{p.persen}%</span>
                 </li>
               ))}
             </ul>
@@ -357,8 +371,8 @@ function Dashboard() {
               <Users className="size-4 text-primary" /> Kelompok umur (7 hari)
             </h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              Tinggi kolom = jumlah kasus di kelompok umur itu, dipecah per penyakit. Jadi terlihat
-              kelompok umur yang sakit apa, bukan sekadar akumulasi.
+              Sebaran kasus 7 hari terakhir menurut rentang usia, dipecah per penyakit. Terlihat
+              kelompok yang paling banyak terkena dan penyakit apa yang dominan di setiap kelompok.
             </p>
             <LegendaSeri items={PENYAKIT.map((p) => ({ label: p, warna: WARNA_PENYAKIT[p] }))} />
             <div className="mt-2 h-56">
@@ -479,11 +493,6 @@ function Dashboard() {
 
         <div className="panel p-5">
           <h3 className="text-base font-semibold">Tren mingguan per penyakit</h3>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Masing-masing penyakit punya sumbu nilai sendiri, karena orange magnitudenya berbeda
-            beberapa orde. Menumpuknya di satu grafik akan membuat DBD (ratusan per minggu) menutupi
-            Hepatitis A (satu-digit).
-          </p>
           <div className="mt-4 grid gap-4 lg:grid-cols-2">
             {trenPerPenyakit.map((tp) => (
               <GrafikPenyakit key={tp.penyakit} {...tp} />
