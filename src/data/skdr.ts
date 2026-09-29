@@ -1,4 +1,4 @@
-﻿// ============================================================================
+// ============================================================================
 // SKDR — Sistem Kewaspadaan Dini dan Respon (Kemenkes RI)
 //
 // Di Indonesia SKDR adalah FORMULIR AGREGAT MINGGUAN yang diisi puskesmas
@@ -11,13 +11,16 @@
 //   * Batas wilayah, kode kecamatan, nama desa  : ASLI (lihat wilayah.ts)
 //   * Jumlah penduduk total                     : ASLI (BPS, 3.873.653)
 //   * Angka kasus penyakit                      : SINTETIS, diskalakan ke
-//     angka resmi Dinkes Jawa Barat sebagai jangkar (lihat ANGKA_ACUAN).
-//     Tidak ada sumber publik untuk data SKDR per-kecamatan per-minggu —
-//     data itu berada di sistemKemenkes yang tidak dipublikasikan.
+//     angka resmi Dinkes Jawa Barat sebagai jangkar (lihat ANGKA_ACUAN),
+//     dengan pengecualian diare (lihat TARGET_TAHUNAN).
+//     Tidak ada sumber publik untuk data SKDR per-kecamatan per-minggu -
+//     data itu berada di sistem Kemenkes yang tidak dipublikasikan.
 //   * Distribusi per kecamatan                  : dimodelkan, proporsional
 //     terhadap penduduk, dengan penandaan "rawan" dengue yang dikuatkan
-//     pada 4 kecamatan (lihat KECAMATAN_RAWAN) untuk demonstrasi logika KLB.
-// ============================================================================
+//     pada 4 kecamatan (lihat KECAMATAN_RAWAN) untuk demonstrasi logika
+//     KLB. Pengali itu hanya berlaku untuk penyakit yang ditularkan lewat
+//     vektor; diare dan Hepatitis A tidak mendapat pengali (lihat
+//     PENGALI_RAWAN).
 
 import { KECAMATAN, TOTAL_PENDUDUK } from "./wilayah";
 
@@ -45,10 +48,33 @@ export const ANGKA_ACUAN = {
   diareKabupatenBandung: 90337,
 } as const;
 
-/** Target kasus tahunan untuk data demonstrasi (skala jangkar + tren nasional). */
+/**
+ * Target kasus tahunan untuk data demonstrasi (skala jangkar + tren nasional).
+ *
+ * PENTING untuk Diare: target ini sengaja DI BAWAH jangkar resmi
+ * ANGKA_ACUAN.diareKabupatenBandung (90.337). Alasannya dinyatakan terbuka,
+ * bukan disembunyikan:
+ *
+ * Jangkar 90.337 kasus setahun di 31 kecamatan berarti sekitar 4,5 kasus per
+ * 100.000 penduduk per minggu. Ambang KLB diare yang dipakai sistem adalah
+ * 100 per 100.000 per minggu, jadi jangkar itu ~22x di bawah ambang. Kalau
+ * kasus dibuat sebesar jangkar penuh DAN dikonsentrasikan di kecamatan
+ * rawan (seperti versi sebelumnya), insidensi mingguan di kecamatan itu
+ * selalu di atas ambang -- 2026 berstatus KLB di 39 dari 39 minggu, dan 52
+ * dari 52 minggu sebelum deret dipotong. Ambang seperti itu tidak lagi
+ * menanda apa pun: "KLB" jadi setara dengan "ada kasus".
+ *
+ * Karena itu level simulasi diare diturunkan, dan satu outbreak yang
+ * disengaja ditambahkan di SEMU_KEJADIAN. Hasilnya: latar tenang (Mgg
+ * Waspada 2), satu wabah yang jelas (Mgg KLB 4).
+ *
+ * Ini level SIMULASI, bukan perkiraan epidemiologi. Kalau nanti dipakai
+ * untuk keputusan nyata, level dan ambangnya harus disepakati bersama Dinkes
+ * lebih dulu.
+ */
 export const TARGET_TAHUNAN: Record<Penyakit, number> = {
   DBD: 4900,
-  Diare: 95000,
+  Diare: 35000,
   Chikungunya: 620,
   "Hepatitis A": 310,
 };
@@ -88,6 +114,25 @@ function musimanDiare(minggu: number): number {
  * dinyatakan terbuka di UI, tidak disamarkan sebagai data asli.
  */
 export const KECAMATAN_RAWAN = ["Soreang", "Cileunyi", "Cimenyan", "Rancaekek"];
+
+/**
+ * Pengali yang didapat kecamatan di KECAMATAN_RAWAN, per penyakit.
+ *
+ * Bonus hanya berlaku untuk penyakit yang ditularkan lewat vektor: DBD dan
+ * Chikungunya. Yang penting: bonus TIDAK berlaku untuk Diare dan Hepatitis
+ * A. Keduanya
+ * ditularkan lewat air dan makanan, bukan lewat nyamuk, jadi tidak wajar
+ * kalau kasusnya menumpuk di empat kecamatan yang sama. Membiarkan bonus
+ * itu berlaku membuat empat kecamatan tersebut terus melewati ambang
+ * insidensi setiap minggu, sehingga "minggu KLB" untuk diare berarti hampir
+ * semua minggu -- ambang seperti itu tidak lagi menanda apa pun.
+ */
+const PENGALI_RAWAN: Record<Penyakit, number> = {
+  DBD: 2.4,
+  Chikungunya: 2.4,
+  Diare: 1,
+  "Hepatitis A": 1,
+};
 
 /**
  * Skenario outbreak yang DIRANCANG untuk demo, agar ambang KLB benar-benar
@@ -133,6 +178,18 @@ export const SEMU_KEJADIAN: SkenarioKejadian[] = [
     cerita:
       "Ledakan dengue di Rancaekek pada musim hujan 2025, terkait genangan" +
       " air di sekitar pasar township.",
+  },
+  {
+    kecamatan: "Cileunyi",
+    penyakit: "Diare",
+    tahun: 2026,
+    mingguDari: 34,
+    mingguSampai: 38,
+    pengali: 7,
+    cerita:
+      "Lonjakan diare di Cileunyi pada Agustus-September 2026, terkait gangguan" +
+      " layanan air bersih saat kemarau. Disimulasikan agar ambang KLB diare" +
+      " terlihat bekerja di atas latar yang tenang.",
   },
 ];
 
@@ -250,7 +307,7 @@ function bangun(): BarisSKDR[] {
       let totalBobot = 0;
       for (const k of KECAMATAN) {
         const dasar = k.penduduk / TOTAL_PENDUDUK;
-        const bonus = KECAMATAN_RAWAN.includes(k.nama) ? 2.4 : 1;
+        const bonus = KECAMATAN_RAWAN.includes(k.nama) ? (PENGALI_RAWAN[penyakit] ?? 1) : 1;
         const guncang = 0.55 + 0.9 * rng(hashSeed(k.kode + penyakit, tahun))();
         const b = dasar * bonus * guncang;
         bobotKec[k.kode] = b;

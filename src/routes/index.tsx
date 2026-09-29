@@ -47,7 +47,7 @@ import {
   type StatusDesa,
   type StatusPenyakitDesa,
 } from "@/lib/analitik";
-import { TAHUN_SKDR } from "@/data/skdr";
+import { SEMU_KEJADIAN, TAHUN_SKDR } from "@/data/skdr";
 import { PENYAKIT, TANGGAL_ACUAN } from "@/data/dataset";
 import { formatTanggal, waktuPembaruan } from "@/data/kronologi";
 import { KABUPATEN, KECAMATAN, PROVINSI, TOTAL_PENDUDUK } from "@/data/wilayah";
@@ -743,6 +743,11 @@ function KartuPenyakit({
   tertinggi: { nama: string; jumlah: number } | null;
 }) {
   const a = AMBANG[penyakit];
+
+  /** Skenario outbreak yang dirancang untuk penyakit ini, agar "Mgg KLB" berarti sesuatu. */
+  const pekanOutbreak = SEMU_KEJADIAN.filter((x) => x.penyakit === penyakit && x.tahun === TAHUN)
+    .map((x) => `${x.mingguDari}-${x.mingguSampai}`)
+    .join(", ");
   return (
     <div className="panel space-y-3 p-4">
       <div className="flex items-start justify-between gap-2">
@@ -794,10 +799,15 @@ function KartuPenyakit({
           {puncak.nama}, minggu {puncak.minggu} ({puncak.insidensi.toFixed(0)}/100k/mgg)
         </p>
       ) : null}
-
       <p className="text-[11px] leading-relaxed text-muted-foreground">
         Status dinilai per minggu, bukan dari rata-rata setahun. Rata-rata
         {` ${insidensi.toFixed(1)}`}/100k/mgg sengaja tidak dipakai untuk menetapkan KLB.
+      </p>
+      <p className="text-[11px] leading-relaxed text-muted-foreground">
+        Angka {penyakit} di kartu ini hasil simulasi, bukan laporan. Puncaknya berasal dari skenario
+        outbreak yang memang dirancang agar ambang terlihat bekerja
+        {pekanOutbreak ? ` (minggu ${pekanOutbreak})` : ""}; minggu lain sengaja dibuat tenang
+        supaya &ldquo;Mgg KLB&rdquo; berarti sesuatu.
       </p>
     </div>
   );

@@ -330,6 +330,25 @@ function Tentang() {
           tahun pada tabel tersebut harus diisi manual dari data resmi sebelum insidensi bisa
           dipakai.
         </p>
+        <p className="mt-3 text-sm text-muted-foreground">
+          <strong className="text-foreground">
+            Ambang dan jumlah penduduk desa adalah nilai simulasi.
+          </strong>{" "}
+          Ambang di tabel di atas (rasio, kasus minimum, insidensi) dan jumlah penduduk desa pada
+          tabel referensi belum ditetapkan oleh Dinkes; keduanya berstatus &ldquo;perlu verifikasi
+          acuan Dinkes&rdquo; dan sengaja tidak diisi angka. Saat implementasi, angka ambang dan
+          angka penduduk desa harus ditetapkan bersama Dinkes Kabupaten Bandung lebih dulu, lalu
+          diisikan pada konfigurasi tunggal (
+          <code className="rounded bg-secondary px-1">src/data/ambang.ts</code>) dan tabel
+          referensi, bukan ditulis ulang di halaman mana pun.
+        </p>
+        <p className="mt-3 text-sm text-muted-foreground">
+          Level kasus simulasi per penyakit juga buatan, bukan hasil pembacaan laporan. Untuk diare,
+          levelnya justru dibuat lebih rendah dari jangkar resmi Dinkes Jawa Barat (90.337
+          kasus/tahun) supaya ambang KLB tidak terlewati setiap minggu; bila kasus dibuat sebesar
+          jangkar penuh, 39 dari 39 minggu di 2026 akan berstatus KLB dan ambang kehilangan makna
+          sebagai penanda. Angka itu adalah level simulasi, bukan perkiraan epidemiologi.
+        </p>
       </section>
 
       <section className="panel p-5 sm:p-6">
