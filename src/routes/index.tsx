@@ -51,7 +51,15 @@ import { TAHUN_SKDR } from "@/data/skdr";
 import { PENYAKIT, TANGGAL_ACUAN } from "@/data/dataset";
 import { formatTanggal, waktuPembaruan } from "@/data/kronologi";
 import { KABUPATEN, KECAMATAN, PROVINSI, TOTAL_PENDUDUK } from "@/data/wilayah";
-import { AMBANG, bandingkanPenyakit, ringkasan, trenMingguan, type Penyakit } from "@/lib/skdr";
+import {
+  AMBANG,
+  LABEL_RENTANG_SKDR,
+  MINGGU_SKDR_TERAKHIR,
+  bandingkanPenyakit,
+  ringkasan,
+  trenMingguan,
+  type Penyakit,
+} from "@/lib/skdr";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -139,16 +147,57 @@ function Dashboard() {
   // --- Bagian 2: SKDR mingguan, SELALU dipisah per penyakit ------------------
   // Tiap penyakit punya kartu dan grafik sendiri. Jumlah kasus dari penyakit
   // berbeda tidak pernah dijumlahkan.
-  const perPenyakitSKDR = useMemo(() => bandingkanPenyakit(TAHUN, 1, 52), []);
+  // Deret dipotong di minggu data terakhir (lihat MINGGU_SKDR_TERAKHIR): minggu
+  // setelahnya tidak punya laporan kasus sehingga tidak boleh tampil sebagai data.
+  const perPenyakitSKDR = useMemo(() => bandingkanPenyakit(TAHUN, 1, MINGGU_SKDR_TERAKHIR), []);
+
+  // Perbandingan antar tahun memakai rentang minggu yang sama persis untuk
+  // kedua tahun, supaya 2026 tidak dibandingkan dengan 52 minggu sementara
+  // 2025 hanya 39 minggu. Angka yang dibandingkan adalah hasil simulasi
+  // yang sama, bukan dua sumber data berbeda.
+  const bandingTahun = useMemo(
+    () =>
+      TAHUN_SKDR.slice(-2).map((tahun) => ({
+        tahun,
+        perPenyakit: bandingkanPenyakit(tahun, 1, MINGGU_SKDR_TERAKHIR),
+      })),
+    [],
+  );
 
   const trenPerPenyakit = useMemo(
     () =>
       (["DBD", "Diare", "Chikungunya", "Hepatitis A"] as Penyakit[]).map((p) => ({
         penyakit: p,
-        titik: trenMingguan({ tahun: TAHUN, mingguDari: 1, mingguSampai: 52, penyakit: p }),
+        titik: trenMingguan({
+          tahun: TAHUN,
+          mingguDari: 1,
+          mingguSampai: MINGGU_SKDR_TERAKHIR,
+          penyakit: p,
+        }),
       })),
     [],
   );
+
+  // Baris tabel perbandingan antar tahun. Kedua tahun memakai rentang minggu
+  // yang sama (lihat bandingTahun di atas), jadi selisihnya benar-benar
+  // mencerminkan jumlah kasus, bukan panjang rentang yang berbeda.
+  const barisBandingTahun = useMemo(() => {
+    const baru = bandingTahun[bandingTahun.length - 1];
+    const lama = bandingTahun[bandingTahun.length - 2];
+    const lamaP = lama?.perPenyakit ?? [];
+    if (!baru || !lama) return [];
+    return baru.perPenyakit.map((p) => {
+      const s = lamaP.find((x) => x.penyakit === p.penyakit);
+      return {
+        penyakit: p.penyakit,
+        kasusBaru: p.total,
+        kasusLama: s?.total ?? 0,
+        selisih: p.total - (s?.total ?? 0),
+        mingguKLBBaru: p.mingguKLB,
+        mingguKLBLama: s?.mingguKLB ?? 0,
+      };
+    });
+  }, [bandingTahun]);
 
   // --- Grafik dinamis: tren harian dibuka hari per hari -----------------------
   // Tombol Putar menampilkan 7 hari pertama, lalu menambah satu hari
@@ -552,7 +601,8 @@ function Dashboard() {
         <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border pb-2">
           <h2 className="text-lg font-semibold">Agregat SKDR mingguan {TAHUN}</h2>
           <p className="text-xs text-muted-foreground">
-            Satu kartu per penyakit &middot; {KECAMATAN.length} kecamatan &middot; minggu 1&ndash;52
+            Satu kartu per penyakit &middot; {KECAMATAN.length} kecamatan &middot;{" "}
+            {MINGGU_SKDR_TERAKHIR} minggu pertama (label &ldquo;{LABEL_RENTANG_SKDR}&rdquo;)
             &middot; angka antarpenyakit tidak dijumlahkan
           </p>
         </div>
@@ -578,7 +628,7 @@ function Dashboard() {
             </li>
             <li>
               <span className="font-medium text-foreground">Kec. KLB</span>: jumlah kecamatan yang
-              menyentuh KLB di minggu mana pun dalam setahun.
+              menyentuh KLB di minggu mana pun dalam rentang {LABEL_RENTANG_SKDR}.
             </li>
           </ul>
         </div>
@@ -587,6 +637,71 @@ function Dashboard() {
           {perPenyakitSKDR.map((p) => (
             <KartuPenyakit key={p.penyakit} {...p} />
           ))}
+        </div>
+
+        <div className="panel p-5">
+          <h3 className="text-base font-semibold">Perbandingan antar tahun, rentang minggu sama</h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Kedua tahun dibandingkan pada minggu 1&ndash;{MINGGU_SKDR_TERAKHIR} saja. Kalau 2026
+            dipakai 52 minggu sementara 2025 hanya 39, angka 2026 terlihat naik bukan karena ada
+            epidemi, melainkan karena minggu yang dihitung lebih banyak.
+          </p>
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full min-w-[34rem] text-sm">
+              <thead>
+                <tr className="border-b border-border text-left text-xs text-muted-foreground">
+                  <th scope="col" className="py-2 pr-3 font-medium">
+                    Penyakit
+                  </th>
+                  <th scope="col" className="py-2 pr-3 text-right font-medium">
+                    Kasus {TAHUN_SKDR[TAHUN_SKDR.length - 1]}
+                  </th>
+                  <th scope="col" className="py-2 pr-3 text-right font-medium">
+                    Kasus {TAHUN_SKDR[0]}
+                  </th>
+                  <th scope="col" className="py-2 pr-3 text-right font-medium">
+                    Selisih
+                  </th>
+                  <th scope="col" className="py-2 text-right font-medium">
+                    Mgg KLB
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {barisBandingTahun.map((b) => (
+                  <tr key={b.penyakit} className="border-b border-border/60 last:border-0">
+                    <th scope="row" className="py-2 pr-3 text-left font-medium text-foreground">
+                      {b.penyakit}
+                    </th>
+                    <td className="py-2 pr-3 text-right tabular-nums">{nf.format(b.kasusBaru)}</td>
+                    <td className="py-2 pr-3 text-right tabular-nums text-muted-foreground">
+                      {nf.format(b.kasusLama)}
+                    </td>
+                    <td
+                      className={`py-2 pr-3 text-right tabular-nums ${
+                        b.selisih > 0
+                          ? "text-destructive"
+                          : b.selisih < 0
+                            ? "text-success-text"
+                            : "text-muted-foreground"
+                      }`}
+                    >
+                      {b.selisih > 0 ? "+" : ""}
+                      {nf.format(b.selisih)}
+                    </td>
+                    <td className="py-2 text-right tabular-nums">
+                      {b.mingguKLBBaru} vs {b.mingguKLBLama}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            Kedua tahun berasal dari simulasi yang sama (src/data/skdr.ts), bukan dua sumber data
+            berbeda. Angka kasus dan &ldquo;Mgg KLB&rdquo; sudah dipotong di minggu{" "}
+            {MINGGU_SKDR_TERAKHIR} untuk kedua tahun.
+          </p>
         </div>
 
         <div className="panel p-5">
@@ -645,7 +760,9 @@ function KartuPenyakit({
       <div>
         <p className="font-display text-2xl font-bold leading-none">
           {nf.format(total)}
-          <span className="ml-1 text-xs font-medium text-muted-foreground">kasus/tahun</span>
+          <span className="ml-1 text-xs font-medium text-muted-foreground">
+            kasus {LABEL_RENTANG_SKDR}
+          </span>
         </p>
         <p className="mt-1 text-xs text-muted-foreground">
           {nf.format(meninggal)} kematian &middot; rata-rata {insidensi.toFixed(1)}/100k/mgg

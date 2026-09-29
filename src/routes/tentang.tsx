@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 
 import { AMBANG_SKDR, ATURAN_HARIAN } from "@/data/ambang";
+import { JUMLAH_MINGGU } from "@/data/skdr";
+import { MINGGU_SKDR_TERAKHIR } from "@/lib/skdr";
 import { PENYAKIT } from "@/data/skdr";
 import { METRIK_BELUM_TERUKUR } from "@/lib/dampak";
 
@@ -177,8 +179,11 @@ function Tentang() {
                   dijumlahkan.
                 </li>
                 <li>
-                  Deret mingguan pada prototipe adalah simulasi penuh setahun, bukan rekap sampai
-                  minggu data terakhir.
+                  Deret mingguan pada prototipe adalah simulasi, dan sekarang dipotong di minggu{" "}
+                  {MINGGU_SKDR_TERAKHIR}: minggu {MINGGU_SKDR_TERAKHIR + 1}-{JUMLAH_MINGGU} tidak
+                  pernah ditampilkan sebagai data karena tidak ada laporan kasus yang masuk pada
+                  minggu itu. Semua total dan perbandingan memakai rentang yang sama, sehingga
+                  perbandingan antar tahun tidak dipengaruhi panjang rentang.
                 </li>
               </ul>
             </div>

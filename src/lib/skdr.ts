@@ -11,6 +11,7 @@
 
 import { KECAMATAN, KECAMATAN_BY_KODE } from "@/data/wilayah";
 import { JUMLAH_MINGGU, PENYAKIT, SKDR, type BarisSKDR, type Penyakit } from "@/data/skdr";
+import { MINGGU_DATA_TERAKHIR } from "@/data/kronologi";
 
 export type JenisKasus = "penderita" | "meninggal";
 
@@ -24,18 +25,52 @@ export interface FilterSKDR {
   kodeKecamatan?: string | null;
 }
 
+/**
+ * Minggu SKDR terakhir yang boleh ditampilkan.
+ *
+ * Angka ini TIDAL ditulis mati: ia diambil dari minggu ISO tanggal data
+ * terakhir (src/data/kronologi.ts). Kalau tanggal data berubah, batas ini
+ * ikut berubah.
+ *
+ * Kenapa dipotong: deret SKDR di src/data/skdr.ts adalah simulasi penuh 52
+ * minggu, sedangkan data kasus per desa baru berhenti di minggu data
+ * terakhir. Kalau minggu 40-52 tetap ditampilkan, pembaca mengira angka itu
+ * hasil laporan, padahal tidak ada laporan yang masuk. Memotong juga membuat
+ * perbandingan 2025 vs 2026 memakai rentang minggu yang sama.
+ */
+export const MINGGU_SKDR_TERAKHIR = Math.min(JUMLAH_MINGGU, MINGGU_DATA_TERAKHIR);
+
+/** Label rentang untuk judul dan ringkasan: "Minggu 1-39". */
+export const LABEL_RENTANG_SKDR = `minggu 1-${MINGGU_SKDR_TERAKHIR}`;
+
+const jepit = (n: number) => Math.min(MINGGU_SKDR_TERAKHIR, Math.max(1, Math.round(n)));
+
+/**
+ * Normalisasi filter: jepit minggu ke rentang 1..MINGGU_SKDR_TERAKHIR.
+ *
+ * Dipakai di awal setiap fungsi publik supaya tidak ada jalur yang bisa
+ * membaca minggu 40-52. Tanpa penjepitan di sini,grafik mingguan masih
+ * menampilkan minggu kosong setelah data terakhir.
+ */
+export function dalamRentang(f: FilterSKDR): FilterSKDR {
+  const dari = jepit(Math.min(f.mingguDari, f.mingguSampai));
+  const sampai = jepit(Math.max(f.mingguDari, f.mingguSampai));
+  return { ...f, mingguDari: dari, mingguSampai: sampai };
+}
+
 export function nilaiBaris(r: BarisSKDR, jenis: JenisKasus) {
   return jenis === "meninggal" ? r.meninggal : r.penderita;
 }
 
 export function terfilter(f: FilterSKDR): BarisSKDR[] {
+  const g = dalamRentang(f);
   return SKDR.filter(
     (r) =>
-      r.tahun === f.tahun &&
-      r.penyakit === f.penyakit &&
-      r.minggu >= f.mingguDari &&
-      r.minggu <= f.mingguSampai &&
-      (!f.kodeKecamatan || r.kodeKecamatan === f.kodeKecamatan),
+      r.tahun === g.tahun &&
+      r.penyakit === g.penyakit &&
+      r.minggu >= g.mingguDari &&
+      r.minggu <= g.mingguSampai &&
+      (!g.kodeKecamatan || r.kodeKecamatan === g.kodeKecamatan),
   );
 }
 
@@ -86,9 +121,10 @@ export interface StatusKecamatan {
 }
 
 export function statusKecamatan(f: FilterSKDR, jenis: JenisKasus = "penderita"): StatusKecamatan[] {
-  const a = AMBANG[f.penyakit];
-  const baris = terfilter(f);
-  const jumlahMinggu = Math.max(1, f.mingguSampai - f.mingguDari + 1);
+  const g = dalamRentang(f);
+  const a = AMBANG[g.penyakit];
+  const baris = terfilter(g);
+  const jumlahMinggu = Math.max(1, g.mingguSampai - g.mingguDari + 1);
 
   const perKec = new Map<string, { jumlah: number; meninggal: number }>();
   for (const r of baris) {
@@ -220,8 +256,9 @@ export function statusMingguanKecamatan(
   f: FilterSKDR,
   jenis: JenisKasus = "penderita",
 ): { minggu: number; kode: string; jumlah: number; meninggal: number; level: Level }[] {
-  const a = AMBANG[f.penyakit];
-  const baris = terfilter(f);
+  const g = dalamRentang(f);
+  const a = AMBANG[g.penyakit];
+  const baris = terfilter(g);
 
   // kumpulkan (kecamatan -> minggu -> jumlah)
   const sel = new Map<string, Map<number, { jumlah: number; meninggal: number }>>();
@@ -238,15 +275,15 @@ export function statusMingguanKecamatan(
   // menyaring SKDR berulang kali. Versi lama memanggil SKDR.filter
   // 31 x 52 = 1.612 kali atas 12.896 baris (~20 juta operasi) pada SETIAP
   // perubahan filter; itu terasa jelas saat menggeser slider minggu.
-  const indeks = indeksMingguan(f.tahun, f.penyakit);
+  const indeks = indeksMingguan(g.tahun, g.penyakit);
 
   const out: { minggu: number; kode: string; jumlah: number; meninggal: number; level: Level }[] =
     [];
   for (const k of KECAMATAN) {
-    if (f.kodeKecamatan && k.kode !== f.kodeKecamatan) continue;
+    if (g.kodeKecamatan && k.kode !== g.kodeKecamatan) continue;
     const m = sel.get(k.kode);
     const deret = indeks.get(k.kode);
-    for (let mg = f.mingguDari; mg <= f.mingguSampai; mg++) {
+    for (let mg = g.mingguDari; mg <= g.mingguSampai; mg++) {
       const c = m?.get(mg) ?? { jumlah: 0, meninggal: 0 };
       const ins = k.penduduk ? (c.jumlah / k.penduduk) * 100000 : 0;
 
@@ -374,12 +411,13 @@ export interface Ringkasan {
 }
 
 export function ringkasan(f: FilterSKDR, jenis: JenisKasus = "penderita"): Ringkasan {
-  const status = statusKecamatan(f, jenis);
-  const jumlahMinggu = Math.max(1, f.mingguSampai - f.mingguDari + 1);
+  const g = dalamRentang(f);
+  const status = statusKecamatan(g, jenis);
+  const jumlahMinggu = Math.max(1, g.mingguSampai - g.mingguDari + 1);
   const total = status.reduce((a, s) => a + (jenis === "meninggal" ? s.meninggal : s.jumlah), 0);
   const meninggal = status.reduce((a, s) => a + s.meninggal, 0);
-  const penduduk = f.kodeKecamatan
-    ? (KECAMATAN.find((k) => k.kode === f.kodeKecamatan)?.penduduk ?? 0)
+  const penduduk = g.kodeKecamatan
+    ? (KECAMATAN.find((k) => k.kode === g.kodeKecamatan)?.penduduk ?? 0)
     : KECAMATAN.reduce((s, k) => s + k.penduduk, 0);
 
   // statusKecamatan mengembalikan KECAMATAN sesuai urutan wilayah, bukan
@@ -458,7 +496,7 @@ export function puncakMingguan(
 /** Perbandingan seluruh penyakit untuk satu rentang minggu. */
 export function bandingkanPenyakit(tahun: number, mingguDari: number, mingguSampai: number) {
   return PENYAKIT.map((p) => {
-    const f: FilterSKDR = { tahun, mingguDari, mingguSampai, penyakit: p };
+    const f = dalamRentang({ tahun, mingguDari, mingguSampai, penyakit: p });
     const mingguan = statusMingguanKecamatan(f);
     const perLevel = kelompokMinggu(mingguan);
     return {
