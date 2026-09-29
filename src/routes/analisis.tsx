@@ -48,7 +48,7 @@ const MODE: Record<
     ikon: Users,
     ringkas: "Bahasa sehari-hari",
     detail:
-      "Tanpa istilah teknis. Angka ditulis sebagai perbandingan yang mudah dipahami — misalnya “tiga kali lipat dari minggu biasa”, bukan “rasio 3,0x baseline”.",
+      "Tanpa istilah teknis. Angka ditulis sebagai perbandingan yang mudah dipahami, misalnya “tiga kali lipat dari minggu biasa”, bukan “rasio 3,0x baseline”.",
   },
   petugas: {
     label: "Petugas",
@@ -151,8 +151,8 @@ function Analisis() {
           Tanyakan, jawabannya dari data surveilans
         </h1>
         <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-          Angka di dashboard sulit dibaca sendiri. Di sini Anda bertanya langsung — misalnya desa
-          mana yang perlu diwaspadai, atau mengapa kasus naik — dan AI menjawab berdasarkan data
+          Angka di dashboard sulit dibaca sendiri. Di sini Anda bertanya langsung, misalnya desa
+          mana yang perlu diwaspadai atau mengapa kasus naik, dan AI menjawab berdasarkan data
           surveilans terbaru. Pilih mode pembaca agar bahasanya pas.
         </p>
       </header>
@@ -345,7 +345,7 @@ function Analisis() {
 
           <p className="border-t border-border/70 px-5 py-3 text-xs text-muted-foreground">
             Narasi ini dibuat AI dan perlu diverifikasi petugas sebelum dipakai sebagai dasar
-            keputusan. Seluruh angka bersumber dari ringkasan data surveilans di bawah — bukan hasil
+            keputusan. Seluruh angka bersumber dari ringkasan data surveilans di bawah, bukan hasil
             karangan AI.
           </p>
         </section>

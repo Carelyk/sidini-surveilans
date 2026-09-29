@@ -93,7 +93,7 @@ function LaporWarga() {
         <h1 className="mt-1 text-2xl font-bold sm:text-3xl">Lapor gejala dari rumah</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           Cukup 5 pertanyaan, tanpa perlu menyebut nama. Laporan Anda masuk ke antrean verifikasi
-          petugas puskesmas — baru dihitung sebagai kasus setelah diverifikasi, sehingga dashboard
+          petugas puskesmas, baru dihitung sebagai kasus setelah diverifikasi, sehingga dashboard
           tidak dipenuhi laporan palsu atau ganda.
         </p>
       </header>
@@ -102,7 +102,7 @@ function LaporWarga() {
         <div className="panel flex items-start gap-3 border-success/40 bg-success/10 p-4">
           <CheckCircle2 className="mt-0.5 size-5 text-success-text" />
           <div className="text-sm">
-            <p className="font-semibold text-success-text">Laporan diterima — nomor {terkirim}</p>
+            <p className="font-semibold text-success-text">Laporan diterima · nomor {terkirim}</p>
             <p className="text-muted-foreground">
               Status: <strong>Menunggu verifikasi</strong>. Petugas dapat menghubungi Anda bila
               perlu penyelidikan lapangan. Lihat antrean di halaman Verifikasi.
@@ -121,7 +121,7 @@ function LaporWarga() {
             >
               {DESA.map((d) => (
                 <option key={d.kode} value={d.kode}>
-                  {d.nama} — Kec. {d.kecamatan}
+                  {d.nama} · Kec. {d.kecamatan}
                 </option>
               ))}
             </select>
@@ -193,7 +193,7 @@ function LaporWarga() {
             <input
               value={kontak}
               onChange={(e) => setKontak(e.target.value)}
-              placeholder="08xx — hanya dipakai petugas untuk verifikasi"
+              placeholder="08xx, hanya dipakai petugas untuk verifikasi"
               className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
             />
           </Field>

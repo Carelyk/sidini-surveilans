@@ -114,7 +114,7 @@ function InputPuskesmas() {
           >
             {DESA.map((d) => (
               <option key={d.kode} value={d.kode}>
-                {d.kode} — {d.nama}
+                {d.kode} · {d.nama}
               </option>
             ))}
           </select>

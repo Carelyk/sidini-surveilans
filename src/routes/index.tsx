@@ -263,12 +263,6 @@ function Dashboard() {
               adalah total kasus, tiap garis warna satu penyakit. Tekan Putar animasi untuk melihat
               hari demi hari.
             </p>
-            <LegendaSeri
-              items={[
-                { label: "Total kasus", warna: WARNA_TOTAL },
-                ...PENYAKIT.map((p) => ({ label: p, warna: WARNA_PENYAKIT[p] })),
-              ]}
-            />
             <div className="mt-2 h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={trenTampil}>
@@ -312,6 +306,12 @@ function Dashboard() {
                 </AreaChart>
               </ResponsiveContainer>
             </div>
+            <LegendaSeri
+              items={[
+                { label: "Total kasus", warna: WARNA_TOTAL },
+                ...PENYAKIT.map((p) => ({ label: p, warna: WARNA_PENYAKIT[p] })),
+              ]}
+            />
           </div>
         </div>
 
@@ -319,8 +319,8 @@ function Dashboard() {
           <div className="panel p-5">
             <h3 className="text-base font-semibold">Komposisi penyakit (7 hari)</h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              Pembagian kasus 7 hari terakhir menurut jenis penyakitnya — berapa persen dari seluruh
-              pelaporan yang berasal dari tiap penyakit.
+              Pembagian kasus 7 hari terakhir menurut jenis penyakitnya, yaitu berapa persen dari
+              seluruh pelaporan yang berasal dari tiap penyakit.
             </p>
             <div className="mt-2 h-56">
               <ResponsiveContainer width="100%" height="100%">
@@ -359,7 +359,7 @@ function Dashboard() {
                     className="size-2.5 rounded-full"
                     style={{ background: WARNA_PENYAKIT[p.penyakit] }}
                   />
-                  <span className="flex-1">{p.penyakit}</span>
+                  <span>{p.penyakit}</span>
                   <span className="font-mono text-xs text-muted-foreground">{p.persen}%</span>
                 </li>
               ))}
@@ -374,7 +374,6 @@ function Dashboard() {
               Sebaran kasus 7 hari terakhir menurut rentang usia, dipecah per penyakit. Terlihat
               kelompok yang paling banyak terkena dan penyakit apa yang dominan di setiap kelompok.
             </p>
-            <LegendaSeri items={PENYAKIT.map((p) => ({ label: p, warna: WARNA_PENYAKIT[p] }))} />
             <div className="mt-2 h-56">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={d.umurPenyakit}>
@@ -405,6 +404,7 @@ function Dashboard() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
+            <LegendaSeri items={PENYAKIT.map((p) => ({ label: p, warna: WARNA_PENYAKIT[p] }))} />
           </div>
         </div>
 
@@ -605,12 +605,11 @@ function Angka({
   );
 }
 
-/** Legenda titik warna kecil yang dipakai di atas grafik tren dan umur.
- *  Rata kanan supaya tidak menempel di tepi kiri panel dan tidak terlihat
- *  jauh dari garis-garis yang dijelaskan. */
+/** Legenda titik warna kecil yang dipakai di bawah grafik tren dan umur.
+ *  Rata kiri dan sejajar dengan area plot grafik supaya enak dibaca. */
 function LegendaSeri({ items }: { items: { label: string; warna: string }[] }) {
   return (
-    <ul className="mt-3 flex flex-wrap items-center justify-end gap-x-4 gap-y-1.5">
+    <ul className="mt-3 flex flex-wrap items-center justify-start gap-x-4 gap-y-1.5 pl-[65px]">
       {items.map((it) => (
         <li key={it.label} className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <span className="size-2.5 rounded-full" style={{ background: it.warna }} />
@@ -662,7 +661,7 @@ function GrafikPenyakit({
           </AreaChart>
         </ResponsiveContainer>
       </div>
-      <p className="mt-1 text-[11px] text-muted-foreground">
+      <p className="mt-1 pl-[42px] text-[11px] text-muted-foreground">
         {titik.filter((t) => t.level === "KLB").length} minggu menyentuh ambang KLB
         {a.insidensiMin > 0 ? ` (${a.insidensiMin}/100k/mgg)` : ""} &middot;{" "}
         {titik.reduce((m, t) => Math.max(m, t.jumlah), 0)} kasus puncak mingguan

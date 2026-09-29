@@ -39,7 +39,7 @@ export const JUMLAH_MINGGU = 52;
  * mingguan.
  */
 export const ANGKA_ACUAN = {
-  sumber: "opendata.jabarprov.go.id — Dinkes Jawa Barat (2016, terverifikasi)",
+  sumber: "opendata.jabarprov.go.id, Dinkes Jawa Barat (2016, terverifikasi)",
   tahun: 2016,
   dbdKabupatenBandung: 3466,
   diareKabupatenBandung: 90337,

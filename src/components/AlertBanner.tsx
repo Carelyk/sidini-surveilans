@@ -30,7 +30,7 @@ export function AlertBanner({ status }: { status: StatusDesa[] }) {
             </span>
             <div className="min-w-[13rem] flex-1">
               <p className="text-[10px] font-bold uppercase tracking-wide text-destructive">
-                Alert otomatis — dugaan KLB
+                Alert otomatis · dugaan KLB
               </p>
               <p className="mt-0.5 text-sm font-semibold">
                 Desa {s.desa}, Kec. {s.kecamatan}

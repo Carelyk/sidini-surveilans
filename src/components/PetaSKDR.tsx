@@ -290,7 +290,7 @@ export function PetaSKDR({
         <p className="text-sm text-muted-foreground">
           {fokus ? (
             <>
-              Tingkat 2 dari 2: <span className="font-medium text-foreground">{fokus.nama}</span> —{" "}
+              Tingkat 2 dari 2: <span className="font-medium text-foreground">{fokus.nama}</span> ·{" "}
               {fokus.desa.length} desa/kelurahan
             </>
           ) : (

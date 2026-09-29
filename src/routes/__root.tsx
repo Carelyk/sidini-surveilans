@@ -80,7 +80,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "SIDINI — Sistem Deteksi Dini Wabah" },
+      { title: "SIDINI | Sistem Deteksi Dini Wabah" },
       {
         name: "description",
         content:
@@ -137,7 +137,7 @@ function RootComponent() {
           </main>
           <footer className="border-t border-border/70 py-6">
             <div className="mx-auto max-w-3xl px-4 text-center text-xs leading-relaxed text-muted-foreground">
-              SIDINI — prototipe studi kasus. Seluruh data kasus bersifat{" "}
+              SIDINI · prototipe studi kasus. Seluruh data kasus bersifat{" "}
               <strong className="text-foreground">sintetis</strong>. Data pelapor warga diperlakukan
               sebagai data pribadi bersifat spesifik (kesehatan) sesuai UU PDP No. 27/2022.
             </div>
