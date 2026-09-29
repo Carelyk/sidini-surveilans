@@ -15,7 +15,7 @@ export const Route = createFileRoute("/lapor")({
       {
         name: "description",
         content:
-          "Kanal pelaporan gejala oleh warga: singkat, tanpa nama wajib, dan diverifikasi petugas sebelum dihitung sebagai kasus.",
+          "Formulir contoh pelaporan gejala warga: singkat, tanpa nama, dan diverifikasi petugas sebelum dihitung sebagai kasus. Pada prototipe laporan hanya tersimpan di peramban.",
       },
       { property: "og:title", content: "Lapor Gejala (Kanal Warga) | SIDINI" },
       {
@@ -86,7 +86,9 @@ function LaporWarga() {
         .join(" · "),
     });
     setTerkirim(baru.id);
-    toast.success("Laporan terkirim. Petugas akan memverifikasi dalam 1x24 jam.");
+    toast.success(
+      "Laporan tersimpan di peramban ini dan masuk antrean verifikasi. Tidak ada pesan dikirim ke petugas.",
+    );
     setGejala([]);
     setKluster(false);
     setKontak("");
@@ -99,9 +101,13 @@ function LaporWarga() {
         <p className="text-xs font-semibold uppercase tracking-wide text-primary">Kanal warga</p>
         <h1 className="mt-1 text-2xl font-bold sm:text-3xl">Lapor gejala dari rumah</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+          Formulir contoh untuk prototipe: laporan yang Anda kirim hanya tersimpan di peramban
+          perangkat ini, bukan terkirim ke puskesmas mana pun.
+        </p>
+        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           Cukup 5 pertanyaan, tanpa perlu menyebut nama. Laporan Anda masuk ke antrean verifikasi
-          petugas puskesmas, baru dihitung sebagai kasus setelah diverifikasi, sehingga dashboard
-          tidak dipenuhi laporan palsu atau ganda.
+          petugas puskesmas dan baru dihitung sebagai kasus setelah diverifikasi, sehingga laporan
+          yang belum diperiksa tidak ikut terhitung di dashboard.
         </p>
       </header>
 
@@ -111,8 +117,9 @@ function LaporWarga() {
           <div className="text-sm">
             <p className="font-semibold text-success-text">Laporan diterima · nomor {terkirim}</p>
             <p className="text-muted-foreground">
-              Status: <strong>Menunggu verifikasi</strong>. Petugas dapat menghubungi Anda bila
-              perlu penyelidikan lapangan. Lihat antrean di halaman Verifikasi.
+              Status: <strong>Menunggu verifikasi</strong>. Di prototipe ini laporan hanya tersimpan
+              di peramban ini; tidak ada pesan yang dikirim ke petugas dan belum ada target waktu
+              verifikasi yang dijalankan.
             </p>
           </div>
         </div>
@@ -202,13 +209,18 @@ function LaporWarga() {
             </label>
           </Field>
 
-          <Field label="Nomor WhatsApp (opsional)">
+          <Field label="Nomor WhatsApp (opsional) - tidak disimpan (simulasi)">
             <input
               value={kontak}
               onChange={(e) => setKontak(e.target.value)}
-              placeholder="08xx, hanya dipakai petugas untuk verifikasi"
+              placeholder='08xx - prototipe hanya menyimpan penanda "kontak tersedia"'
               className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
             />
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Nomor yang diketik tidak disimpan; laporan hanya diberi catatan &quot;kontak
+              tersedia&quot;. Pada sistem sungguhan nomor kontak adalah data pribadi spesifik yang
+              perlu dasar hukum, enkripsi saat transit, dan penghapusan setelah verifikasi selesai.
+            </p>
           </Field>
 
           <label className="flex items-start gap-2 rounded-lg border border-border bg-background/40 p-3 text-xs text-muted-foreground">
@@ -219,9 +231,10 @@ function LaporWarga() {
               className="mt-0.5 size-4 accent-[var(--color-primary)]"
             />
             <span>
-              Saya memahami data kesehatan ini bersifat pribadi spesifik dan hanya digunakan petugas
-              surveilans untuk verifikasi serta respons wabah, sesuai UU PDP No. 27/2022. Data
-              ditampilkan di dashboard hanya dalam bentuk agregat per desa.
+              Saya memahami data kesehatan ini bersifat pribadi spesifik dan dalam sistem sungguhan
+              hanya digunakan petugas surveilans untuk verifikasi serta respons wabah, sesuai UU PDP
+              No. 27/2022. Pada prototipe ini laporan hanya tersimpan di peramban perangkat ini dan
+              tidak dikirim ke server mana pun.
             </span>
           </label>
 
@@ -239,10 +252,19 @@ function LaporWarga() {
               <Lock className="size-4 text-primary" /> Privasi Anda
             </h2>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-              <li>Nama tidak diminta; kontak hanya opsional untuk verifikasi.</li>
-              <li>Titik lokasi dibulatkan ke tingkat desa pada tampilan publik.</li>
-              <li>Hanya petugas berwenang yang dapat melihat rincian laporan.</li>
-              <li>Laporan otomatis dianonimkan pada semua grafik dan peta.</li>
+              <li>Nama tidak pernah diminta dalam formulir ini.</li>
+              <li>
+                Nomor kontak bersifat opsional, tetapi prototipe tidak menyimpannya: laporan hanya
+                diberi penanda &quot;kontak tersedia&quot;.
+              </li>
+              <li>
+                Laporan menyimpan kode desa, bukan alamat lengkap atau titik GPS pelapor. Peta
+                memakai titik tengah desa.
+              </li>
+              <li>
+                Rincian per kasus dapat dibuka siapa pun: prototipe tidak memakai autentikasi maupun
+                peran pengguna. Grafik dan peta hanya menampilkan agregat per desa.
+              </li>
             </ul>
           </div>
 
@@ -251,9 +273,10 @@ function LaporWarga() {
               <WifiOff className="size-4 text-warning-text" /> Sinyal lemah?
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Formulir ini ringan (&lt;100 KB) dan dapat disimpan sebagai draf di perangkat lalu
-              terkirim otomatis saat jaringan kembali. Untuk pos pembantu terpencil tersedia
-              alternatif lapor via SMS/USSD dan pengiriman massal oleh kader.
+              Pada prototipe ini laporan langsung tersimpan di penyimpanan peramban perangkat Anda
+              setelah tombol ditekan. Belum ada mode luring, draf otomatis, maupun pengiriman ulang
+              saat jaringan kembali, dan belum ada alternatif SMS/USSD. Untuk sistem sungguhan, PWA
+              dan antrean pengiriman per perangkat adalah pekerjaan terpisah.
             </p>
           </div>
         </aside>

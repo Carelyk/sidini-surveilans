@@ -15,7 +15,7 @@ export const Route = createFileRoute("/verifikasi")({
       {
         name: "description",
         content:
-          "Triase dan verifikasi laporan gejala warga agar laporan palsu dan duplikat tidak membanjiri tim surveilans.",
+          "Triase laporan gejala warga. Laporan yang belum diverifikasi tidak dihitung sebagai kasus. Prototipe tidak mendeteksi duplikat secara otomatis.",
       },
       { property: "og:title", content: "Verifikasi Laporan Warga | SIDINI" },
       {
@@ -68,7 +68,11 @@ function Verifikasi() {
         <h1 className="mt-1 text-2xl font-bold sm:text-3xl">Verifikasi laporan warga</h1>
         <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
           Laporan warga tidak langsung menjadi kasus. Petugas memutuskan: sahkan, investigasi, atau
-          tolak.
+          tolak. Antrean diurutkan dari tanggal lapor terbaru, bukan dari skor.
+        </p>
+        <p className="mt-1 max-w-3xl text-xs text-muted-foreground">
+          Yang belum ada di prototipe: pendeteksian laporan duplikat otomatis, penugasan petugas,
+          dan membatasi akses per peran. Halaman ini terbuka tanpa autentikasi.
         </p>
       </header>
 
@@ -110,7 +114,7 @@ function Verifikasi() {
                           : "border-border bg-secondary text-muted-foreground"
                     }`}
                   >
-                    Prioritas {skor >= 4 ? "tinggi" : skor === 3 ? "sedang" : "rendah"}
+                    Skor gejala {skor}/4
                   </span>
                   {kluster && (
                     <span className="rounded-full border border-accent/40 bg-accent/15 px-2 py-0.5 text-[11px] text-accent">
@@ -128,6 +132,11 @@ function Verifikasi() {
                 <p className="mt-1.5 text-sm text-muted-foreground">
                   Gejala: {k.gejala.length ? k.gejala.join(", ") : "tidak dirinci"}
                 </p>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Skor {skor} dari 4 dihitung dari jumlah gejala (2 poin bila minimal 3 gejala) dan
+                  penanda kluster keluarga (2 poin). Skor ini hanya label pada baris ini, tidak
+                  dipakai mengurutkan antrean, dan bukan penilaian klinis.
+                </p>
               </div>
 
               <div className="flex flex-wrap gap-2">
@@ -143,7 +152,7 @@ function Verifikasi() {
                 <button
                   onClick={() => {
                     ubahStatus(k.id, "Investigasi");
-                    toast("Ditandai untuk penyelidikan lapangan oleh petugas surveilans.");
+                    toast("Ditandai berstatus Investigasi. Belum ada petugas yang ditugaskan.");
                   }}
                   className="rounded-lg border border-border px-3 py-2 text-sm font-medium transition-colors hover:bg-secondary"
                 >
@@ -152,7 +161,9 @@ function Verifikasi() {
                 <button
                   onClick={() => {
                     ubahStatus(k.id, "Ditolak");
-                    toast("Laporan ditolak (duplikat / tidak memenuhi kriteria).");
+                    toast(
+                      "Laporan ditolak. Prototipe tidak mendeteksi duplikat, jadi alasan penolakan dicatat manual petugas.",
+                    );
                   }}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-destructive/40 px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
                 >

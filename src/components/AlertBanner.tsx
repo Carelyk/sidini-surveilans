@@ -51,8 +51,10 @@ export function AlertBanner({ status }: { status: StatusDesa[] }) {
                 </p>
                 <p className="mt-0.5 text-xs text-muted-foreground">{pemicu.alasan}</p>
                 <p className="mt-1.5 text-[11px] text-muted-foreground">
-                  Penerima notifikasi: Kepala Dinas · Tim Surveilans/Epidemiologi · Kepala{" "}
-                  {s.puskesmas} · Koordinator Kader {s.desa}
+                  Penerima notifikasi yang direncanakan: Kepala Dinas · Tim Surveilans/Epidemiologi
+                  · Kepala {s.puskesmas} · Koordinator Kader {s.desa}. Pada prototipe ini pesan
+                  hanya ditampilkan di layar, tidak ada surel, pesan WhatsApp, atau tugas lapangan
+                  yang dikirim.
                 </p>
               </div>
               <div className="grid shrink-0 grid-cols-4 gap-1.5 text-center">

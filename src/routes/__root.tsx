@@ -86,7 +86,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "SIDINI, Sistem Deteksi Dini Wabah untuk Kabupaten Bandung: pelaporan kasus real-time dari puskesmas dan warga, dashboard SKDR per penyakit, peta sebaran, alert otomatis, dan analisis naratif AI.",
+          "SIDINI, prototipe surveilans Kabupaten Bandung berbasis data simulasi: pelaporan kasus dari puskesmas dan warga, dashboard SKDR per penyakit, peta sebaran, peringatan di layar, dan analisis naratif AI. Tanpa autentikasi.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

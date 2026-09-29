@@ -62,7 +62,7 @@ export const Route = createFileRoute("/")({
       {
         property: "og:description",
         content:
-          "Pantau tren mingguan per penyakit, sebaran wilayah, dan ambang KLB otomatis dalam satu layar.",
+          "Pantau tren mingguan per penyakit, sebaran wilayah, dan ambang KLB yang bisa diaudit dalam satu layar.",
       },
     ],
   }),

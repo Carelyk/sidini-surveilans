@@ -33,7 +33,8 @@ export const Route = createFileRoute("/puskesmas")({
       { property: "og:title", content: "Input Kasus Puskesmas (Real-time) | SIDINI" },
       {
         property: "og:description",
-        content: "Pelaporan kasus terkonfirmasi kurang dari 30 detik, langsung masuk dashboard.",
+        content:
+          "Pelaporan kasus terkonfirmasi kurang dari 30 detik, langsung masuk dashboard di peramban ini. Prototipe tanpa autentikasi.",
       },
     ],
   }),
@@ -210,9 +211,10 @@ function InputPuskesmas() {
             Kirim ke dashboard sekarang
           </button>
           <p className="mt-3 text-xs text-muted-foreground">
-            Integrasi: data ini dirancang mengikuti variabel SKDR/e-Puskesmas sehingga bisa
-            disinkronkan (bukan diketik ulang) lewat pertukaran data harian, dan tetap dapat
-            disimpan lokal saat jaringan terputus.
+            Rancangan integrasi (belum berjalan): variabelnya sengaja mengikuti pola variabel
+            SKDR/e-Puskesmas agar pertukaran data harian tidak perlu pengetikan ulang, dan agar
+            kasus dapat disimpan di perangkat saat jaringan terputus. Keduanya belum
+            diimplementasikan pada prototipe ini.
           </p>
         </div>
       </form>
