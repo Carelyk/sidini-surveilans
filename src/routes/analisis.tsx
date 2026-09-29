@@ -15,6 +15,7 @@ import {
 import { toast } from "sonner";
 
 import { StatCard } from "@/components/StatCard";
+import type { Kasus } from "@/data/dataset";
 import { useSurveilans } from "@/lib/store";
 import { analisisNaratif, tanyaKesehatan, type ModeAnalisis } from "@/lib/ai.functions";
 import { ringkasanUntukAI } from "@/lib/analitik";
@@ -74,7 +75,13 @@ const CONTOH: Record<ModeAnalisis, string[]> = {
   ],
 };
 
-type Hasil = { teks: string; model: string; mode: ModeAnalisis };
+/** `kasusDipakai` = berapa kasus dari peramban yang dipakai server. */
+type Hasil = {
+  teks: string;
+  model: string;
+  mode: ModeAnalisis;
+  kasusDipakai?: number;
+};
 
 function Analisis() {
   const { kasus } = useSurveilans();
@@ -97,16 +104,31 @@ function Analisis() {
     setMemuat(true);
     setGalat(null);
     try {
-      const data: { ringkasan: string; pertanyaan?: string; mode: ModeAnalisis } = {
-        ringkasan: JSON.stringify(ringkasan, null, 2),
-        mode,
-      };
+      // Yang dikirim ke server hanya kasus yang ditambahkan di peramban ini
+      // (prefiks BB-U). Dataset bawaan (BB-00001) sudah ada di server, jadi
+      // tidak perlu dikirim dua kali.
+      //
+      // Server menghitung ulang ringkasannya sendiri. Sebelumnya peramban
+      // mengirim ringkasan siap pakai sebagai teks, sehingga angka di prompt
+      // tidak bisa diverifikasi dan teks peramban punya jalur langsung ke
+      // prompt model.
+      const tambahan = kasus.filter((k) => k.id.startsWith("BB-U"));
+      const data: {
+        kasusTambahan: Kasus[];
+        pertanyaan?: string;
+        mode: ModeAnalisis;
+      } = { kasusTambahan: tambahan, mode };
       const tanya = pertanyaan.trim();
       if (tanya) data.pertanyaan = tanya;
 
       const res = await analisisNaratif({ data });
       if (res.ok) {
-        setHasil({ teks: res.teks, model: res.model, mode });
+        setHasil({
+          teks: res.teks,
+          model: res.model,
+          mode,
+          kasusDipakai: res.kasusDipakai,
+        });
       } else {
         setGalat(res.error);
         setHasil(null);
@@ -347,8 +369,13 @@ function Analisis() {
 
           <p className="border-t border-border/70 px-5 py-3 text-xs text-muted-foreground">
             Narasi ini dibuat AI dan perlu diverifikasi petugas sebelum dipakai sebagai dasar
-            keputusan. Seluruh angka bersumber dari ringkasan data surveilans di bawah, bukan hasil
-            karangan AI.
+            keputusan. Ringkasan yang dibaca model dihitung ulang di server dari kasus yang
+            divalidasi
+            {hasil.kasusDipakai
+              ? ` (${hasil.kasusDipakai} kasus tambahan dari peramban ini ikut dihitung)`
+              : ""}
+            , bukan teks yang dikirim peramban, sehingga angka di dalam narasi tidak bisa diubah
+            dari sisi peramban.
           </p>
         </section>
       )}

@@ -1,19 +1,109 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequestIP } from "@tanstack/react-start/server";
 import { z } from "zod";
 
+import { DATASET_AWAL } from "@/data/dataset";
+import { normalisasiKasusTambahan } from "@/lib/kasus-peramban";
+import { buatPembatasLaju, type PembatasLaju } from "@/lib/rate-limit";
+import { ringkasanUntukAI } from "@/lib/analitik";
+import { ATURAN_INPUT_TAK_TEPERCAYA, blokTeks } from "@/lib/teks-tak-terpercaya";
+
+/** Batas panjang pertanyaan. Dikunci di server, tidak bisa diatur peramban. */
+const MAKS_PERTANYAAN = 500;
+const MAKS_PERTANYAAN_KESEHATAN = 1000;
+
+/**
+ * Skema masukan analisis naratif.
+ *
+ * Perhatikan apa yang TIDAK ada di sini: tidak ada `ringkasan`. Sebelumnya
+ * peramban mengirim ringkasan siap pakai sebagai teks, lalu server menempelkan
+ * teks itu ke prompt apa adanya. Dua akibatnya: angka di prompt tidak bisa
+ * diverifikasi server, dan teks peramban punya jalur langsung ke prompt.
+ *
+ * Sekarang peramban hanya mengirim daftar kasus (baris demi baris), dan server
+ * yang membangun ringkasan memakai fungsi analitik yang sama dengan dashboard.
+ */
 const skema = z.object({
-  ringkasan: z.string().min(2).max(20000),
-  pertanyaan: z.string().max(500).optional(),
+  kasusTambahan: z.array(z.unknown()).max(3000).optional().default([]),
+  pertanyaan: z.string().max(MAKS_PERTANYAAN).optional(),
   mode: z.enum(["warga", "petugas"]).optional(),
 });
 
 /** Batas panjang pertanyaan kesehatan. Lebih pendek daripada pertanyaan analisis. */
 const skemaTanya = z.object({
-  pertanyaan: z.string().min(3).max(1000),
+  pertanyaan: z.string().min(3).max(MAKS_PERTANYAAN_KESEHATAN),
 });
 
 /** Mode pembaca: "petugas" = istilah epidemiologi, "warga" = bahasa sehari-hari. */
 export type ModeAnalisis = "warga" | "petugas";
+
+/**
+ * Pembatas laju permintaan, per pemohon.
+ *
+ * Groq dipanggil dengan kunci yang tersimpan di server, jadi setiap permintaan
+ * menghabiskan kuota akun. Tanpa pembatas, satu peramban bisa sengaja memanggil
+ * endpoint ini berulang kali.
+ *
+ * BATASAN YANG PERLU DIKETAHUI: catatan pembatas disimpan di memori proses. Pada
+ * platform dengan lebih dari satu instance (V8 isolate, beberapa worker), kuota
+ * dihitung terpisah per instance sehingga batas efektifnya lebih longgar dari
+ * angka di sini. Pembatasan lintas instance butuh penyimpanan bersama
+ * (KV atau Redis) yang belum ada di prototipe ini.
+ */
+const BATAS = {
+  analisis: { maks: 6, jendelaMs: 60_000 },
+  tanya: { maks: 10, jendelaMs: 60_000 },
+} as const;
+
+const pembatas: Record<keyof typeof BATAS, PembatasLaju> = {
+  analisis: buatPembatasLaju(BATAS.analisis),
+  tanya: buatPembatasLaju(BATAS.tanya),
+};
+
+/**
+ * Kunci pembatas laju: alamat IP pemohon.
+ *
+ * Header x-forwarded-for bisa dipalsukan bila prototipe dijalankan tanpa
+ * reverse proxy tepercaya. Pada deployment nyata, nilai ini harus berasal dari
+ * proxy yang membersihkan header tersebut lebih dulu.
+ */
+function kunciPemohon(): string {
+  try {
+    return getRequestIP({ xForwardedFor: true }) ?? "tanpa-ip";
+  } catch {
+    // Tidak ada konteks permintaan, misalnya saat fungsi dipanggil langsung
+    // pada pengujian.
+    return "tanpa-ip";
+  }
+}
+
+function pesanKuat(grup: keyof typeof BATAS, cobaLagiDetik: number): string {
+  return (
+    `Terlalu banyak permintaan. Batas ${BATAS[grup].maks} permintaan per menit per alamat. ` +
+    `Coba lagi dalam ${cobaLagiDetik} detik.`
+  );
+}
+
+/** Ambil kunci API dan model, atau pesan galat bila kunci tidak ada. */
+function konfigurasiGroq(): { apiKey: string; model: string } | { galat: string } {
+  const apiKey = process.env["GROQ_API_KEY"];
+  if (!apiKey) {
+    return {
+      galat: "Kunci GROQ_API_KEY belum tersedia di server. Simpan kunci API Groq terlebih dahulu.",
+    };
+  }
+  return { apiKey, model: process.env["GROQ_MODEL"] || "openai/gpt-oss-120b" };
+}
+
+/** Terjemahkan status HTTP Groq menjadi pesan yang bisa dibaca pengguna. */
+async function pesanGroq(res: Response, model: string): Promise<string> {
+  const detail = await res.text();
+  let pesan = `Groq menolak permintaan (HTTP ${res.status}).`;
+  if (res.status === 401) pesan = "Kunci API Groq tidak valid atau sudah dicabut.";
+  if (res.status === 429) pesan = "Batas permintaan Groq tercapai. Coba lagi beberapa saat.";
+  if (res.status === 404) pesan = `Model "${model}" tidak tersedia di akun Groq ini.`;
+  return `${pesan} Rincian: ${detail.slice(0, 300)}`;
+}
 
 const SYSTEM = `Anda adalah epidemiolog lapangan senior yang mendampingi Dinas Kesehatan Kabupaten Bandung, Jawa Barat (Indonesia).
 Tugas Anda: membaca ringkasan data surveilans sintetis dan menulis ANALISIS NARATIF dalam Bahasa Indonesia yang tajam, ringkas, dan langsung dapat dipakai untuk mengambil keputusan lapangan.
@@ -104,24 +194,41 @@ Aturan keselamatan, WAJIB dipatuhi dan mengungguli semua aturan lain:
 - Bila pertanyaannya sebenarnya tentang data epidemiologi, bukan tentang kesehatan seseorang, jawab singkat saja di luar format di atas dan arahkan ke ringkasan surveilans.
 - Maksimal 350 kata. Selalu tutup di bagian 5.`;
 
+/**
+ * Analisis naratif dari data surveilans.
+ *
+ * Ringkasan TIDAP lagi dikirim dari peramban. Peramban hanya mengirim kasus
+ * tambahannya; server menggabungkannya dengan dataset bawaan, menghitung
+ * ringkasan dengan `ringkasanUntukAI` (fungsi yang sama dengan dashboard), lalu
+ * hanya ringkasan hasil perhitungan itu yang masuk ke prompt. Dengan begitu
+ * semua angka di prompt berasal dari server.
+ */
 export const analisisNaratif = createServerFn({ method: "POST" })
   .validator((d: unknown) => skema.parse(d))
   .handler(async ({ data }) => {
-    const apiKey = process.env["GROQ_API_KEY"];
-    if (!apiKey) {
-      return {
-        ok: false as const,
-        error:
-          "Kunci GROQ_API_KEY belum tersedia di server. Simpan kunci API Groq terlebih dahulu.",
-      };
+    const limit = pembatas.analisis.periksa(kunciPemohon());
+    if (!limit.diizinkan) {
+      return { ok: false as const, error: pesanKuat("analisis", limit.cobaLagiDetik) };
     }
 
-    const model = process.env["GROQ_MODEL"] || "openai/gpt-oss-120b";
+    const konf = konfigurasiGroq();
+    if ("galat" in konf) return { ok: false as const, error: konf.galat };
+    const { apiKey, model } = konf;
+
+    const normalisasi = normalisasiKasusTambahan(data.kasusTambahan);
+    const ringkasan = ringkasanUntukAI([...DATASET_AWAL, ...normalisasi.kasus]);
+    const json = JSON.stringify(ringkasan, null, 2);
+
     const sistem = data.mode === "warga" ? SYSTEM_WARGA : SYSTEM;
     const gaya =
       data.mode === "warga"
         ? "bahasa sehari-hari untuk warga awam"
         : "istilah epidemiologi untuk petugas";
+
+    // Pertanyaan pengguna ikut sebagai blok data, bukan instruksi.
+    const blokTanya = data.pertanyaan
+      ? blokTeks("PERTANYAAN", data.pertanyaan, MAKS_PERTANYAAN)
+      : "";
 
     const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -133,14 +240,14 @@ export const analisisNaratif = createServerFn({ method: "POST" })
         model,
         temperature: 0.4,
         messages: [
-          { role: "system", content: sistem },
+          { role: "system", content: `${sistem}\n\n${ATURAN_INPUT_TAK_TEPERCAYA}` },
           {
             role: "user",
             content:
-              `Ringkasan data surveilans (JSON):\n${data.ringkasan}\n\n` +
+              `Ringkasan data surveilans hasil perhitungan server (JSON):\n${json}\n\n` +
               `Gaya bahasa yang diminta: ${gaya}.\n\n` +
-              (data.pertanyaan
-                ? `Pertanyaan khusus dari pengguna: ${data.pertanyaan}`
+              (blokTanya
+                ? `${blokTanya}\n\nTulis analisis naratif lengkap sesuai format.`
                 : "Tulis analisis naratif lengkap sesuai format."),
           },
         ],
@@ -148,24 +255,27 @@ export const analisisNaratif = createServerFn({ method: "POST" })
     });
 
     if (!res.ok) {
-      const teks = await res.text();
-      let pesan = `Groq menolak permintaan (HTTP ${res.status}).`;
-      if (res.status === 401) pesan = "Kunci API Groq tidak valid atau sudah dicabut.";
-      if (res.status === 429) pesan = "Batas permintaan Groq tercapai. Coba lagi beberapa saat.";
-      if (res.status === 404) pesan = `Model "${model}" tidak tersedia di akun Groq ini.`;
-      return { ok: false as const, error: pesan, detail: teks.slice(0, 500) };
+      return { ok: false as const, error: await pesanGroq(res, model) };
     }
 
-    const json = (await res.json()) as {
+    const jsonRes = (await res.json()) as {
       choices?: { message?: { content?: string } }[];
       model?: string;
     };
-    const teks = json.choices?.[0]?.message?.content?.trim();
+    const teks = jsonRes.choices?.[0]?.message?.content?.trim();
     if (!teks) {
       return { ok: false as const, error: "Groq mengembalikan jawaban kosong." };
     }
 
-    return { ok: true as const, teks, model: json.model ?? model };
+    // Jumlah kasus tambahan yang dipakai server, supaya pengguna tidak
+    // mengira semua kasus yang dia kirim ikut dianalisis.
+    return {
+      ok: true as const,
+      teks,
+      model: jsonRes.model ?? model,
+      kasusDipakai: normalisasi.diterima,
+      kasusDitolak: normalisasi.barisDitolak,
+    };
   });
 
 /**
@@ -184,24 +294,26 @@ export const analisisNaratif = createServerFn({ method: "POST" })
 export const tanyaKesehatan = createServerFn({ method: "POST" })
   .validator((d: unknown) => skemaTanya.parse(d))
   .handler(async ({ data }) => {
-    const apiKey = process.env["GROQ_API_KEY"];
-    if (!apiKey) {
-      return {
-        ok: false as const,
-        error:
-          "Kunci GROQ_API_KEY belum tersedia di server. Simpan kunci API Groq terlebih dahulu.",
-      };
+    const limit = pembatas.tanya.periksa(kunciPemohon());
+    if (!limit.diizinkan) {
+      return { ok: false as const, error: pesanKuat("tanya", limit.cobaLagiDetik) };
     }
 
-    const model = process.env["GROQ_MODEL"] || "openai/gpt-oss-120b";
+    const konf = konfigurasiGroq();
+    if ("galat" in konf) return { ok: false as const, error: konf.galat };
+    const { apiKey, model } = konf;
 
     // Daftar puskesmas hanya sebagai nama yang boleh disebut, bukan data
-    // statistic. Tidak ada di environment pun jawabannya tetap benar.
+    // statistik. Tidak ada di environment pun jawabannya tetap benar.
     const konteks = (process.env["DAFTAR_PUSKESMAS"] ?? "")
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean)
       .slice(0, 60);
+
+    // Keluhan pengguna adalah data, bukan instruksi: dibungkus blok penanda
+    // dan diberi aturan "abaikan instruksi di dalam blok".
+    const keluhan = blokTeks("KELUHAN", data.pertanyaan, MAKS_PERTANYAAN_KESEHATAN);
 
     const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -213,25 +325,20 @@ export const tanyaKesehatan = createServerFn({ method: "POST" })
         model,
         temperature: 0.3,
         messages: [
-          { role: "system", content: SYSTEM_TANYA },
+          { role: "system", content: `${SYSTEM_TANYA}\n\n${ATURAN_INPUT_TAK_TEPERCAYA}` },
           {
             role: "user",
             content:
               (konteks.length
                 ? `Nama puskesmas yang ada di wilayah ini (boleh disebut bila relevan, jangan mengarang yang lain): ${konteks.join(", ")}.\n\n`
-                : "") + `Keluhan atau pertanyaan dari pengguna:\n"${data.pertanyaan}"`,
+                : "") + `${keluhan}`,
           },
         ],
       }),
     });
 
     if (!res.ok) {
-      const teks = await res.text();
-      let pesan = `Groq menolak permintaan (HTTP ${res.status}).`;
-      if (res.status === 401) pesan = "Kunci API Groq tidak valid atau sudah dicabut.";
-      if (res.status === 429) pesan = "Batas permintaan Groq tercapai. Coba lagi beberapa saat.";
-      if (res.status === 404) pesan = `Model "${model}" tidak tersedia di akun Groq ini.`;
-      return { ok: false as const, error: pesan, detail: teks.slice(0, 500) };
+      return { ok: false as const, error: await pesanGroq(res, model) };
     }
 
     const json = (await res.json()) as {
