@@ -16,7 +16,7 @@ import {
   Users,
 } from "lucide-react";
 
-import { AMBANG_SKDR } from "@/data/ambang";
+import { AMBANG_SKDR, ATURAN_HARIAN } from "@/data/ambang";
 import { PENYAKIT } from "@/data/skdr";
 import { METRIK_BELUM_TERUKUR } from "@/lib/dampak";
 
@@ -137,17 +137,24 @@ function Tentang() {
               <ul className="mt-2 list-disc space-y-1.5 pl-5">
                 <li>
                   <strong className="text-foreground">Sinyal</strong>: rasio kasus terhadap baseline
-                  3 minggu desa itu sendiri melewati ambang rasio Waspada. Sinyal berarti perlu
-                  diperiksa petugas, belum berarti KLB.
+                  3 minggu desa itu sendiri mencapai 2x, dengan minimal{" "}
+                  {ATURAN_HARIAN.kasusMinSinyal}
+                  kasus penyakit itu dalam 7 hari. Sinyal berarti perlu diperiksa petugas, belum
+                  berarti KLB.
                 </li>
                 <li>
-                  <strong className="text-foreground">Dugaan KLB</strong>: rasio mencapai ambang
-                  rasio KLB dan lantai kasus absolut terpenuhi. Status ini belum resmi, karena yang
-                  berwenang menetapkan KLB tetap rekap SKDR mingguan.
+                  <strong className="text-foreground">Waspada</strong>: rasio mencapai 1,5x, dengan
+                  minimal {ATURAN_HARIAN.kasusMinWaspada} kasus penyakit itu dalam 7 hari.
                 </li>
                 <li>
                   <strong className="text-foreground">Aman</strong>: belum ada ambang yang
                   terlampaui.
+                </li>
+                <li>
+                  Rasio di bawah jumlah kasus minimum itu tidak menaikkan status, dan alasannya
+                  ditulis di tabel status desa. Syarat ini ada untuk mengurangi alert fatigue: tanpa
+                  itu, desa kecil dengan 1 kasus dan baseline 0 terlihat selalu naik dengan rasio
+                  99, sehingga petugas mengejar angka yang tidak berarti.
                 </li>
                 <li>
                   Insidensi per 100.000 penduduk baru dihitung bila jumlah penduduk desa diisi pada

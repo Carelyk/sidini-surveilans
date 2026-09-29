@@ -86,3 +86,47 @@ export const AMBANG_SKDR: Record<Penyakit, AmbangSKDR> = {
 
 export type Ambang = AmbangSKDR;
 export const AMBANG = AMBANG_SKDR; // alias backward compatible
+
+/* ============================================================================
+ * SYARAT KASUS MINIMUM UNTUK LAPIS HARIAN (per desa)
+ * ============================================================================
+ *
+ * Ini BUKAN pengulangan `kasusMin` di atas. Bedanya:
+ *  - `kasusMin` di atas dipakai lapis SKDR MINGGUAN, nilainya per penyakit
+ *    (5 / 40 / 3 / 3).
+ *  - Dua konstanta di bawah dipakai lapis HARIAN, dan sama untuk semua
+ *    penyakit, supaya desa kecil tidak memicu peringatan palsu.
+ *
+ * Alasan (alert fatigue): tanpa syarat jumlah kasus, rasio pada desa kecil
+ * tidak bermakna. Contoh nyata pada data prototipe: Hepatitis A dengan 1
+ * kasus dan baseline 0 menghasilkan rasio 99, sehingga desa yang hanya punya
+ * 1 kasus langsung naik ke "Waspada". Ambang rasio 1,5x dan 2x tidak
+ * diubah; yang ditambahkan hanya syarat kasus minimum sebagai penjaga.
+ *
+ * Angka 10 untuk Sinyal bukan angka baru: itu syarat yang sudah tampil di
+ * situs sejak awal ("kasus 7 hari >= 2x baseline dan >= 10 kasus").
+ *
+ * Status sumber: perlu verifikasi acuan Dinkes. Angka ini adalah nilai
+ * simulasi prototipe, belum ditetapkan bersama Dinkes.
+ * ========================================================================== */
+
+/** Kasus minimum (7 hari, per penyakit) agar rasio boleh menaikkan status Sinyal. */
+export const KASUS_MIN_SINYAL_HARIAN = 10;
+
+/**
+ * Kasus minimum (7 hari, per penyakit) agar rasio boleh menaikkan status
+ * Waspada. Tanpa ini, desa dengan 1 kasus dan baseline 0 akan selalu
+ * terlihat "naik".
+ */
+export const KASUS_MIN_WASPADA_HARIAN = 3;
+
+/** Ringkasan aturan lapis harian untuk ditampilkan di UI dan di halaman Konsep. */
+export const ATURAN_HARIAN = {
+  kasusMinSinyal: KASUS_MIN_SINYAL_HARIAN,
+  kasusMinWaspada: KASUS_MIN_WASPADA_HARIAN,
+  alasan:
+    "Ambang rasio hanya dibaca bila jumlah kasus penyakit itu di desa tersebut " +
+    "mencapai minimal 3 kasus (Waspada) atau 10 kasus (Sinyal) dalam 7 hari. " +
+    "Tanpa syarat ini, desa kecil dengan 1 kasus dan baseline 0 terlihat selalu " +
+    "naik (rasio 99), dan petugas kewalahan palsu (alert fatigue).",
+} as const;

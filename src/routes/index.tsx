@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Activity,
   ArrowRight,
+  BellRing,
   ClipboardCheck,
   Clock,
   Info,
@@ -27,11 +28,12 @@ import {
   YAxis,
 } from "recharts";
 
-import { AlertBanner } from "@/components/AlertBanner";
 import { AlatTabel } from "@/components/AlatTabel";
+import { AlertBanner } from "@/components/AlertBanner";
 import { LevelBadge } from "@/components/LevelBadge";
 import { PanelDampak } from "@/components/PanelDampak";
 import { StatCard } from "@/components/StatCard";
+import { ATURAN_HARIAN } from "@/data/ambang";
 import { useSurveilans } from "@/lib/store";
 import {
   formatInsidensi,
@@ -275,6 +277,33 @@ function Dashboard() {
             status KLB.
           </span>
         </p>
+
+        <div className="rounded-lg border border-border bg-secondary/30 p-4">
+          <p className="flex items-center gap-1.5 text-sm font-semibold">
+            <BellRing className="size-3.5 text-primary" aria-hidden /> Syarat kasus minimum
+            (pembatas alert fatigue)
+          </p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-muted-foreground">
+            <li>
+              <strong className="text-foreground">Sinyal</strong>: rasio minimal 2x baseline dengan
+              minimal {ATURAN_HARIAN.kasusMinSinyal} kasus penyakit itu dalam 7 hari, atau insidensi
+              melewati ambang penyakit.
+            </li>
+            <li>
+              <strong className="text-foreground">Waspada</strong>: rasio minimal 1,5x baseline
+              dengan minimal {ATURAN_HARIAN.kasusMinWaspada} kasus penyakit itu dalam 7 hari.
+            </li>
+            <li>
+              Rasio di bawah jumlah kasus minimum itu{" "}
+              <strong className="text-foreground">tidak</strong> menaikkan status, dan alasannya
+              ditulis di tabel status. Ini mencegah desa kecil dengan 1 kasus dan baseline 0
+              terlihat selalu naik (rasio 99).
+            </li>
+            <li>
+              Ambang rasio 1,5x dan 2x tidak diubah; yang ditambahkan hanya syarat kasus minimum.
+            </li>
+          </ul>
+        </div>
 
         <div className="grid gap-4">
           <div className="panel p-5">

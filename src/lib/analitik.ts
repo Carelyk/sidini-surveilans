@@ -1,4 +1,4 @@
-import { AMBANG } from "@/data/ambang";
+import { AMBANG, KASUS_MIN_SINYAL_HARIAN, KASUS_MIN_WASPADA_HARIAN } from "@/data/ambang";
 import {
   DESA,
   KELOMPOK_UMUR,
@@ -140,10 +140,15 @@ export function formatInsidensi(insidensi: number | null): string {
 /**
  * Status satu desa untuk satu penyakit.
  *
- * Ambang yang dipakai PERSIS sama dengan lapis SKDR (src/data/ambang.ts):
- * Sinyal bila rasio >= rasioKLB dengan minimal kasusMin kasus, atau insidensi
- * mingguan >= insidensiMin; Waspada bila rasio >= rasioWaspada atau insidensi
- * >= 60% insidensiMin. Tidak ada lagi angka ambang yang ditulis ulang di sini.
+ * Ambang RASIO yang dipakai PERSIS sama dengan lapis SKDR
+ * (src/data/ambang.ts): rasioKLB 2x dan rasioWaspada 1,5x. Tidak ada angka
+ * ambang yang ditulis ulang di sini.
+ *
+ * Yang ditambahkan adalah syarat kasus minimum dari
+ * KASUS_MIN_SINYAL_HARIAN (10) dan KASUS_MIN_WASPADA_HARIAN (3). Tanpa
+ * syarat ini, desa kecil dengan 1 kasus dan baseline 0 menghasilkan rasio
+ * 99 dan langsung menyalakan peringatan palsu. Ini jawaban atas alert
+ * fatigue; angka ambang rasio sendiri tidak diubah.
  *
  * Aturan insidensi hanya berlaku bila jumlah penduduk desa tersedia. Kalau
  * belum, insidensi bernilai null, ambang insidensi dilewati, dan alasannya
@@ -164,11 +169,15 @@ function statusPenyakit(
   const rasio = hitungRasio(ini, rataBaseline);
   const insidensi = insidensiPer100k(ini, penduduk);
   const lewatInsidensi = insidensi !== null && insidensi >= a.insidensiMin;
-  const lewatRasio = rasio >= a.rasioKLB && ini >= a.kasusMin;
+  // Syarat kasus minimum: tanpa ini rasio pada desa kecil tidak bermakna.
+  const cukupUntukSinyal = ini >= KASUS_MIN_SINYAL_HARIAN;
+  const cukupUntukWaspada = ini >= KASUS_MIN_WASPADA_HARIAN;
+  const lewatRasio = rasio >= a.rasioKLB && cukupUntukSinyal;
+  const lewatRasioWaspada = rasio >= a.rasioWaspada && cukupUntukWaspada;
 
   let level: LevelHarian = "Aman";
   if (lewatRasio || lewatInsidensi) level = "Sinyal";
-  else if (rasio >= a.rasioWaspada || (insidensi !== null && insidensi >= a.insidensiMin * 0.6)) {
+  else if (lewatRasioWaspada || (insidensi !== null && insidensi >= a.insidensiMin * 0.6)) {
     level = "Waspada";
   }
 
@@ -177,6 +186,10 @@ function statusPenyakit(
     insidensi === null
       ? ` Aturan insidensi tidak dinilai (${PENDUDUK_BELUM_TERSEDIA}).`
       : ` Insidensi ${insidensi.toFixed(1)}/100.000/mgg.`;
+  const catatanMinimum =
+    ini > 0 && ini < KASUS_MIN_WASPADA_HARIAN
+      ? ` Rasio ${rasio.toFixed(1)}x tidak dinilai: kasus ${penyakit} cuma ${ini}, di bawah minimal ${KASUS_MIN_WASPADA_HARIAN}.`
+      : "";
 
   let alasan: string;
   if (level === "Sinyal") {
@@ -184,12 +197,12 @@ function statusPenyakit(
       lewatRasio && lewatInsidensi
         ? `Dugaan KLB ${penyakit}: ${angka}, melewati ambang rasio ${a.rasioKLB}x dan insidensi ${a.insidensiMin}/100.000/mgg.${catatanInsidensi}`
         : lewatRasio
-          ? `Dugaan KLB ${penyakit}: ${angka}, melewati ambang rasio ${a.rasioKLB}x dengan minimal ${a.kasusMin} kasus.${catatanInsidensi}`
+          ? `Dugaan KLB ${penyakit}: ${angka}, melewati ambang rasio ${a.rasioKLB}x dengan minimal ${KASUS_MIN_SINYAL_HARIAN} kasus.${catatanInsidensi}`
           : `Dugaan KLB ${penyakit}: ${angka}, insidensi melewati ambang ${a.insidensiMin}/100.000/mgg.${catatanInsidensi}`;
   } else if (level === "Waspada") {
-    alasan = `Waspada ${penyakit}: ${angka}, melewati ambang rasio ${a.rasioWaspada}x.${catatanInsidensi}`;
+    alasan = `Waspada ${penyakit}: ${angka}, melewati ambang rasio ${a.rasioWaspada}x dengan minimal ${KASUS_MIN_WASPADA_HARIAN} kasus.${catatanInsidensi}`;
   } else {
-    alasan = `${penyakit} dalam rentang fluktuasi normal: ${angka}.${catatanInsidensi}`;
+    alasan = `${penyakit} dalam rentang fluktuasi normal: ${angka}.${catatanInsidensi}${catatanMinimum}`;
   }
 
   return {

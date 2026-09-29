@@ -7,7 +7,7 @@ import {
   statusPerDesa,
   type StatusDesa,
 } from "@/lib/analitik";
-import { AMBANG } from "@/data/ambang";
+import { AMBANG, KASUS_MIN_SINYAL_HARIAN, KASUS_MIN_WASPADA_HARIAN } from "@/data/ambang";
 import { DESA, TANGGAL_ACUAN, type Kasus, type Penyakit } from "@/data/dataset";
 import { PENYAKIT } from "@/data/skdr";
 
@@ -109,20 +109,81 @@ describe("status desa dihitung per penyakit", () => {
     expect(s.level).toBe("Sinyal");
   });
 
-  it("memakai kasusMin penyakit masing-masing, bukan angka tetap", () => {
-    // kasusMin Chikungunya = 3 sedangkan DBD = 5. Empat kasus tanpa baseline
-    // (rasio 99x) sudah cukup untuk Sinyal di Chikungunya, tetapi DBD dengan
-    // jumlah yang sama masih berhenti di Waspada karena di bawah kasusMin 5.
+  it("syarat kasus minimum berlaku sama untuk semua penyakit", () => {
+    // Empat kasus tanpa baseline menghasilkan rasio 99 pada Chikungunya maupun
+    // DBD. Dulu Chikungunya (kasusMin 3) naik ke Sinyal sedangkan DBD
+    // (kasusMin 5) berhenti di Waspada, padahal jumlah kasusnya sama. Sekarang
+    // keduanya memakai syarat yang sama, jadi keduanya berhenti di Waspada.
     const s = statusUji([...kasusDesa(4, 1, "Chikungunya"), ...kasusDesa(4, 1, "DBD")]);
 
     const chikungunya = s.perPenyakit.find((p) => p.penyakit === "Chikungunya")!;
     const dbd = s.perPenyakit.find((p) => p.penyakit === "DBD")!;
-    expect(chikungunya.level).toBe("Sinyal");
+    expect(chikungunya.level).toBe("Waspada");
     expect(dbd.level).toBe("Waspada");
+    expect(chikungunya.rasio).toBeGreaterThanOrEqual(AMBANG.DBD.rasioKLB);
     expect(dbd.rasio).toBeGreaterThanOrEqual(AMBANG.DBD.rasioKLB);
-    expect(AMBANG.Chikungunya.kasusMin).toBeLessThan(AMBANG.DBD.kasusMin);
   });
 
+  it("rasio di atas ambang tapi kasus di bawah 3 tidak menaikkan status apa pun", () => {
+    // Dua kasus tanpa baseline berarti rasio 99, jauh di atas ambang. Karena
+    // jumlah kasus di bawah 3, status harus tetap Aman dan alasannya
+    // menyebutkan alasannya.
+    const s = statusUji([...kasusDesa(2, 1, "DBD"), ...kasusDesa(2, 1, "Chikungunya")]);
+    const dbd = s.perPenyakit.find((p) => p.penyakit === "DBD")!;
+
+    expect(dbd.rasio).toBeGreaterThanOrEqual(AMBANG.DBD.rasioKLB);
+    expect(dbd.level).toBe("Aman");
+    expect(s.level).toBe("Aman");
+    expect(dbd.alasan).toContain(`di bawah minimal ${KASUS_MIN_WASPADA_HARIAN}`);
+  });
+
+  it("tiga kasus sudah cukup untuk Waspada, sepuluh untuk Sinyal", () => {
+    // 3 kasus melawan baseline 1 kasus per jendela: rasio 3x (di atas ambang
+    // KLB), tetapi jumlah kasus masih di bawah 10 sehingga tidak boleh Sinyal.
+    const tiga = statusUji([
+      ...kasusDesa(3, 1, "DBD"),
+      ...kasusDesa(1, 8, "DBD"),
+      ...kasusDesa(1, 15, "DBD"),
+      ...kasusDesa(1, 22, "DBD"),
+    ]).perPenyakit.find((p) => p.penyakit === "DBD")!;
+    expect(tiga.rasio).toBeGreaterThanOrEqual(AMBANG.DBD.rasioKLB);
+    expect(tiga.level).toBe("Waspada");
+
+    // 10 kasus melawan baseline 3: rasio di atas 2x DAN cukup kasus, jadi Sinyal.
+    const sepuluh = statusUji([
+      ...kasusDesa(KASUS_MIN_SINYAL_HARIAN, 1, "DBD"),
+      ...kasusDesa(3, 8, "DBD"),
+      ...kasusDesa(3, 15, "DBD"),
+      ...kasusDesa(3, 22, "DBD"),
+    ]).perPenyakit.find((p) => p.penyakit === "DBD")!;
+    expect(sepuluh.rasio).toBeGreaterThanOrEqual(AMBANG.DBD.rasioKLB);
+    expect(sepuluh.level).toBe("Sinyal");
+  });
+
+  it("sembilan kasus tidak cukup untuk Sinyal walau rasio di atas 2x", () => {
+    // Inilah kasus Rancaekek Kulon dan Rancaekek Wetan: rasio di atas 2x,
+    // tetapi jumlah kasus di bawah 10 sehingga tidak boleh Sinyal.
+    const s = statusUji([
+      ...kasusDesa(9, 1, "DBD"),
+      ...kasusDesa(3, 8, "DBD"),
+      ...kasusDesa(3, 15, "DBD"),
+      ...kasusDesa(3, 22, "DBD"),
+    ]);
+    const dbd = s.perPenyakit.find((p) => p.penyakit === "DBD")!;
+
+    expect(dbd.mingguIni).toBe(9);
+    expect(dbd.rasio).toBeGreaterThanOrEqual(AMBANG.DBD.rasioKLB);
+    expect(dbd.level).toBe("Waspada");
+    expect(s.level).toBe("Waspada");
+  });
+
+  it("ambang rasio tidak berubah: 1,5x dan 2x tetap utuh", () => {
+    // Penjaga agar penyesuaian ini tidak ikut mengubah angka ambang.
+    for (const p of PENYAKIT) {
+      expect(AMBANG[p].rasioWaspada).toBe(1.5);
+      expect(AMBANG[p].rasioKLB).toBe(2);
+    }
+  });
   it("selalu punya satu baris untuk setiap penyakit", () => {
     const s = statusUji(kasusDesa(40, 1, "DBD"));
     expect(s.perPenyakit.map((p) => p.penyakit).sort()).toEqual([...PENYAKIT].sort());

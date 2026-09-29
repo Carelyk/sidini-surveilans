@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { AMBANG_SKDR } from "@/data/ambang";
+import {
+  AMBANG_SKDR,
+  ATURAN_HARIAN,
+  KASUS_MIN_SINYAL_HARIAN,
+  KASUS_MIN_WASPADA_HARIAN,
+} from "@/data/ambang";
 import { AMBANG as AMBANG_DARI_LIB, type Ambang as AmbangDariLib } from "@/lib/skdr";
 import { PENYAKIT } from "@/data/skdr";
 
@@ -66,5 +71,31 @@ describe("konfigurasi ambang SKDR (SSOT)", () => {
   it("tipe Ambang yang diekspor lib/skdr tetap kompatibel", () => {
     const a: AmbangDariLib = AMBANG_DARI_LIB.DBD;
     expect(a.insidensiMin).toBe(50);
+  });
+});
+
+describe("syarat kasus minimum lapis harian (SSOT terpisah dari kasusMin SKDR)", () => {
+  it("nilainya tetap 10 (Sinyal) dan 3 (Waspada)", () => {
+    // 10 adalah syarat yang sejak awal tampil di situs ("kasus 7 hari >= 2x
+    // baseline dan >= 10 kasus"). 3 dipilih supaya 1-2 kasus pada desa
+    // kecil terhitung sebagai kenaikan.
+    expect(KASUS_MIN_SINYAL_HARIAN).toBe(10);
+    expect(KASUS_MIN_WASPADA_HARIAN).toBe(3);
+  });
+
+  it("tidak menyentuh kasusMin mingguan per penyakit", () => {
+    // Kalau salah satu ikut berubah, angka "Mgg KLB" pada rekap SKDR ikut
+    // bergeser tanpa disadari.
+    expect(AMBANG_SKDR.DBD.kasusMin).toBe(5);
+    expect(AMBANG_SKDR.Diare.kasusMin).toBe(40);
+    expect(AMBANG_SKDR.Chikungunya.kasusMin).toBe(3);
+    expect(AMBANG_SKDR["Hepatitis A"].kasusMin).toBe(3);
+  });
+
+  it("ATURAN_HARIAN menyiarkan angka yang sama dan menyebut alasannya", () => {
+    expect(ATURAN_HARIAN.kasusMinSinyal).toBe(KASUS_MIN_SINYAL_HARIAN);
+    expect(ATURAN_HARIAN.kasusMinWaspada).toBe(KASUS_MIN_WASPADA_HARIAN);
+    expect(ATURAN_HARIAN.alasan).toContain("alert");
+    expect(ATURAN_HARIAN.alasan.toLowerCase()).toContain("alert fatigue");
   });
 });

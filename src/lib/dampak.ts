@@ -1,4 +1,4 @@
-import { AMBANG } from "@/data/ambang";
+import { AMBANG, KASUS_MIN_SINYAL_HARIAN } from "@/data/ambang";
 import { JUMLAH_HARI, type Kasus, type Penyakit } from "@/data/dataset";
 import { kasusValid, rentangHari, type StatusDesa } from "@/lib/analitik";
 
@@ -171,7 +171,10 @@ export function waktuDeteksi(kasus: Kasus[], status: StatusDesa[]): DeteksiDesa[
           return acc + jendela(milikDesa, akhir, 7).filter((k) => k.penyakit === penyakit).length;
         }, 0) / 3;
       const rasio = base > 0 ? ini / base : ini > 0 ? 99 : 0;
-      if (rasio >= ambang.rasioKLB && ini >= ambang.kasusMin) {
+      // Syarat kasus minimum yang sama dengan statusPerDesa. Kalau aturan
+      // berbeda, tanggal sinyal di sini tidak akan cocok dengan badge di
+      // dashboard, dan angka "hari lebih awal" jadi tidak bisa dipercaya.
+      if (rasio >= ambang.rasioKLB && ini >= KASUS_MIN_SINYAL_HARIAN) {
         tanggalSinyal = t;
         break;
       }
