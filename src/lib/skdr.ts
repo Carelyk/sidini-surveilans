@@ -246,11 +246,11 @@ function indeksMingguan(tahun: number, penyakit: Penyakit): Map<string, number[]
  * Status KLB per kecamatan per minggu.
  *
  * Penting: ambang diuji terhadap SATU kecamatan, bukan terhadap total
- * kabupaten. Kalau dihitung atas 3,87 juta jiwa, insidensi weekly DBD di
+ * kabupaten. Kalau dihitung atas 3,87 juta jiwa, insidensi mingguan DBD di
  * puncak musim hanya ~6 per 100.000 dan tidak pernah menyentuh ambang 50 --
- * grafik jadi selalu hijau padahal ada kecamatan yang KLB. readership Dinkes
- * mencari "minggu mana & kecamatan mana", jadi di sinilah status per minggu
- * diambil dari kecamatan terburuk pada minggu tersebut.
+ * grafik jadi selalu hijau padahal ada kecamatan yang KLB. Yang dicari
+ * petugas Dinkes adalah "minggu mana & kecamatan mana", jadi di sinilah
+ * status per minggu diambil dari kecamatan terburuk pada minggu tersebut.
  */
 export function statusMingguanKecamatan(
   f: FilterSKDR,

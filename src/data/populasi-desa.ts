@@ -6,7 +6,7 @@
  *   salah tidak hanya membuat kolom "Insidensi/100k" salah: angka itu ikut
  *   menentukan status desa. Karena itu tabel ini sengaja dibiarkan kosong
  *   (null) sampai diisi dari sumber resmi yang tercatat (BPS/Dinkes) beserta
- *   sumber danCCNAMA tahun datanya.
+ *   sumber dan tahun datanya.
  *
  *   SEBELUM fix ini, nilai penduduk desa di src/data/dataset.ts diambil dari
  *   angka PENDUDUK KECAMATAN lalu disalin ke tiap desa. Akibatnya satu
@@ -16,8 +16,9 @@
  *   DIHAPUS dan tidak boleh dipulihkan tanpa sumber per desa.
  *
  * CARA MENGISI (tanpa mengubah kode):
- *   1) Pilih `kodeDesa` dari daftar di bawah (kode wilayah asli, matched ke
- *      src/data/dataset.ts lewat fungsi ResidentsOfDesa).
+ *   1) Pilih `kodeDesa` dari daftar di bawah (kode wilayah asli, sama dengan
+ *      yang dipakai src/data/dataset.ts; tidak ada nama fungsi yang perlu
+ *      dipanggil, kodeDesa itu sendiri kuncinya).
  *   2) Isi `penduduk` dengan angka resmi sumber Anda.
  *   3) Isi `sumber` (nama dokumen/lembar) dan `tahun` (tahun angka itu).
  *   4) Jalankan `npm test`. Validasi di bawah otomatis menolak isian yang:

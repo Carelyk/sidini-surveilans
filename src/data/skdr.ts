@@ -254,11 +254,11 @@ export interface BarisSKDR {
  * Alokasi largest-remainder: membagi `total` bilangan bulat ke sel menurut
  * nilai harapan, TANPA mengubah total.
  *
- * Ini wajib dipakai, bukan Math.round per sel. Alasannya: expectation per sel
- * untuk penyakit langka hanya ~0,2 kasus, sehingga pembulatan per sel akan
- * menghapus hampir semua nilai (total Hepatitis A anjlok di 24% dari target).
- * Deaths suffers the same problem far worse: CFR DBD 1,1% dari angka kecil
- * selalu < 0,5 sehingga Math.round selalu mengembalikan 0 — kolom
+ * Ini wajib dipakai, bukan Math.round per sel. Alasannya: nilai harapan per
+ * sel untuk penyakit langka hanya ~0,2 kasus, sehingga pembulatan per sel
+ * akan menghapus hampir semua nilai (total Hepatitis A anjlok di 24% dari
+ * target). Kematian lebih parah lagi: CFR DBD 1,1% dari angka kecil selalu
+ * di bawah 0,5 sehingga Math.round selalu mengembalikan 0, dan kolom
  * "meninggal" jadi kosong total. Metode sisa terbesar menjamin total tepat.
  */
 function alokasi(harapan: number[], total: number): number[] {

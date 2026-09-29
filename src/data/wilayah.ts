@@ -3,7 +3,7 @@
 //
 // DIAMBIL DARI SUMBER NYATA (bukan karangan):
 //   - Batas poligon    : GADM 4.1 (https://geodata.ucdavis.edu/gadm), lisensi
-//                        non-komersial untuk riset/pemSDM. Level 3, filter
+//                        non-komersial untuk riset. Level 3, filter
 //                        GID_2 = IDN.9.2_1 (Kabupaten Bandung).
 //   - Kode & nama desa : Permendagri No. 72/2019.
 //   - Penduduk         : BPS, estimasi tengah 2025, dari katalog
