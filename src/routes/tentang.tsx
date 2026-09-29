@@ -244,6 +244,39 @@ function Tentang() {
           </div>
 
           <div>
+            <p className="font-semibold text-foreground">
+              Rencana, belum berjalan: ambang relatif untuk penyakit endemik
+            </p>
+            <p className="mt-1">
+              Untuk penyakit endemik seperti diare, ambang absolut per 100.000 penduduk mudah
+              terlewati sepanjang tahun. Insidensi diare di wilayah padat berada di bawah ambang
+              selama berbulan-bulan, lalu naik dan turun mengikuti musim, dan pada tahun yang lebih
+              lembap ambang itu terlewati hampir setiap minggu. Kalau sistem tetap memakainya apa
+              adanya, puluhan minggu berturut-turut akan berstatus Waspada tanpa ada yang berubah,
+              dan petugas berhenti mempercayai peringatan. Alert fatigue bukan masalah tampilan, ini
+              masalah angka.
+            </p>
+            <p className="mt-1">
+              Usulan yang belum diterapkan: ambang penyakit endemik dihitung relatif terhadap
+              baseline musiman per kecamatan, yaitu dibandingkan dengan minggu yang sama pada
+              tahun-tahun sebelumnya, bukan dengan angka tetap per 100.000. Dengan begitu "naik"
+              berarti naik dari kebiasaan musiman, dan itulah informasi yang dicari petugas. Ambang
+              absolut tetap dipakai untuk penyakit yang datangnya tidak biasa, seperti DBD.
+            </p>
+            <p className="mt-1">
+              Ini juga alasan level simulasi diare diturunkan pada versi ini. Dengan ambang absolut
+              dan level simulasi sebesar perkiraan acuan Dinkes, ambang terlewati hampir setiap
+              minggu, sehingga tidak ada lagi informasi di dalam status KLB.
+            </p>
+            <p className="mt-1">
+              Semua angka dan ambang di atas bersifat simulasi dan belum disahkan Dinkes. Sebelum
+              perubahan apa pun pada ambang, baik absolut maupun relatif, aturan hitungnya perlu
+              ditetapkan bersama Dinkes Kabupaten Bandung, lalu ditulis satu kali di konfigurasi
+              tunggal. Yang disepakati itulah yang dipakai sistem.
+            </p>
+          </div>
+
+          <div>
             <p className="font-semibold text-foreground">Penerima peringatan</p>
             <p className="mt-1">
               Pada prototipe ini peringatan hanya muncul sebagai banner di dashboard ketika ada yang
