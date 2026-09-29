@@ -317,6 +317,32 @@ export function trenMingguan(f: FilterSKDR, jenis: JenisKasus = "penderita"): Ti
 // ---------------------------------------------------------------------------
 // Ringkasan untuk KPI
 // ---------------------------------------------------------------------------
+
+/**
+ * DEFINISI "Mgg KLB" dan "Mgg Waspada" -- hanya di satu tempat ini.
+ *
+ *   Mgg KLB     : minggu dengan setidaknya SATU kecamatan berstatus KLB.
+ *   Mgg Waspada : minggu dengan setidaknya satu kecamatan berstatus Waspada
+ *                 dan TIDAK ada kecamatan KLB di minggu yang sama.
+ *
+ * Kedua himpunan minggu ini saling lepas. Sebelumnya "Mgg Waspada" menghitung
+ * semua minggu yang punya kecamatan Waspada, termasuk minggu yang di minggu
+ * yang sama sudah ada kecamatan KLB, sehingga satu minggu terhitung dua kali
+ * dan jumlah keduanya bisa melebihi jumlah minggu dalam rentang. Status di
+ * level kecamatan (bukan minggu) tetap bisa Waspada dan KLB berdampingan;
+ * yang saling lepas adalah penghitungan di level MINGGU.
+ */
+export function kelompokMinggu(baris: { minggu: number; level: Level }[]): {
+  klb: Set<number>;
+  waspada: Set<number>;
+} {
+  const klb = new Set(baris.filter((b) => b.level === "KLB").map((b) => b.minggu));
+  const waspada = new Set(
+    baris.filter((b) => b.level === "Waspada" && !klb.has(b.minggu)).map((b) => b.minggu),
+  );
+  return { klb, waspada };
+}
+
 export interface Ringkasan {
   total: number;
   meninggal: number;
@@ -329,6 +355,11 @@ export interface Ringkasan {
   waspada: number;
   /** jumlah minggu (dari rentang terpilih) dengan setidaknya satu kecamatan KLB */
   mingguKLB: number;
+  /**
+   * jumlah minggu dengan setidaknya satu kecamatan Waspada, TANPA minggu yang
+   * sudah dihitung sebagai minggu KLB. Lihat kelompokMinggu().
+   */
+  mingguWaspada: number;
   /**
    * Jumlah kecamatan yang menyentuh KLB di MINGGU MANA SAJA dalam rentang ini.
    *
@@ -362,7 +393,8 @@ export function ringkasan(f: FilterSKDR, jenis: JenisKasus = "penderita"): Ringk
   // Kedua penghitung di bawah harus unik: tanpa itu 31 kecamatan x 52 minggu
   // bisa menghasilkan angka 142 untuk "jumlah minggu".
   const mingguan = statusMingguanKecamatan(f, jenis);
-  const mingguKLB = new Set(mingguan.filter((s) => s.level === "KLB").map((s) => s.minggu));
+  const perLevel = kelompokMinggu(mingguan);
+  const mingguKLB = perLevel.klb;
   const kecamatanKLB = new Set(mingguan.filter((s) => s.level === "KLB").map((s) => s.kode)).size;
 
   return {
@@ -374,6 +406,7 @@ export function ringkasan(f: FilterSKDR, jenis: JenisKasus = "penderita"): Ringk
     klb: status.filter((s) => s.level === "KLB").length,
     waspada: status.filter((s) => s.level === "Waspada").length,
     mingguKLB: mingguKLB.size,
+    mingguWaspada: perLevel.waspada.size,
     kecamatanKLB,
     tertinggi,
   };
@@ -427,12 +460,17 @@ export function bandingkanPenyakit(tahun: number, mingguDari: number, mingguSamp
   return PENYAKIT.map((p) => {
     const f: FilterSKDR = { tahun, mingguDari, mingguSampai, penyakit: p };
     const mingguan = statusMingguanKecamatan(f);
+    const perLevel = kelompokMinggu(mingguan);
     return {
       penyakit: p,
       ...ringkasan(f),
-      /** minggu yang punya setidaknya satu kecamatan berstatus Waspada */
-      mingguWaspada: new Set(mingguan.filter((s) => s.level === "Waspada").map((s) => s.minggu))
-        .size,
+      /**
+       * Minggu dengan setidaknya satu kecamatan Waspada, TIDAK termasuk minggu
+       * yang sudah berstatus KLB di kecamatan lain. Tanpa itu satu minggu bisa
+       * dihitung dua kali dan jumlah "Mgg KLB + Mgg Waspada" bisa melebihi
+       * jumlah minggu dalam rentang.
+       */
+      mingguWaspada: perLevel.waspada.size,
       puncak: puncakMingguan(f),
     };
   }).sort((a, b) => b.total - a.total);
