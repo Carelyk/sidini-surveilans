@@ -256,10 +256,23 @@ export function FilterSKDRBar({
 
       <div className="flex items-start gap-2 rounded-lg border border-border bg-secondary/60 p-3 text-xs text-muted-foreground">
         <Siren className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
-        <p>
-          <span className="font-medium text-foreground">Ambang {nilai.penyakit}:</span>{" "}
-          {AMBANG[nilai.penyakit].dasar}
-        </p>
+        <div className="space-y-1">
+          <p>
+            <span className="font-medium text-foreground">Ambang {nilai.penyakit}:</span>{" "}
+            {AMBANG[nilai.penyakit].dasar}
+          </p>
+          <p>
+            <span className="font-medium text-foreground">Sumber acuan:</span>{" "}
+            {AMBANG[nilai.penyakit].sumber}{" "}
+            {AMBANG[nilai.penyakit].statusSumber === "perlu verifikasi acuan Dinkes" ? (
+              <span className="font-semibold text-warning-text">
+                ({AMBANG[nilai.penyakit].statusSumber})
+              </span>
+            ) : (
+              <span className="text-success-text">(tercatat)</span>
+            )}
+          </p>
+        </div>
       </div>
     </section>
   );

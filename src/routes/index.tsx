@@ -520,6 +520,32 @@ function Dashboard() {
           </p>
         </div>
 
+        <div className="panel space-y-2 p-4">
+          <p className="text-xs font-semibold">
+            Cara membaca &ldquo;Mgg KLB&rdquo; dan &ldquo;Mgg Waspada&rdquo;
+          </p>
+          <ul className="list-disc space-y-1 pl-5 text-[11px] text-muted-foreground">
+            <li>
+              <span className="font-medium text-foreground">Mgg KLB</span>: jumlah minggu dengan
+              setidaknya satu kecamatan berstatus KLB.
+            </li>
+            <li>
+              <span className="font-medium text-foreground">Mgg Waspada</span>: jumlah minggu dengan
+              setidaknya satu kecamatan Waspada <strong>tidak ada</strong> kecamatan KLB di minggu
+              yang sama.
+            </li>
+            <li>
+              Karena itu keduanya tidak tumpang tindih, dan jumlah keduanya tidak pernah melebihi
+              jumlah minggu dalam rentang. Di level kecamatan, status Waspada dan KLB tetap boleh
+              berdampingan.
+            </li>
+            <li>
+              <span className="font-medium text-foreground">Kec. KLB</span>: jumlah kecamatan yang
+              menyentuh KLB di minggu mana pun dalam setahun.
+            </li>
+          </ul>
+        </div>
+
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {perPenyakitSKDR.map((p) => (
             <KartuPenyakit key={p.penyakit} {...p} />
@@ -558,7 +584,7 @@ function KartuPenyakit({
   kecamatanKLB: number;
   /** minggu yang punya setidaknya satu kecamatan KLB */
   mingguKLB: number;
-  /** minggu yang punya setidaknya satu kecamatan berstatus Waspada */
+  /** minggu yang punya setidaknya satu kecamatan Waspada tanpa kecamatan KLB */
   mingguWaspada: number;
   /** kasus tertinggi dalam satu minggu, beserta kecamatan dan nomor mingguanya */
   puncak: { minggu: number; nama: string; jumlah: number; insidensi: number } | null;
@@ -609,7 +635,7 @@ function KartuPenyakit({
 
       {puncak ? (
         <p className="border-t border-border pt-3 text-xs text-muted-foreground">
-          Puncak mingguan:{" "}
+          Puncak mingguan (per kecamatan):{" "}
           <span className="font-medium text-foreground">{nf.format(puncak.jumlah)} kasus</span> di{" "}
           {puncak.nama}, minggu {puncak.minggu} ({puncak.insidensi.toFixed(0)}/100k/mgg)
         </p>
@@ -667,7 +693,7 @@ function GrafikPenyakit({
     <div>
       <div className="flex items-baseline justify-between gap-2">
         <p className="text-sm font-semibold">{penyakit}</p>
-        <p className="text-[11px] text-muted-foreground">Kasus per minggu</p>
+        <p className="text-[11px] text-muted-foreground">Kasus per minggu, total kabupaten</p>
       </div>
       <div className="mt-2 h-40">
         <ResponsiveContainer width="100%" height="100%">
@@ -697,9 +723,11 @@ function GrafikPenyakit({
         </ResponsiveContainer>
       </div>
       <p className="mt-1 pl-[42px] text-[11px] text-muted-foreground">
-        {titik.filter((t) => t.level === "KLB").length} minggu menyentuh ambang KLB
-        {a.insidensiMin > 0 ? ` (${a.insidensiMin}/100k/mgg)` : ""} &middot;{" "}
-        {titik.reduce((m, t) => Math.max(m, t.jumlah), 0)} kasus puncak mingguan
+        Grafik: total kasus seluruh kecamatan (kabupaten). Status:{" "}
+        {titik.filter((t) => t.level === "KLB").length} minggu dengan minimal satu kecamatan
+        berstatus KLB
+        {a.insidensiMin > 0 ? ` (${a.insidensiMin}/100k/mgg per kecamatan)` : ""} &middot; puncak
+        mingguan kabupaten {nf.format(titik.reduce((m, t) => Math.max(m, t.jumlah), 0))} kasus
       </p>
     </div>
   );
