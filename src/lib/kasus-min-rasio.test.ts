@@ -1,7 +1,13 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-import { AMBANG } from "@/data/ambang";
+import {
+  AMBANG,
+  ATURAN_WASPADA,
+  KASUS_MIN_WASPADA,
+  KASUS_MIN_WASPADA_HARIAN,
+  KASUS_MIN_WASPADA_SKDR,
+} from "@/data/ambang";
 import { KECAMATAN } from "@/data/wilayah";
 import { PENYAKIT, type Penyakit } from "@/data/skdr";
 import {
@@ -12,22 +18,27 @@ import {
 } from "@/lib/skdr";
 
 /**
- * Butir B: syarat kasus minimum pada KRITERIA RASIO untuk status Waspada di
- * tingkat kecamatan, mingguan.
+ * Status Waspada memakai SATU konstanta bersama untuk semua penyakit, sama
+ * di lapis harian (7 hari per desa) dan lapis SKDR (1 minggu per kecamatan).
  *
- * Diagnosis lebih dulu (belum ada perubahan kode saat diagnosis itu ditulis):
- * untuk Hepatitis A tahun 2026, minggu 1-39, dari 108 sel (kecamatan x
- * minggu) yang berstatus Waspada, 108 dipicu kriteria rasio, 0 dipicu
- * insidensi, 0 dipicu kematian. Rata-rata kasus per kecamatan per minggu
- * hanya 0,22, median 0, maksimum 1. Hampir semua sel itu adalah "1 kasus,
- * rasio 1,5x sampai 8x" terhadap baseline yang berupa pecahan, misalnya
- * 1 kasus melawan baseline 0,33 menghasilkan rasio 3,0.
+ * Latar belakang, hasil pengukuran pada minggu 1-39 sel per kecamatan per
+ * minggu, sebelum syarat ini ada:
+ *
+ * - Hepatitis A 2026: total kasus 270, rata-rata 0,22 kasus per kecamatan
+ *   per minggu, median 0, maksimum 1. Dari 108 sel Waspada, 108 dipicu
+ *   kriteria rasio, 0 dipicu insidensi, 0 dipicu kematian. Hampir semua sel
+ *   itu adalah "1 kasus, rasio 1,5x sampai 8x" melawan baseline yang berupa
+ *   pecahan; 1 kasus melawan baseline 0,33 menghasilkan rasio 3,0.
+ * - Chikungunya 2026: total kasus 533, rata-rata 0,44, median 0, maksimum
+ *   3. Dari 58 sel Waspada, 58 dipicu rasio, 0 insidensi, 0 kematian.
+ * - DBD 2026: total kasus 4.346, rata-rata 3,59, median 2, maksimum 98.
+ *   Dari 85 sel Waspada, 60 rasio, 0 insidensi, 27 kematian. DBD punya volume
+ *   kasus nyata, jadi pemicunya memang campuran.
  *
  * Karena pemicunya rasio pada kasus kecil, perbaikannya adalah syarat kasus
- * minimum, BUKAN menggeser angka ambang. Angka ambang (rasio 1,5x dan 2x,
- * insidensi, kematian) tidak disentuh. Syarat yang dipakai adalah field
- * kasusMin yang sudah ada di src/data/ambang.ts; cakupannya saja yang
- * diperluas, dari KLB saja menjadi KLB dan Waspada.
+ * minimum, BUKAN menggeser angka ambang. Rasio Waspada tetap 1,5x, rasio
+ * KLB tetap 2x, insidensi tetap 50/100/15/15, dan aturan kematian tidak
+ * berubah.
  */
 const SEMUA_MINGGU: Omit<FilterSKDR, "penyakit" | "tahun"> = {
   mingguDari: 1,
@@ -39,24 +50,87 @@ function hitung(tahun: number, penyakit: Penyakit): { waspada: number; klb: numb
   return { waspada: per.waspada.size, klb: per.klb.size };
 }
 
-describe("syarat kasus minimum pada kriteria rasio mingguan", () => {
-  it("tidak ada sel Waspada yang dipicu rasio pada kasus di bawah kasusMin", () => {
-    // Inilah penjaga inti. Kalau syaratnya dilepas lagi, test ini gagal
-    // karena bakal muncul sel seperti "1 kasus, rasio 3x".
+/** Jumlah minggu KLB dan Waspada yang diukur setelah syarat kasus minimum. */
+const SESUDAH: Record<string, { waspada: number; klb: number }> = {
+  "DBD|2025": { waspada: 13, klb: 3 },
+  "DBD|2026": { waspada: 11, klb: 6 },
+  "Diare|2025": { waspada: 2, klb: 0 },
+  "Diare|2026": { waspada: 2, klb: 4 },
+  "Chikungunya|2025": { waspada: 1, klb: 0 },
+  "Chikungunya|2026": { waspada: 1, klb: 0 },
+  "Hepatitis A|2025": { waspada: 0, klb: 0 },
+  "Hepatitis A|2026": { waspada: 0, klb: 0 },
+} as Record<string, { waspada: number; klb: number }>;
+
+describe("satu konstanta bersama untuk status Waspada", () => {
+  it("nilainya 3 dan sama di kedua lapis", () => {
+    expect(KASUS_MIN_WASPADA).toBe(3);
+    expect(KASUS_MIN_WASPADA_HARIAN).toBe(3);
+    expect(KASUS_MIN_WASPADA_SKDR).toBe(3);
+  });
+
+  it("kedua alias diambil dari satu konstanta, bukan angka yang ditulis ulang", () => {
+    // Kalau salah satu ditulis ulang terpisah, aturan harian dan mingguan bisa
+    // diam-diam berbeda lagi.
+    expect(KASUS_MIN_WASPADA_HARIAN).toBe(KASUS_MIN_WASPADA);
+    expect(KASUS_MIN_WASPADA_SKDR).toBe(KASUS_MIN_WASPADA);
+  });
+
+  it("ATURAN_WASPADA menyiarkan angka yang sama untuk kedua lapis", () => {
+    expect(ATURAN_WASPADA.kasusMin).toBe(KASUS_MIN_WASPADA);
+    expect(ATURAN_WASPADA.alasan).toContain("3 kasus");
+    expect(ATURAN_WASPADA.alasan).toContain("lapis harian");
+    expect(ATURAN_WASPADA.alasan).toContain("lapis SKDR");
+  });
+
+  it("kriteria Waspada tidak memakai kasusMin per penyakit", () => {
+    // kasusMin sekarang hanya untuk KLB. Nilainya sengaja dibiarkan seperti
+    // semula: 40 kasus per minggu untuk diare sudah melampaui ambang
+    // insidensi di kecamatan mana pun, jadi tidak bisa dipakai untuk Waspada.
+    expect(AMBANG.DBD.kasusMin).toBe(5);
+    expect(AMBANG.Diare.kasusMin).toBe(40);
+    expect(AMBANG.Chikungunya.kasusMin).toBe(3);
+    expect(AMBANG["Hepatitis A"].kasusMin).toBe(3);
+
+    const kode = readFileSync("src/lib/skdr.ts", "utf8");
+    // Kriteria rasio untuk KLB tetap memakai kasusMin per penyakit.
+    expect(kode).toContain("rasio >= a.rasioKLB && c.jumlah >= a.kasusMin");
+    // Kriteria rasio untuk Waspada memakai konstanta bersama.
+    expect(kode).toContain("rasio >= a.rasioWaspada && c.jumlah >= KASUS_MIN_WASPADA_SKDR");
+    // Tidak boleh ada sisa a.kasusMin di cabang Waspada.
+    expect(kode).not.toContain("rasio >= a.rasioWaspada && c.jumlah >= a.kasusMin");
+  });
+});
+
+describe("angka ambang tidak bergerak", () => {
+  it("rasio, insidensi, dan kematian tetap pada nilainya", () => {
+    for (const penyakit of PENYAKIT) {
+      expect(AMBANG[penyakit].rasioWaspada).toBe(1.5);
+      expect(AMBANG[penyakit].rasioKLB).toBe(2);
+    }
+    expect(AMBANG.DBD.insidensiMin).toBe(50);
+    expect(AMBANG.Diare.insidensiMin).toBe(100);
+    expect(AMBANG.Chikungunya.insidensiMin).toBe(15);
+    expect(AMBANG["Hepatitis A"].insidensiMin).toBe(15);
+    expect(AMBANG.DBD.kematianEskalasi).toBe(true);
+    expect(AMBANG.Diare.kematianEskalasi).toBe(false);
+  });
+});
+
+describe("efek syarat kasus minimum", () => {
+  it("tidak ada sel Waspada yang lolos dari rasio dengan kasus di bawah 3", () => {
+    // Inilah penjaga inti. Kalau syaratnya dilepas lagi, test ini gagal karena
+    // bakal muncul sel seperti "1 kasus, rasio 3x".
     const pelanggaran: string[] = [];
     for (const tahun of [2025, 2026]) {
       for (const penyakit of PENYAKIT) {
         const a = AMBANG[penyakit];
-        for (const b of statusMingguanKecamatan({
-          tahun,
-          penyakit,
-          ...SEMUA_MINGGU,
-        })) {
+        for (const b of statusMingguanKecamatan({ tahun, penyakit, ...SEMUA_MINGGU })) {
           if (b.level !== "Waspada") continue;
-          if (b.jumlah >= a.kasusMin) continue;
+          if (b.jumlah >= KASUS_MIN_WASPADA_SKDR) continue;
           // Sel yang lolos harus datang dari kriteria insidensi atau kematian.
-          const ins =
-            (b.jumlah / (KECAMATAN.find((k) => k.kode === b.kode)?.penduduk ?? 1)) * 100000;
+          const penduduk = KECAMATAN.find((k) => k.kode === b.kode)?.penduduk ?? 1;
+          const ins = (b.jumlah / penduduk) * 100000;
           const dariInsidensi = ins >= a.insidensiMin * 0.6;
           const dariKematian = a.kematianEskalasi && b.meninggal >= 1;
           if (!dariInsidensi && !dariKematian) {
@@ -70,82 +144,80 @@ describe("syarat kasus minimum pada kriteria rasio mingguan", () => {
     expect(pelanggaran).toEqual([]);
   });
 
-  it("ambang rasio, insidensi, dan kematian tidak bergerak", () => {
-    // Syarat kasus minimum boleh ditambah; angka ambang tidak.
+  it("jumlah minggu KLB tidak berubah sama sekali", () => {
+    // KLB tidak boleh bergerak karena syarat kasus minimum untuk KLB sudah
+    // ada sebelumnya dan tidak disentuh.
     for (const penyakit of PENYAKIT) {
-      expect(AMBANG[penyakit].rasioWaspada).toBe(1.5);
-      expect(AMBANG[penyakit].rasioKLB).toBe(2);
-    }
-    expect(AMBANG.DBD.insidensiMin).toBe(50);
-    expect(AMBANG.Diare.insidensiMin).toBe(100);
-    expect(AMBANG.Chikungunya.insidensiMin).toBe(15);
-    expect(AMBANG["Hepatitis A"].insidensiMin).toBe(15);
-    expect(AMBANG.DBD.kematianEskalasi).toBe(true);
-    expect(AMBANG.Diare.kematianEskalasi).toBe(false);
-  });
-
-  it("kasusMin yang dipakai adalah field yang sudah ada, tidak ada angka baru", () => {
-    // Tidak ada konstanta kasus minimum mingguan yang baru. Hepatitis A dan
-    // Chikungunya bernilai 3, sama dengan KASUS_MIN_WASPADA_HARIAN, jadi
-    // aturan mingguan sekarang sama dengan aturan lapis harian untuk kedua
-    // penyakit itu.
-    expect(AMBANG.DBD.kasusMin).toBe(5);
-    expect(AMBANG.Diare.kasusMin).toBe(40);
-    expect(AMBANG.Chikungunya.kasusMin).toBe(3);
-    expect(AMBANG["Hepatitis A"].kasusMin).toBe(3);
-  });
-
-  it("jumlah minggu Waspada turun, KLB tidak berubah", () => {
-    // Angka hasil pengukuran, bukan tebakan. KLB wajib tetap sama karena
-    // syarat kasus minimum pada KLB sudah ada sebelumnya.
-    const sebelum = {
-      "DBD|2025": { waspada: 25, klb: 3 },
-      "DBD|2026": { waspada: 23, klb: 6 },
-      "Diare|2025": { waspada: 2, klb: 0 },
-      "Diare|2026": { waspada: 2, klb: 4 },
-      "Chikungunya|2025": { waspada: 27, klb: 0 },
-      "Chikungunya|2026": { waspada: 28, klb: 0 },
-      "Hepatitis A|2025": { waspada: 27, klb: 0 },
-      "Hepatitis A|2026": { waspada: 34, klb: 0 },
-    } as Record<string, { waspada: number; klb: number }>;
-    for (const [kunci, lama] of Object.entries(sebelum)) {
-      const [penyakit, tahun] = kunci.split("|") as [Penyakit, string];
-      const sekarang = hitung(Number(tahun), penyakit);
-      // KLB: tidak boleh bergerak sama sekali.
-      expect(`${kunci} KLB ${sekarang.klb}`).toBe(`${kunci} KLB ${lama.klb}`);
-      // Waspada: boleh turun, tapi tidak boleh naik.
-      expect(`${kunci} W ${sekarang.waspada} <= ${lama.waspada}`).toBe(
-        sekarang.waspada <= lama.waspada
-          ? `${kunci} W ${sekarang.waspada} <= ${lama.waspada}`
-          : "GAGAL",
-      );
+      for (const tahun of [2025, 2026]) {
+        const kunci = `${penyakit}|${tahun}`;
+        expect(`${kunci} KLB ${hitung(tahun, penyakit).klb}`).toBe(
+          `${kunci} KLB ${SESUDAH[kunci]?.klb}`,
+        );
+      }
     }
   });
 
-  it("Hepatitis A 2026 turun dari 34 minggu Waspada menjadi 0", () => {
-    // Angka yang dilaporkan ke pengguna sebagai hasil butir B.
+  it("jumlah minggu Waspada sesuai hasil pengukuran", () => {
+    for (const penyakit of PENYAKIT) {
+      for (const tahun of [2025, 2026]) {
+        const kunci = `${penyakit}|${tahun}`;
+        expect(`${kunci} W ${hitung(tahun, penyakit).waspada}`).toBe(
+          `${kunci} W ${SESUDAH[kunci]?.waspada}`,
+        );
+      }
+    }
+  });
+
+  it("penyakit berkasus sedikit memang jarang memicu Waspada", () => {
+    // Dampak yang dilaporkan ke pengguna, dan sengaja dibiarkan tanpa
+    // perubahan parameter simulasi lebih lanjut.
     expect(hitung(2026, "Hepatitis A").waspada).toBe(0);
     expect(hitung(2025, "Hepatitis A").waspada).toBe(0);
+    expect(hitung(2026, "Chikungunya").waspada).toBe(1);
+    expect(hitung(2025, "Chikungunya").waspada).toBe(1);
   });
 });
 
 describe("penjelasan aturan di UI dan Konsep", () => {
-  it("dasar ambang tiap penyakit menyebut syarat kasus minimum", () => {
+  it("dasar tiap penyakit menyebut satu angka yang sama untuk semua penyakit", () => {
+    const pola = /Kriteria rasio untuk Waspada memerlukan minimal 3 kasus dalam minggu itu/;
     for (const penyakit of PENYAKIT) {
-      const dasar = AMBANG[penyakit].dasar.toLowerCase();
-      expect(dasar).toContain("kasus");
-      expect(dasar).toMatch(/rasio hanya dibaca/);
-      // Kriteria insidensi dan kematian harus disebut bebas syarat kasus.
-      expect(dasar).toMatch(/tidak memerlukan syarat itu/);
+      const dasar = AMBANG[penyakit].dasar;
+      expect(`${penyakit}: ${dasar.match(pola) ? "ada" : "tidak ada"}`).toBe(`${penyakit}: ada`);
+      // Tidak boleh lagi menyebut angka kasus minimum per penyakit untuk
+      // status Waspada.
+      expect(dasar).not.toMatch(/Waspada[\s\S]{0,80}minimal (5|40) kasus/);
+      // Kriteria lain bebas dari syarat kasus minimum.
+      expect(dasar).toContain("tidak memakai syarat itu");
     }
   });
 
-  it("halaman Konsep menjelaskan syaratnya dan menyebut angkanya", () => {
+  it("halaman Konsep menjelaskan satu aturan dan menyebut angkanya", () => {
     const isi = readFileSync("src/routes/tentang.tsx", "utf8").replace(/\s+/g, " ");
-    expect(isi).toMatch(/kriteria rasio hanya dibaca/);
-    expect(isi).toMatch(/3 untuk Chikungunya dan Hepatitis A/);
-    expect(isi).toMatch(/tidak memakai syarat kasus minimum/);
-    // Kolom tabel harus menyebut bahwa angka itu untuk kriteria rasio.
-    expect(isi).toContain("Min. kasus rasio");
+    expect(isi).toContain("Status Waspada memerlukan minimal {KASUS_MIN_WASPADA_SKDR} kasus");
+    // Alasan lengkapnya diambil dari satu sumber, supaya halaman ini tidak
+    // punya versinya sendiri yang bisa berbeda dengan konfigurasi.
+    expect(isi).toContain("{ATURAN_WASPADA.alasan}");
+    // Lapis harian di halaman yang sama menyebut bahwa angkanya sama.
+    expect(isi).toContain("Angka ini sama dengan yang dipakai di lapis SKDR mingguan");
+    // Penjelasan lama yang menyebut angka per penyakit harus hilang.
+    expect(isi).not.toContain("5 kasus untuk DBD, 40 untuk Diare");
+    // Kolom tabel tidak boleh lagi dikira sebagai syarat Waspada.
+    expect(isi).toContain("Min. kasus KLB");
+    expect(isi).toContain('Kolom "Min. kasus KLB" hanya berlaku untuk status KLB');
+  });
+
+  it("halaman Konsep mencatat penyakit berkasus sedikit", () => {
+    const isi = readFileSync("src/routes/tentang.tsx", "utf8").replace(/\s+/g, " ");
+    expect(isi).toMatch(/Penyakit dengan kasus sedikit per kecamatan memang jarang memicu Waspada/);
+    expect(isi).toMatch(/konsekuensi volume kasus pada data simulasi/);
+  });
+
+  it("dasar di panel dashboard memakai konstanta bersama", () => {
+    const isi = readFileSync("src/routes/index.tsx", "utf8").replace(/\s+/g, " ");
+    expect(isi).toMatch(
+      /Status Waspada memakai satu syarat bersama untuk semua penyakit: minimal\{?\s*\{?" "\}?\s*\{KASUS_MIN_WASPADA\} kasus/,
+    );
+    expect(isi).toMatch(/berlaku di lapis SKDR mingguan per kecamatan/);
   });
 });

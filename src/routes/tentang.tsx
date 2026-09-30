@@ -16,7 +16,13 @@ import {
   Users,
 } from "lucide-react";
 
-import { AMBANG_SKDR, ATURAN_HARIAN } from "@/data/ambang";
+import {
+  AMBANG_SKDR,
+  ATURAN_HARIAN,
+  ATURAN_WASPADA,
+  KASUS_MIN_WASPADA,
+  KASUS_MIN_WASPADA_SKDR,
+} from "@/data/ambang";
 import { JUMLAH_MINGGU } from "@/data/skdr";
 import { MINGGU_SKDR_TERAKHIR } from "@/lib/skdr";
 import { PENYAKIT } from "@/data/skdr";
@@ -146,7 +152,8 @@ function Tentang() {
                 </li>
                 <li>
                   <strong className="text-foreground">Waspada</strong>: rasio mencapai 1,5x, dengan
-                  minimal {ATURAN_HARIAN.kasusMinWaspada} kasus penyakit itu dalam 7 hari.
+                  minimal {KASUS_MIN_WASPADA} kasus penyakit itu dalam 7 hari. Angka ini sama dengan
+                  yang dipakai di lapis SKDR mingguan.
                 </li>
                 <li>
                   <strong className="text-foreground">Aman</strong>: belum ada ambang yang
@@ -182,13 +189,18 @@ function Tentang() {
                   Status tiap kecamatan diuji dengan tiga kriteria: rasio terhadap baseline sendiri,
                   insidensi per 100.000, dan jumlah kematian.{" "}
                   <strong className="text-foreground">
-                    Keduanya kriteria rasio hanya dibaca bila kasus penyakit itu di kecamatan
-                    tersebut mencapai jumlah minimum pada tabel di bawah
+                    Status Waspada memerlukan minimal {KASUS_MIN_WASPADA_SKDR} kasus dalam minggu
+                    itu.
                   </strong>{" "}
-                  (5 kasus untuk DBD, 40 untuk Diare, 3 untuk Chikungunya dan Hepatitis A). Tanpa
-                  syarat itu, satu kasus di tengah baseline pecahan menghasilkan rasio seperti 3x
-                  dan langsung menyalakan peringatan. Kriteria insidensi dan kematian tidak memakai
-                  syarat kasus minimum, dan angka ambangnya sendiri tidak diubah.
+                  {ATURAN_WASPADA.alasan} Kriteria insidensi dan kematian tidak memakai syarat kasus
+                  minimum, dan angka ambangnya sendiri tidak diubah.
+                </li>
+                <li>
+                  Penyakit dengan kasus sedikit per kecamatan memang jarang memicu Waspada. Pada
+                  data simulasi sekarang Hepatitis A tidak pernah memicu Waspada dalam minggu 1-39
+                  untuk 2025 maupun 2026, dan Chikungunya hanya satu minggu per tahun. Itu
+                  konsekuensi volume kasus pada data simulasi, bukan ambang yang terlalu tinggi, dan
+                  parameter simulasi tidak diubah untuk mucurkan hasilnya.
                 </li>
                 <li>
                   Deret mingguan pada prototipe adalah simulasi, dan sekarang dipotong di minggu{" "}
@@ -212,7 +224,7 @@ function Tentang() {
                 <thead className="bg-secondary/50 text-left text-xs text-muted-foreground">
                   <tr>
                     <th className="px-3 py-2 font-semibold">Penyakit</th>
-                    <th className="px-3 py-2 font-semibold">Min. kasus rasio</th>
+                    <th className="px-3 py-2 font-semibold">Min. kasus KLB</th>
                     <th className="px-3 py-2 font-semibold">Insidensi minimum</th>
                     <th className="px-3 py-2 font-semibold">Rasio Waspada</th>
                     <th className="px-3 py-2 font-semibold">Rasio KLB</th>
@@ -242,7 +254,10 @@ function Tentang() {
             <p className="mt-2 text-xs">
               Catatan penting: seluruh baris di atas berstatus perlu verifikasi acuan Dinkes. Angka
               ambang dipakai apa adanya supaya perbandingan dengan versi sebelumnya tetap sama,
-              tetapi belum disahkan untuk dipakai pada keputusan nyata.
+              tetapi belum disahkan untuk dipakai pada keputusan nyata. Kolom "Min. kasus KLB" hanya
+              berlaku untuk status KLB. Status Waspada tidak memakai kolom itu, melainkan satu
+              syarat bersama untuk semua penyakit: minimal {KASUS_MIN_WASPADA_SKDR} kasus dalam
+              periode yang dinilai, sama di lapis harian dan lapis SKDR.
             </p>
             <p className="mt-2 text-xs">
               Angka ambang di tabel ini adalah{" "}

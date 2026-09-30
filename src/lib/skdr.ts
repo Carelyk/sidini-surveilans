@@ -77,8 +77,15 @@ export function terfilter(f: FilterSKDR): BarisSKDR[] {
 // ---------------------------------------------------------------------------
 // Ambang peringatan dini -- DIBEDAKAN PER PENYAKIT (konfigurasi tunggal)
 // ---------------------------------------------------------------------------
-export { AMBANG, type Ambang, type AmbangSKDR, type StatusSumberAmbang } from "@/data/ambang";
-import { AMBANG } from "@/data/ambang";
+export {
+  AMBANG,
+  KASUS_MIN_WASPADA,
+  KASUS_MIN_WASPADA_SKDR,
+  type Ambang,
+  type AmbangSKDR,
+  type StatusSumberAmbang,
+} from "@/data/ambang";
+import { AMBANG, KASUS_MIN_WASPADA_SKDR } from "@/data/ambang";
 
 // ---------------------------------------------------------------------------
 // Baseline per kecamatan: rata-rata 8 minggu SEBELUM rentang terpilih
@@ -304,14 +311,14 @@ export function statusMingguanKecamatan(
       } else if ((rasio >= a.rasioKLB && c.jumlah >= a.kasusMin) || ins >= a.insidensiMin) {
         level = "KLB";
       } else if (
-        (rasio >= a.rasioWaspada && c.jumlah >= a.kasusMin) ||
+        (rasio >= a.rasioWaspada && c.jumlah >= KASUS_MIN_WASPADA_SKDR) ||
         ins >= a.insidensiMin * 0.6 ||
         (a.kematianEskalasi && c.meninggal >= 1)
       ) {
-        // Syarat kasus minimum pada kriteria rasio: lihat AMBANG_SKDR.kasusMin.
-        // Tanpa itu, 1 kasus di tengah baseline pecahan (mis. baseline 0,3)
-        // memberi rasio 3,3x dan langsung menyalakan Waspada. Diuji per
-        // penyakit, bukan sebagai angka baru.
+        // Syarat kasus minimum untuk status Waspada: satu konstanta bersama
+        // untuk semua penyakit, sama dengan lapis harian. Tanpa itu, 1 kasus
+        // di tengah baseline pecahan (mis. baseline 0,3) memberi rasio 3,3x
+        // dan langsung menyalakan Waspada.
         level = "Waspada";
       }
 

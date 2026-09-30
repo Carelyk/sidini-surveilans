@@ -33,7 +33,7 @@ import { AlertBanner } from "@/components/AlertBanner";
 import { LevelBadge } from "@/components/LevelBadge";
 import { PanelDampak } from "@/components/PanelDampak";
 import { StatCard } from "@/components/StatCard";
-import { ATURAN_HARIAN } from "@/data/ambang";
+import { ATURAN_HARIAN, KASUS_MIN_WASPADA } from "@/data/ambang";
 import { useSurveilans } from "@/lib/store";
 import {
   formatInsidensi,
@@ -340,13 +340,19 @@ function Dashboard() {
             </li>
             <li>
               <strong className="text-foreground">Waspada</strong>: rasio minimal 1,5x baseline
-              dengan minimal {ATURAN_HARIAN.kasusMinWaspada} kasus penyakit itu dalam 7 hari.
+              dengan minimal {KASUS_MIN_WASPADA} kasus penyakit itu dalam 7 hari.
             </li>
             <li>
               Rasio di bawah jumlah kasus minimum itu{" "}
               <strong className="text-foreground">tidak</strong> menaikkan status, dan alasannya
               ditulis di tabel status. Ini mencegah desa kecil dengan 1 kasus dan baseline 0
               terlihat selalu naik (rasio 99).
+            </li>
+            <li>
+              Status Waspada memakai satu syarat bersama untuk semua penyakit: minimal{" "}
+              {KASUS_MIN_WASPADA} kasus dalam periode yang dinilai. Aturan yang sama berlaku di
+              lapis SKDR mingguan per kecamatan, jadi tidak ada angka yang berbeda antara lapis
+              harian dan mingguan.
             </li>
             <li>
               Ambang rasio 1,5x dan 2x tidak diubah; yang ditambahkan hanya syarat kasus minimum.
