@@ -1,6 +1,5 @@
 import { CalendarRange, MapPin, Siren, Stethoscope } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -10,7 +9,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { KABUPATEN, KECAMATAN, PROVINSI, TOTAL_PENDUDUK } from "@/data/wilayah";
 import { JUMLAH_MINGGU, PENYAKIT, TAHUN_SKDR } from "@/data/skdr";
 import { MINGGU_DATA_TERAKHIR, TAHUN_DATA_TERAKHIR, waktuPembaruan } from "@/data/kronologi";
@@ -139,19 +137,18 @@ export function FilterSKDRBar({
         <Label className="text-xs uppercase tracking-wide text-muted-foreground">
           1. Penyakit yang dianalisis
         </Label>
-        <ToggleGroup
-          type="single"
-          value={nilai.penyakit}
-          onValueChange={(v) => v && set({ penyakit: v as Penyakit })}
-          variant="outline"
-          className="flex flex-wrap"
-        >
-          {PENYAKIT.map((p) => (
-            <ToggleGroupItem key={p} value={p} className="px-4">
-              {p}
-            </ToggleGroupItem>
-          ))}
-        </ToggleGroup>
+        <Select value={nilai.penyakit} onValueChange={(v) => v && set({ penyakit: v as Penyakit })}>
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {PENYAKIT.map((p) => (
+              <SelectItem key={p} value={p}>
+                {p}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* 2. Jenis kasus */}
@@ -160,20 +157,15 @@ export function FilterSKDRBar({
           <Label className="text-xs uppercase tracking-wide text-muted-foreground">
             2. Jenis kasus
           </Label>
-          <ToggleGroup
-            type="single"
-            value={nilai.jenis}
-            onValueChange={(v) => v && set({ jenis: v as JenisKasus })}
-            variant="outline"
-            className="w-full"
-          >
-            <ToggleGroupItem value="penderita" className="flex-1 px-4">
-              Penderita
-            </ToggleGroupItem>
-            <ToggleGroupItem value="meninggal" className="flex-1 px-4">
-              Meninggal
-            </ToggleGroupItem>
-          </ToggleGroup>
+          <Select value={nilai.jenis} onValueChange={(v) => v && set({ jenis: v as JenisKasus })}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="penderita">Penderita</SelectItem>
+              <SelectItem value="meninggal">Meninggal</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
@@ -249,36 +241,17 @@ export function FilterSKDRBar({
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          {PRESET.map((p) => {
-            const aktif =
-              nilai.mingguDari === p.dari &&
-              nilai.mingguSampai === p.sampai &&
-              (p.tahun === undefined || nilai.tahun === p.tahun);
-            return (
-              <Button
-                key={p.label}
-                type="button"
-                size="sm"
-                variant={aktif ? "default" : "outline"}
-                onClick={() =>
-                  set({
-                    mingguDari: p.dari,
-                    mingguSampai: p.sampai,
-                    ...(p.tahun ? { tahun: p.tahun } : {}),
-                  })
-                }
-              >
-                {p.label}
-              </Button>
-            );
-          })}
+        <div className="space-y-1.5">
+          <Label className="text-[11px] uppercase tracking-wide text-muted-foreground">
+            Preset periode
+          </Label>
+          <PemilihPreset nilai={nilai} onPilih={set} />
         </div>
         <p className="text-xs text-muted-foreground">
           {namaMinggu(nilai.tahun, dari)} &ndash;{" "}
           {namaMinggu(nilai.tahun, Math.min(MINGGU_SKDR_TERAKHIR, sampai))} {nilai.tahun}
         </p>
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-justify text-[11px] text-muted-foreground">
           Data kasus per desa berhenti di minggu {MINGGU_DATA_TERAKHIR} {TAHUN_DATA_TERAKHIR}
           (diperbarui {waktuPembaruan()}). Karena itu deret mingguan SKDR dipotong di minggu{" "}
           {MINGGU_SKDR_TERAKHIR} dan tidak menampilkan minggu {MINGGU_SKDR_TERAKHIR + 1}-
@@ -313,7 +286,7 @@ export function FilterSKDRBar({
 
       <div className="flex items-start gap-2 rounded-lg border border-border bg-secondary/60 p-3 text-xs text-muted-foreground">
         <Siren className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
-        <div className="space-y-1">
+        <div className="space-y-1 text-justify">
           <p>
             <span className="font-medium text-foreground">Ambang {nilai.penyakit}:</span>{" "}
             {AMBANG[nilai.penyakit].dasar}
@@ -377,6 +350,46 @@ function PemilihMinggu({
         </SelectContent>
       </Select>
     </div>
+  );
+}
+
+function PemilihPreset({
+  nilai,
+  onPilih,
+}: {
+  nilai: FilterState;
+  onPilih: (p: Partial<FilterState>) => void;
+}) {
+  const aktif = PRESET.find(
+    (p) =>
+      nilai.mingguDari === p.dari &&
+      nilai.mingguSampai === p.sampai &&
+      (p.tahun === undefined || nilai.tahun === p.tahun),
+  );
+  return (
+    <Select
+      value={aktif?.label ?? ""}
+      onValueChange={(label) => {
+        const p = PRESET.find((x) => x.label === label);
+        if (!p) return;
+        onPilih({
+          mingguDari: p.dari,
+          mingguSampai: p.sampai,
+          ...(p.tahun ? { tahun: p.tahun } : {}),
+        });
+      }}
+    >
+      <SelectTrigger className="w-full" aria-label="Pilih preset periode">
+        <SelectValue placeholder="Rentang khusus" />
+      </SelectTrigger>
+      <SelectContent>
+        {PRESET.map((p) => (
+          <SelectItem key={p.label} value={p.label}>
+            {p.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
 
