@@ -131,7 +131,7 @@ function Peta() {
                 {nf.format(r.tertinggi.jumlah)} kasus {f.penyakit} pada minggu {f.mingguDari}&ndash;
                 {f.mingguSampai} {f.tahun}, setara{" "}
                 <strong>{r.tertinggi.insidensi.toFixed(1)}</strong> per 100.000 penduduk per minggu
-                dari {nf.format(r.tertinggi.penduduk)} jiwa.
+                dari penduduk kecamatan {nf.format(r.tertinggi.penduduk)} jiwa.
               </p>
               <button
                 type="button"
@@ -301,9 +301,9 @@ function RincianKecamatan({ s, f }: { s: StatusKecamatan; f: FilterState }) {
             {s.nama}
           </h2>
           <p className="text-xs text-muted-foreground">
-            {nf.format(s.penduduk)} jiwa &middot; {nf.format(s.luasKm2)} km&sup2; (perkiraan dari
-            poligon) &middot; minggu {f.mingguDari}&ndash;{f.mingguSampai} {f.tahun} &middot;{" "}
-            {namaMinggu(f.tahun, f.mingguDari)}
+            penduduk kecamatan {nf.format(s.penduduk)} jiwa &middot; {nf.format(s.luasKm2)} km&sup2;{" "}
+            (perkiraan dari poligon) &middot; minggu {f.mingguDari}&ndash;{f.mingguSampai} {f.tahun}{" "}
+            &middot; {namaMinggu(f.tahun, f.mingguDari)}
           </p>
         </div>
         <LevelBadge level={s.level} />
