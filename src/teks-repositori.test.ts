@@ -48,6 +48,12 @@ const FRASA_LAMA = [
   { berkas: "src/data/skdr.ts", frasa: "pasar township" },
   { berkas: "src/lib/dampak.ts", frasa: "waktuVerifikasi" },
   { berkas: "src/components/ui/breadcrumb.tsx", frasa: "BreadcrumbElipssis" },
+  { berkas: "src/routes/tentang.tsx", frasa: "preliminari" },
+  { berkas: "src/routes/tentang.tsx", frasa: "liminari" },
+  { berkas: "src/routes/tentang.tsx", frasa: "Penelurdikan" },
+  { berkas: "src/data/ambang.ts", frasa: "istilahstands" },
+  { berkas: "src/lib/skdr.ts", frasa: "kementiaEskalasi" },
+  { berkas: "src/data/kronologi.ts", frasa: "Inicecahapan" },
 ];
 
 /**
@@ -68,6 +74,10 @@ const FRASA_PERBAIKAN = [
   {
     berkas: "src/components/ui/breadcrumb.tsx",
     frasa: 'BreadcrumbEllipsis.displayName = "BreadcrumbEllipsis"',
+  },
+  {
+    berkas: "src/routes/tentang.tsx",
+    frasa: "penyelidikan epidemiologi",
   },
 ];
 

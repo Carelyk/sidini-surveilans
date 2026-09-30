@@ -504,7 +504,7 @@ function Tentang() {
             kali atau lebih dibanding periode sebelumnya; ambang KLB 2x di prototipe ini selaras
             dengan kriteria itu. Penetapan KLB dilakukan oleh Kepala Dinas Kesehatan kabupaten/kota,
             provinsi, atau Menteri Kesehatan, bukan oleh sistem ini. SIDINI hanya memberi sinyal
-            untuk preliminari epidemiologi. Tingkat Waspada (1,5x), syarat kasus minimum, ambang
+            untuk penyelidikan epidemiologi. Tingkat Waspada (1,5x), syarat kasus minimum, ambang
             insidensi per 100.000, dan aturan kematian adalah parameter rancangan prototipe yang
             belum diverifikasi dan perlu ditetapkan bersama Dinkes.
           </p>
