@@ -44,6 +44,7 @@ const FRASA_LAMA = [
   { berkas: "src/lib/skdr.ts", frasa: "insidensi weekly" },
   { berkas: "src/lib/skdr.ts", frasa: "readership Dinkes" },
   { berkas: "src/data/skdr.ts", frasa: "Deaths suffers the same problem" },
+  { berkas: "src/routes/tentang.tsx", frasa: "mucurkan" },
 ];
 
 function berkasSumber(dir: string): string[] {

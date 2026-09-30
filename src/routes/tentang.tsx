@@ -200,7 +200,7 @@ function Tentang() {
                   data simulasi sekarang Hepatitis A tidak pernah memicu Waspada dalam minggu 1-39
                   untuk 2025 maupun 2026, dan Chikungunya hanya satu minggu per tahun. Itu
                   konsekuensi volume kasus pada data simulasi, bukan ambang yang terlalu tinggi, dan
-                  parameter simulasi tidak diubah untuk mucurkan hasilnya.
+                  parameter simulasi tidak diubah untuk mengubah hasilnya.
                 </li>
                 <li>
                   Deret mingguan pada prototipe adalah simulasi, dan sekarang dipotong di minggu{" "}
