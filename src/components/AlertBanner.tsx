@@ -57,7 +57,7 @@ export function AlertBanner({ status }: { status: StatusDesa[] }) {
                   yang dikirim.
                 </p>
               </div>
-              <div className="grid shrink-0 grid-cols-4 gap-1.5 text-center">
+              <div className="grid min-w-0 grid-cols-2 gap-1.5 text-center sm:grid-cols-4">
                 <Metrik label={`${pemicu.penyakit} 7 hari`} nilai={String(pemicu.mingguIni)} />
                 <Metrik label="Baseline" nilai={pemicu.rataBaseline.toFixed(1)} />
                 <Metrik label="Rasio" nilai={`${pemicu.rasio.toFixed(1)}x`} />
