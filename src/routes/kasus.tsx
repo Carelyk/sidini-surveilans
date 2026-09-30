@@ -127,7 +127,7 @@ function DataKasus() {
             </AlertDialog>
           )}
         </div>
-        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+        <p className="mt-2 max-w-3xl text-justify text-sm text-muted-foreground">
           Daftar kasus dari pelaporan Puskesmas dan laporan warga, per{" "}
           {formatTanggal(TANGGAL_ACUAN)} (data diperbarui {waktuPembaruan()}). Baris yang masih
           berstatus Baru atau Investigasi belum dihitung sebagai kasus resmi di dashboard. Data

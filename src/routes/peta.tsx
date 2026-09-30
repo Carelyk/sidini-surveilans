@@ -74,7 +74,7 @@ function Peta() {
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-8">
       <header>
         <h1 className="text-2xl font-bold sm:text-3xl">Peta sebaran & ambang KLB</h1>
-        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+        <p className="mt-2 max-w-3xl text-justify text-sm text-muted-foreground">
           Peta choropleth {KABUPATEN} dengan batas kecamatan asli (GADM 4.1). Warna menunjukkan
           seberapa dekat sebuah kecamatan dengan ambang KLB penyakit yang dipilih (DBD, Diare,
           Chikungunya, atau Hepatitis A). Intensitas warna menggambarkan kedekatan kecamatan dengan

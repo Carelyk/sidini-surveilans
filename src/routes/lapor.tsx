@@ -100,11 +100,11 @@ function LaporWarga() {
       <header>
         <p className="text-xs font-semibold uppercase tracking-wide text-primary">Kanal warga</p>
         <h1 className="mt-1 text-2xl font-bold sm:text-3xl">Lapor gejala dari rumah</h1>
-        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+        <p className="mt-2 max-w-2xl text-justify text-sm text-muted-foreground">
           Formulir contoh untuk prototipe: laporan yang Anda kirim hanya tersimpan di peramban
           perangkat ini, bukan terkirim ke puskesmas mana pun.
         </p>
-        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+        <p className="mt-2 max-w-2xl text-justify text-sm text-muted-foreground">
           Cukup 5 pertanyaan, tanpa perlu menyebut nama. Laporan Anda masuk ke antrean verifikasi
           petugas puskesmas dan baru dihitung sebagai kasus setelah diverifikasi, sehingga laporan
           yang belum diperiksa tidak ikut terhitung di dashboard.
@@ -216,7 +216,7 @@ function LaporWarga() {
               placeholder='08xx - prototipe hanya menyimpan penanda "kontak tersedia"'
               className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
             />
-            <p className="mt-1 text-[11px] text-muted-foreground">
+            <p className="mt-1 text-justify text-[11px] text-muted-foreground">
               Nomor yang diketik tidak disimpan; laporan hanya diberi catatan &quot;kontak
               tersedia&quot;. Pada sistem sungguhan nomor kontak adalah data pribadi spesifik yang
               perlu dasar hukum, enkripsi saat transit, dan penghapusan setelah verifikasi selesai.
@@ -230,7 +230,7 @@ function LaporWarga() {
               onChange={(e) => setSetuju(e.target.checked)}
               className="mt-0.5 size-4 accent-[var(--color-primary)]"
             />
-            <span>
+            <span className="text-justify">
               Saya memahami data kesehatan ini bersifat pribadi spesifik dan dalam sistem sungguhan
               hanya digunakan petugas surveilans untuk verifikasi serta respons wabah, sesuai UU PDP
               No. 27/2022. Pada prototipe ini laporan hanya tersimpan di peramban perangkat ini dan
@@ -251,7 +251,7 @@ function LaporWarga() {
             <h2 className="flex items-center gap-2 text-base font-semibold">
               <Lock className="size-4 text-primary" /> Privasi Anda
             </h2>
-            <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+            <ul className="mt-3 space-y-2 text-justify text-sm text-muted-foreground">
               <li>Nama tidak pernah diminta dalam formulir ini.</li>
               <li>
                 Nomor kontak bersifat opsional, tetapi prototipe tidak menyimpannya: laporan hanya
@@ -272,7 +272,7 @@ function LaporWarga() {
             <h2 className="flex items-center gap-2 text-base font-semibold">
               <WifiOff className="size-4 text-warning-text" /> Sinyal lemah?
             </h2>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p className="mt-2 text-justify text-sm text-muted-foreground">
               Pada prototipe ini laporan langsung tersimpan di penyimpanan peramban perangkat Anda
               setelah tombol ditekan. Belum ada mode luring, draf otomatis, maupun pengiriman ulang
               saat jaringan kembali, dan belum ada alternatif SMS/USSD. Untuk sistem sungguhan, PWA

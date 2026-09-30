@@ -55,7 +55,7 @@ function Tentang() {
         <h1 className="mt-1 text-2xl font-bold sm:text-3xl">
           Dari pelaporan reaktif menjadi peringatan dini
         </h1>
-        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+        <p className="mt-2 max-w-3xl text-justify text-sm text-muted-foreground">
           Prototipe sistem peringatan dini wabah untuk Kabupaten Bandung, Jawa Barat. Batas wilayah,
           kode kecamatan, dan jumlah penduduk tingkat kabupaten memakai data resmi; jumlah penduduk
           tingkat desa belum tersedia di prototipe ini, dan seluruh angka kasus penyakit bersifat
@@ -67,7 +67,7 @@ function Tentang() {
         <h2 className="flex items-center gap-2 text-base font-semibold">
           <AlertTriangle className="size-4 text-warning-text" /> Analisis masalah
         </h2>
-        <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-muted-foreground">
+        <ul className="mt-3 list-disc space-y-2 pl-5 text-justify text-sm text-muted-foreground">
           <li>
             <strong className="text-foreground">SKDR terlalu lambat untuk bertindak cepat.</strong>{" "}
             SKDR adalah formulir agregat mingguan. Kasus yang menumpuk pada hari pertama dan ketiga
@@ -122,7 +122,7 @@ function Tentang() {
               </span>
               <div>
                 <p className="text-sm font-semibold">{s.j}</p>
-                <p className="text-sm text-muted-foreground">{s.t}</p>
+                <p className="text-justify text-sm text-muted-foreground">{s.t}</p>
               </div>
             </div>
           ))}
@@ -133,7 +133,7 @@ function Tentang() {
         <h2 className="flex items-center gap-2 text-base font-semibold">
           <BellRing className="size-4 text-primary" /> Logika peringatan dan penerimanya
         </h2>
-        <div className="mt-4 space-y-4 text-sm text-muted-foreground">
+        <div className="mt-4 space-y-4 text-justify text-sm text-muted-foreground">
           <p>
             SIDINI memakai dua lapis penandaan yang sengaja dipisahkan, supaya kata "KLB" tidak
             punya dua arti di dalam sistem yang sama.
@@ -321,7 +321,7 @@ function Tentang() {
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div className="rounded-lg border border-success/40 bg-success/10 p-4">
             <p className="text-sm font-semibold text-success-text">AI melakukan</p>
-            <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm text-muted-foreground">
+            <ul className="mt-2 list-disc space-y-1.5 pl-5 text-justify text-sm text-muted-foreground">
               <li>Mengubah angka tabel menjadi cerita yang bisa dibaca orang awam.</li>
               <li>Menyesuaikan tingkat bahasa sesuai pembaca (warga atau petugas).</li>
               <li>Merangkum rekomendasi tindakan 72 jam per desa.</li>
@@ -329,7 +329,7 @@ function Tentang() {
           </div>
           <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-4">
             <p className="text-sm font-semibold text-destructive">AI tidak melakukan</p>
-            <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm text-muted-foreground">
+            <ul className="mt-2 list-disc space-y-1.5 pl-5 text-justify text-sm text-muted-foreground">
               <li>Menentukan ambang KLB. Ambang dihitung sistem, bukan AI.</li>
               <li>Menggantikan verifikasi petugas.</li>
               <li>Menampilkan identitas individu.</li>
@@ -342,7 +342,7 @@ function Tentang() {
         <h2 className="flex items-center gap-2 text-base font-semibold">
           <Lock className="size-4 text-primary" /> Privasi dan batas
         </h2>
-        <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+        <ul className="mt-3 space-y-2 text-justify text-sm text-muted-foreground">
           <li>
             <strong className="text-foreground">UU PDP No. 27/2022.</strong> Nama pelapor tidak
             diminta. Kanal warga hanya menyimpan kode desa, bukan alamat lengkap.
@@ -382,20 +382,20 @@ function Tentang() {
         <h2 className="flex items-center gap-2 text-base font-semibold">
           <Database className="size-4 text-primary" /> Data
         </h2>
-        <p className="mt-3 text-sm text-muted-foreground">
+        <p className="mt-3 text-justify text-sm text-muted-foreground">
           Seluruh data di prototipe ini sintetis dan dibuat dengan PRNG deterministik (seed tetap)
           agar hasil demo konsisten. Struktur variabel meniru dataset surveilans Indonesia yang umum
           dipublikasikan, tetapi tidak ada baris yang berasal dari dataset Kaggle asli. Hanya
           tanggal acuan yang tetap sehingga tren 42 hari dapat direproduksi.
         </p>
-        <p className="mt-3 text-sm text-muted-foreground">
+        <p className="mt-3 text-justify text-sm text-muted-foreground">
           Jumlah penduduk tingkat desa sengaja dibiarkan kosong pada tabel referensi. Prototipe
           tidak memindahkan angka penduduk kecamatan ke setiap desa, karena langkah itu membuat
           insidensi per desa terlihat terukur padahal salahnya tidak diketahui. Kolom sumber dan
           tahun pada tabel tersebut harus diisi manual dari data resmi sebelum insidensi bisa
           dipakai.
         </p>
-        <p className="mt-3 text-sm text-muted-foreground">
+        <p className="mt-3 text-justify text-sm text-muted-foreground">
           <strong className="text-foreground">
             Ambang dan jumlah penduduk desa adalah nilai simulasi.
           </strong>{" "}
@@ -407,20 +407,20 @@ function Tentang() {
           <code className="rounded bg-secondary px-1">src/data/ambang.ts</code>) dan tabel
           referensi, bukan ditulis ulang di halaman mana pun.
         </p>
-        <p className="mt-3 text-sm text-muted-foreground">
+        <p className="mt-3 text-justify text-sm text-muted-foreground">
           Level kasus simulasi per penyakit juga buatan, bukan hasil pembacaan laporan. Untuk diare,
           levelnya justru dibuat lebih rendah dari perkiraan acuan Dinkes Jawa Barat (90.337
           kasus/tahun) supaya ambang KLB tidak terlewati setiap minggu; bila kasus dibuat sebesar
           jangkar penuh, 39 dari 39 minggu di 2026 akan berstatus KLB dan ambang kehilangan makna
           sebagai penanda. Angka itu adalah level simulasi, bukan perkiraan epidemiologi.
         </p>
-        <p className="mt-3 text-sm text-muted-foreground">
+        <p className="mt-3 text-justify text-sm text-muted-foreground">
           Seluruh angka berasal dari satu snapshot simulasi per 25 Sep 2026. Prototipe ini tidak
           punya jadwal unggah, jadi setelah tanggal itu tidak ada data baru dan tidak akan ada
           peringatan bahwa data menjadi basi. Kalau nanti dihubungkan ke sumber data nyata, penanda
           kedaluwarsa perlu dikembalikan.
         </p>
-        <p className="mt-3 text-sm text-muted-foreground">
+        <p className="mt-3 text-justify text-sm text-muted-foreground">
           Perkiraan acuan 90.337 kasus/tahun untuk diare diambil dari dataset Dinas Kesehatan Jawa
           Barat per kabupaten/kota (terdaftar di data.go.id dan opendata.jabarprov.go.id, cakupan
           2016 sampai 2023). Yang bisa dilacak adalah nama dataset dan penerbitnya; nilai persisnya
@@ -434,7 +434,7 @@ function Tentang() {
         <h2 className="flex items-center gap-2 text-base font-semibold">
           <TrendingUp className="size-4 text-primary" /> Metrik keberhasilan
         </h2>
-        <div className="mt-4 space-y-3 text-sm text-muted-foreground">
+        <div className="mt-4 space-y-3 text-justify text-sm text-muted-foreground">
           <p>
             Ukuran keberhasilan yang paling ingin dijawab: apakah sistem membuat petugas bergerak
             lebih cepat, bukan menambah berkas. Tiga angka berikut dihitung dari data prototipe dan
@@ -479,7 +479,7 @@ function Tentang() {
         <h2 className="flex items-center gap-2 text-base font-semibold">
           <FileText className="size-4 text-primary" /> Hubungan dengan SKDR nasional
         </h2>
-        <div className="mt-4 space-y-3 text-sm text-muted-foreground">
+        <div className="mt-4 space-y-3 text-justify text-sm text-muted-foreground">
           <p>
             SKDR adalah Sistem Kewaspadaan Dini dan Respon milik Kementerian Kesehatan Republik
             Indonesia. Di lapangan SKDR berupa formulir agregat mingguan per kecamatan per penyakit,
@@ -525,7 +525,7 @@ function Tentang() {
         <h2 className="flex items-center gap-2 text-base font-semibold">
           <Plug className="size-4 text-primary" /> Rencana integrasi puskesmas
         </h2>
-        <div className="mt-4 space-y-3 text-sm text-muted-foreground">
+        <div className="mt-4 space-y-3 text-justify text-sm text-muted-foreground">
           <p>
             <strong className="text-foreground">Status: rancangan, belum berjalan.</strong> Yang ada
             sekarang hanyalah formulir enam kolom di halaman
@@ -562,7 +562,7 @@ function Tentang() {
         <h2 className="flex items-center gap-2 text-base font-semibold">
           <FlaskConical className="size-4 text-primary" /> Menjalankan
         </h2>
-        <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-sm text-muted-foreground">
+        <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-justify text-sm text-muted-foreground">
           <li>Salin berkas contoh env lalu isi kunci API Groq.</li>
           <li>Pasang dependensi dan jalankan server pengembangan.</li>
           <li>Buka halaman Tanya AI dan tekan tombol Tanyakan.</li>
@@ -570,7 +570,7 @@ function Tentang() {
         <pre className="mt-3 overflow-x-auto rounded-lg border border-border bg-background/50 p-3 font-mono text-[11px] text-muted-foreground">
           {`cp .env.example .env\nnpm install\nnpm run dev`}
         </pre>
-        <p className="mt-2 text-xs text-muted-foreground">
+        <p className="mt-2 text-justify text-xs text-muted-foreground">
           Tanpa kunci API, halaman lain tetap berfungsi. Hanya fitur analisis AI yang menampilkan
           pesan kunci belum tersedia.
         </p>

@@ -240,7 +240,7 @@ function Dashboard() {
         <h1 className="mt-4 max-w-3xl text-3xl font-bold sm:text-4xl">
           Surveilans terpadu untuk <span className="text-gradient">deteksi dini KLB</span>
         </h1>
-        <p className="mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
+        <p className="mt-3 max-w-2xl text-justify text-sm text-muted-foreground sm:text-base">
           <strong className="text-foreground">Pelaporan kasus harian</strong> mempercepat respons
           petugas lapangan. <strong className="text-foreground">Rekapitulasi SKDR mingguan</strong>{" "}
           dari puskesmas digunakan untuk menilai status KLB berdasarkan ambang yang berlaku.
