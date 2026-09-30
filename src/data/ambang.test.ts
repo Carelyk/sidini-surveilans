@@ -155,4 +155,28 @@ describe("verifikasi acuan Dinkes: status dibiarkan, angka tidak bergerak", () =
       expect(isi).toMatch(/ simulasi/i);
     }
   });
+
+  it("halaman Konsep menyatakan dasar acuan dan batasnya", () => {
+    // Paragraf "Dasar acuan dan batas" memisahkan dua hal yang mudah
+    // tertukar pembaca: angka yang punya landasan peraturan (ambang KLB
+    // 2x) dan angka yang murni rancangan prototipe. Kalau paragraf ini
+    // hilang, pembaca bisa mengira semua ambang berasal dari peraturan.
+    const isi = readFileSync("src/routes/tentang.tsx", "utf8").replace(/\s+/g, " ");
+    expect((isi.match(/Dasar acuan dan batas/g) ?? []).length).toBe(1);
+    // Acuan peraturan dan siapa yang menetapkan KLB.
+    expect(isi).toContain("Permenkes No. 1501/Menkes/Per/X/2010 Pasal 6");
+    expect(isi).toContain(
+      "Penetapan KLB dilakukan oleh Kepala Dinas Kesehatan kabupaten/kota, provinsi, atau Menteri Kesehatan, bukan oleh sistem ini.",
+    );
+    // Empat parameter yang dinyatakan belum diverifikasi.
+    for (const bagian of [
+      "Tingkat Waspada (1,5x)",
+      "syarat kasus minimum",
+      "ambang insidensi per 100.000",
+      "aturan kematian",
+    ]) {
+      expect(isi).toContain(bagian);
+    }
+    expect(isi).toContain("belum diverifikasi dan perlu ditetapkan bersama Dinkes");
+  });
 });
