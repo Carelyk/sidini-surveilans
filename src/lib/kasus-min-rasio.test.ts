@@ -192,14 +192,18 @@ describe("penjelasan aturan di UI dan Konsep", () => {
     }
   });
 
-  it("halaman Konsep menjelaskan satu aturan dan menyebut angkanya", () => {
+  it("halaman Konsep menjelaskan aturan itu sekali per blok, dari satu sumber", () => {
     const isi = readFileSync("src/routes/tentang.tsx", "utf8").replace(/\s+/g, " ");
-    expect(isi).toContain("Status Waspada memerlukan minimal {KASUS_MIN_WASPADA_SKDR} kasus");
-    // Alasan lengkapnya diambil dari satu sumber, supaya halaman ini tidak
+    // Penjelasan lengkap diambil dari satu sumber, supaya halaman ini tidak
     // punya versinya sendiri yang bisa berbeda dengan konfigurasi.
     expect(isi).toContain("{ATURAN_WASPADA.alasan}");
-    // Lapis harian di halaman yang sama menyebut bahwa angkanya sama.
-    expect(isi).toContain("Angka ini sama dengan yang dipakai di lapis SKDR mingguan");
+    // Blok "Rekap SKDR mingguan" tidak boleh menyebut aturan itu dua kali.
+    const blokRekap = isi.slice(
+      isi.indexOf("Rekap SKDR mingguan, per kecamatan"),
+      isi.indexOf("Ambang per penyakit"),
+    );
+    expect((blokRekap.match(/\{ATURAN_WASPADA\.alasan\}/g) ?? []).length).toBe(1);
+    expect(blokRekap).not.toContain("Status Waspada memerlukan minimal");
     // Penjelasan lama yang menyebut angka per penyakit harus hilang.
     expect(isi).not.toContain("5 kasus untuk DBD, 40 untuk Diare");
     // Kolom tabel tidak boleh lagi dikira sebagai syarat Waspada.
@@ -213,11 +217,16 @@ describe("penjelasan aturan di UI dan Konsep", () => {
     expect(isi).toMatch(/konsekuensi volume kasus pada data simulasi/);
   });
 
-  it("dasar di panel dashboard memakai konstanta bersama", () => {
+  it("panel dashboard menyebut aturan itu sekali, di bullet Waspada", () => {
     const isi = readFileSync("src/routes/index.tsx", "utf8").replace(/\s+/g, " ");
-    expect(isi).toMatch(
-      /Status Waspada memakai satu syarat bersama untuk semua penyakit: minimal\{?\s*\{?" "\}?\s*\{KASUS_MIN_WASPADA\} kasus/,
+    const panel = isi.slice(
+      isi.indexOf("Syarat kasus minimum (pembatas alert fatigue)"),
+      isi.indexOf("Syarat kasus minimum (pembatas alert fatigue)") + 1200,
     );
-    expect(isi).toMatch(/berlaku di lapis SKDR mingguan per kecamatan/);
+    expect(panel).toContain(
+      "Waspada</strong>: rasio minimal 1,5x baseline dengan minimal {KASUS_MIN_WASPADA} kasus penyakit itu dalam 7 hari. Angka yang sama berlaku di lapis SKDR mingguan per kecamatan",
+    );
+    // Aturan yang sama tidak boleh diulang sebagai butir tersendiri.
+    expect(panel).not.toContain("Status Waspada memakai satu syarat bersama");
   });
 });

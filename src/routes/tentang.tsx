@@ -188,10 +188,6 @@ function Tentang() {
                 <li>
                   Status tiap kecamatan diuji dengan tiga kriteria: rasio terhadap baseline sendiri,
                   insidensi per 100.000, dan jumlah kematian.{" "}
-                  <strong className="text-foreground">
-                    Status Waspada memerlukan minimal {KASUS_MIN_WASPADA_SKDR} kasus dalam minggu
-                    itu.
-                  </strong>{" "}
                   {ATURAN_WASPADA.alasan} Kriteria insidensi dan kematian tidak memakai syarat kasus
                   minimum, dan angka ambangnya sendiri tidak diubah.
                 </li>
