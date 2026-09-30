@@ -341,8 +341,8 @@ function Dashboard() {
             <li>
               <strong className="text-foreground">Waspada</strong>: rasio minimal 1,5x baseline
               dengan minimal {KASUS_MIN_WASPADA} kasus penyakit itu dalam 7 hari. Angka yang sama
-              berlaku di lapis SKDR mingguan per kecamatan, jadi tidak ada syarat yang berbeda antara
-              lapis harian dan mingguan.
+              berlaku di lapis SKDR mingguan per kecamatan, jadi tidak ada syarat yang berbeda
+              antara lapis harian dan mingguan.
             </li>
             <li>
               Rasio di bawah jumlah kasus minimum itu{" "}

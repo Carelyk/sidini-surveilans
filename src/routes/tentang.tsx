@@ -187,9 +187,9 @@ function Tentang() {
                 </li>
                 <li>
                   Status tiap kecamatan diuji dengan tiga kriteria: rasio terhadap baseline sendiri,
-                  insidensi per 100.000, dan jumlah kematian.{" "}
-                  {ATURAN_WASPADA.alasan} Kriteria insidensi dan kematian tidak memakai syarat kasus
-                  minimum, dan angka ambangnya sendiri tidak diubah.
+                  insidensi per 100.000, dan jumlah kematian. {ATURAN_WASPADA.alasan} Kriteria
+                  insidensi dan kematian tidak memakai syarat kasus minimum, dan angka ambangnya
+                  sendiri tidak diubah.
                 </li>
                 <li>
                   Penyakit dengan kasus sedikit per kecamatan memang jarang memicu Waspada. Pada
@@ -503,10 +503,10 @@ function Tentang() {
             Permenkes No. 1501/Menkes/Per/X/2010 Pasal 6 mencakup kenaikan kejadian kesakitan dua
             kali atau lebih dibanding periode sebelumnya; ambang KLB 2x di prototipe ini selaras
             dengan kriteria itu. Penetapan KLB dilakukan oleh Kepala Dinas Kesehatan kabupaten/kota,
-            provinsi, atau Menteri Kesehatan, bukan oleh sistem ini. SIDINI hanya memberi sinyal untuk
-            preliminari epidemiologi. Tingkat Waspada (1,5x), syarat kasus minimum, ambang insidensi
-            per 100.000, dan aturan kematian adalah parameter rancangan prototipe yang belum
-            diverifikasi dan perlu ditetapkan bersama Dinkes.
+            provinsi, atau Menteri Kesehatan, bukan oleh sistem ini. SIDINI hanya memberi sinyal
+            untuk preliminari epidemiologi. Tingkat Waspada (1,5x), syarat kasus minimum, ambang
+            insidensi per 100.000, dan aturan kematian adalah parameter rancangan prototipe yang
+            belum diverifikasi dan perlu ditetapkan bersama Dinkes.
           </p>
         </div>
       </section>
