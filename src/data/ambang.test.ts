@@ -166,8 +166,17 @@ describe("verifikasi acuan Dinkes: status dibiarkan, angka tidak bergerak", () =
     // Acuan peraturan dan siapa yang menetapkan KLB.
     expect(isi).toContain("Permenkes No. 1501/Menkes/Per/X/2010 Pasal 6");
     expect(isi).toContain(
-      "Penetapan KLB dilakukan oleh Kepala Dinas Kesehatan kabupaten/kota, provinsi, atau Menteri Kesehatan, bukan oleh sistem ini.",
+      "Penetapan KLB dilakukan oleh Kepala Dinas Kesehatan kabupaten/kota, Kepala Dinas Kesehatan provinsi, atau Menteri Kesehatan (Pasal 7), bukan oleh sistem ini.",
     );
+    // Perbedaan periode pembanding harus menyebut angka yang benar-benar
+    // dipakai kode, yaitu baseline 8 minggu, bukan "periode sebelumnya".
+    expect(isi).toContain(
+      "prototipe membandingkan dengan rata-rata 8 minggu sebelumnya, sedangkan regulasi membandingkan dengan periode sebelumnya.",
+    );
+    // Batas 24 jam dari regulasi dipakai sebagai acuan metrik, dan
+    // keterbatasan waktu respons harus dinyatakan apa adanya.
+    expect(isi).toContain("batas 24 jam untuk pelaporan kasus (Pasal 16)");
+    expect(isi).toContain("waktu respons belum diukur");
     // Empat parameter yang dinyatakan belum diverifikasi.
     for (const bagian of [
       "Tingkat Waspada (1,5x)",

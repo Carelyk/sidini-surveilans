@@ -501,12 +501,17 @@ function Tentang() {
           <p>
             <strong className="text-foreground">Dasar acuan dan batas.</strong> Kriteria KLB dalam
             Permenkes No. 1501/Menkes/Per/X/2010 Pasal 6 mencakup kenaikan kejadian kesakitan dua
-            kali atau lebih dibanding periode sebelumnya; ambang KLB 2x di prototipe ini selaras
-            dengan kriteria itu. Penetapan KLB dilakukan oleh Kepala Dinas Kesehatan kabupaten/kota,
-            provinsi, atau Menteri Kesehatan, bukan oleh sistem ini. SIDINI hanya memberi sinyal
-            untuk penyelidikan epidemiologi. Tingkat Waspada (1,5x), syarat kasus minimum, ambang
-            insidensi per 100.000, dan aturan kematian adalah parameter rancangan prototipe yang
-            belum diverifikasi dan perlu ditetapkan bersama Dinkes.
+            kali atau lebih dibanding periode sebelumnya. Ambang KLB 2x di prototipe ini mengacu
+            pada kriteria itu, dengan satu perbedaan: prototipe membandingkan dengan rata-rata 8
+            minggu sebelumnya, sedangkan regulasi membandingkan dengan periode sebelumnya. Penetapan
+            KLB dilakukan oleh Kepala Dinas Kesehatan kabupaten/kota, Kepala Dinas Kesehatan
+            provinsi, atau Menteri Kesehatan (Pasal 7), bukan oleh sistem ini. SIDINI hanya memberi
+            sinyal untuk penyelidikan epidemiologi. Tingkat Waspada (1,5x), syarat kasus minimum,
+            ambang insidensi per 100.000, dan aturan kematian adalah parameter rancangan prototipe
+            yang belum diverifikasi dan perlu ditetapkan bersama Dinkes. Regulasi yang sama
+            menetapkan batas 24 jam untuk pelaporan kasus (Pasal 16) dan untuk penanggulangan dini
+            sejak kriteria KLB terpenuhi (Pasal 14). Batas ini menjadi acuan target metrik
+            keterlambatan lapor dan waktu respons; pada prototipe, waktu respons belum diukur.
           </p>
         </div>
       </section>
