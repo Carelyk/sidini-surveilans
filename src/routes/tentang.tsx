@@ -499,6 +499,11 @@ function Tentang() {
             e-Puskesmas yang sudah ada, bukan format baru.
           </p>
           <p>
+            Lapis harian dan lapis SKDR mingguan pada prototipe ini dibangkitkan sebagai dua
+            simulasi terpisah dan belum direkonsiliasi; pada implementasi nyata keduanya bersumber
+            dari data laporan yang sama.
+          </p>
+          <p>
             <strong className="text-foreground">Dasar acuan dan batas.</strong> Kriteria KLB dalam
             Permenkes No. 1501/Menkes/Per/X/2010 Pasal 6 mencakup kenaikan kejadian kesakitan dua
             kali atau lebih dibanding periode sebelumnya. Ambang KLB 2x di prototipe ini mengacu

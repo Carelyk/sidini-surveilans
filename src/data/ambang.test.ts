@@ -188,4 +188,15 @@ describe("verifikasi acuan Dinkes: status dibiarkan, angka tidak bergerak", () =
     }
     expect(isi).toContain("belum diverifikasi dan perlu ditetapkan bersama Dinkes");
   });
+
+  it("halaman Konsep menyatakan dua lapis belum direkonsiliasi", () => {
+    // Opencode menyebut lapis harian dan lapis SKDR independen. Kalimat ini
+    // membuat keterbatasan itu tertulis di Konsep, supaya pembaca tidak
+    // mengira skenario harian dan rekap mingguan memakai data yang sama.
+    const isi = readFileSync("src/routes/tentang.tsx", "utf8").replace(/\s+/g, " ");
+    expect((isi.match(/direkonsiliasi/g) ?? []).length).toBe(1);
+    expect(isi).toContain(
+      "Lapis harian dan lapis SKDR mingguan pada prototipe ini dibangkitkan sebagai dua simulasi terpisah dan belum direkonsiliasi; pada implementasi nyata keduanya bersumber dari data laporan yang sama.",
+    );
+  });
 });
