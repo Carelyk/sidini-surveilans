@@ -172,10 +172,10 @@ function Analisis() {
         <h1 className="mt-1 text-2xl font-bold sm:text-3xl">
           Tanyakan, jawabannya dari data surveilans
         </h1>
-        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-          Angka di dashboard sulit dibaca sendiri. Di sini Anda bertanya langsung, misalnya desa
-          mana yang perlu diwaspadai atau mengapa kasus naik, dan AI menjawab berdasarkan data
-          surveilans terbaru. Pilih mode pembaca agar bahasanya pas.
+        <p className="mt-2 max-w-3xl text-justify text-sm text-muted-foreground">
+          Data dashboard sulit dipahami? Ajukan pertanyaan langsung, seperti desa yang perlu
+          diwaspadai atau penyebab kasus naik. AI menjawab dengan data surveilans terbaru. Pilih
+          mode pembaca agar gaya bahasanya sesuai dengan kebutuhan Anda.
         </p>
       </header>
 
@@ -436,11 +436,13 @@ function KotakTanyaKesehatan() {
         <HeartPulse className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden />
         <div className="min-w-0">
           <h2 className="text-base font-semibold">Tanya soal kesehatan</h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Tuliskan keluhan orang yang Anda pedulikan, lalu AI akan menjelaskan tanda bahaya yang
-            perlu diperhatikan, apa yang bisa dilakukan di rumah, dan ke mana harus pergi. Bahasa
-            sehari-hari, tanpa istilah medis.
-          </p>
+          <div className="mt-1 space-y-1 text-justify text-xs text-muted-foreground">
+            <p>
+              Tuliskan keluhan orang yang Anda pedulikan, lalu AI akan menjelaskan tanda bahaya yang
+              perlu diperhatikan, apa yang bisa dilakukan di rumah, dan ke mana harus pergi.
+            </p>
+            <p>Bahasa sehari-hari, tanpa istilah medis.</p>
+          </div>
         </div>
       </div>
 
