@@ -3,7 +3,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   AMBANG,
+  ATURAN_HARIAN,
   ATURAN_WASPADA,
+  KASUS_MIN_SINYAL_HARIAN,
   KASUS_MIN_WASPADA,
   KASUS_MIN_WASPADA_HARIAN,
   KASUS_MIN_WASPADA_SKDR,
@@ -228,5 +230,19 @@ describe("penjelasan aturan di UI dan Konsep", () => {
     );
     // Aturan yang sama tidak boleh diulang sebagai butir tersendiri.
     expect(panel).not.toContain("Status Waspada memakai satu syarat bersama");
+  });
+
+  it("bullet Sinyal memakai konstanta 10, bukan angka literal per penyakit", () => {
+    // Syarat kasus minimum Sinyal adalah SATU konstanta untuk semua penyakit
+    // (KASUS_MIN_SINYAL_HARIAN = 10). Kalau ada teks yang menulis angka lain
+    // (mis. "5 kasus" dari kasusMin DBD yang hanya untuk kriteria KLB), juri
+    // yang menghitung ulang akan menemukan selisih dengan kode.
+    expect(KASUS_MIN_SINYAL_HARIAN).toBe(10);
+    const dashboard = readFileSync("src/routes/index.tsx", "utf8").replace(/\s+/g, " ");
+    const konsep = readFileSync("src/routes/tentang.tsx", "utf8").replace(/\s+/g, " ");
+    // Panel dashboard dan halaman Konsep mengambil angka dari satu sumber,
+    // bukan menulis angka literal di teksnya.
+    expect(dashboard).toMatch(/Sinyal<\/strong>[\s\S]{0,120}\{ATURAN_HARIAN\.kasusMinSinyal\}/);
+    expect(konsep).toMatch(/Sinyal<\/strong>[\s\S]{0,120}\{ATURAN_HARIAN\.kasusMinSinyal\}/);
   });
 });
