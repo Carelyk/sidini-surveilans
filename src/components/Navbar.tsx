@@ -33,6 +33,13 @@ export function Navbar() {
           </span>
         </Link>
 
+        <span
+          title="Data simulasi, bukan laporan kasus sebenarnya"
+          className="shrink-0 rounded-md bg-warning/15 px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-warning-text"
+        >
+          DEMO
+        </span>
+
         <nav className="ml-auto hidden items-center gap-1 lg:flex">
           {MENU.map((m) => (
             <Link

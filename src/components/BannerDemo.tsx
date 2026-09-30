@@ -1,56 +1,75 @@
-import { Clock, FlaskConical, ShieldAlert } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { X } from "lucide-react";
+import { useEffect, useState } from "react";
 
-import { labelSnapshot, waktuPembaruan } from "@/data/kronologi";
+import { labelSnapshot } from "@/data/kronologi";
+import { bacaStatusTertutup, haruskahTampil, tulisStatusTertutup } from "@/lib/banner-demo-session";
 
 /**
  * Banner demo global.
  *
- * Dua hal yang harus selalu terlihat di setiap halaman:
- *  1) Bahwa seluruh angka adalah simulasi, bukan laporan kasus nyata.
- *  2) Kapan data terakhir diperbarui, dan bahwa setelah tanggal itu
- *     tidak ada data baru.
+ * Teksnya satu baris pendek: menyebut bahwa seluruh angka adalah simulasi,
+ * tanggal snapshot, dan tidak ada login. "Selengkapnya" menuju bagian Konsep
+ * yang memuat catatan bahwa penduduk desa, ambang KLB, dan data kasus belum
+ * diverifikasi sebagai angka Dinkes.
  *
- * PENTING: banner ini tidak lagi menampilkan peringatan "data
- * kedaluwarsa". Sebelumnya, begitu jam sistem melewati batas 24 jam,
- * banner menampilkan tanda bahaya "Data lebih dari 24 jam sejak
- * pembaruan" -- padahal prototipe ini tidak punya jadwal unggah sama
- * sekali. Peringatan itu akan menyala setiap hari tanpa ada yang bisa
- * diperbaiki, sehingga pembaca belajar mengabaikannya. Nilai yang
- * sebenarnya dibaca bukan "data ini basi" tapi "prototipe ini memang
- * statis". Sekarang yang ditampilkan adalah label tetap: "snapshot
- * simulasi per 25 Sep 2026".
+ * Banner bisa ditutup lewat tombol X. Status tutup disimpan di sessionStorage
+ * lewat src/lib/banner-demo-session.ts, sehingga bertahan selama tab yang
+ * sama (pindah halaman maupun reload) dan muncul lagi di tab baru.
  *
- * Fungsi dataKedaluwarsa() dan BATAS_KEDALUWARSA_JAM tetap ada di
- * src/data/kronologi.ts; hanya pemakaiannya di sini yang dihapus.
- * Saat prototipe dihubungkan ke sumber data nyata, penanda
- * kedaluwarsa justru dibutuhkan.
- *
- * Karena label dan waktu pembaruan keduanya konstan, komponen ini
- * tidak lagi memakai useState/useEffect: render di server dan di
- * peramban selalu sama tanpa menunggu mount.
+ * Render menunggu status storage terbaca (useEffect) supaya tidak terjadi
+ * kedipan saat hidrasi: di server dan render awal banner tidak tampil, lalu
+ * muncul hanya bila belum ditutup. Akses storage dibungkus try/catch di modul
+ * penyimpanan; bila gagal, banner tetap tampil.
  */
 export function BannerDemo() {
+  const [terbaca, setTerbaca] = useState(false);
+  const [tertutup, setTertutup] = useState(false);
+
+  useEffect(() => {
+    const storage = typeof sessionStorage === "undefined" ? null : sessionStorage;
+    setTertutup(bacaStatusTertutup(storage));
+    setTerbaca(true);
+  }, []);
+
+  const tutup = () => {
+    const storage = typeof sessionStorage === "undefined" ? null : sessionStorage;
+    tulisStatusTertutup(storage);
+    setTertutup(true);
+  };
+
+  // Jangan render sampai status storage terbaca; lalu tampil hanya bila belum
+  // ditutup. Sebelum terbaca banner tidak dirender sama sekali.
+  if (!haruskahTampil(terbaca, tertutup)) {
+    return null;
+  }
+
   return (
     <div
       className="border-b border-warning/40 bg-warning/10"
       role="note"
       aria-label="Pemberitahuan data simulasi"
     >
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2 text-[11px] leading-snug">
-        <span className="inline-flex items-center gap-1.5 font-bold text-warning-text">
-          <FlaskConical className="size-3.5 shrink-0" aria-hidden />
-          DEMO &mdash; data simulasi, bukan laporan kasus sebenarnya.
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-2 gap-y-0.5 px-4 py-1.5 text-[11px] leading-snug">
+        <span className="min-w-0 flex-1">
+          DEMO &middot; data simulasi, bukan laporan kasus sebenarnya &middot; {labelSnapshot()}{" "}
+          &middot; tanpa login (semua peran dapat membuka semua halaman){" "}
+          <Link
+            to="/tentang"
+            hash="acuan-belum-diverifikasi"
+            className="whitespace-nowrap font-semibold text-warning-text underline underline-offset-2 hover:text-foreground"
+          >
+            Selengkapnya
+          </Link>
         </span>
-        <span className="inline-flex items-center gap-1 text-muted-foreground">
-          <Clock className="size-3.5 shrink-0" aria-hidden />
-          {`Data demo ini adalah ${labelSnapshot()}, diambil terakhir ${waktuPembaruan()}. `}
-          Tidak ada pembaruan setelah tanggal itu. Jumlah penduduk desa, ambang KLB, dan data kasus
-          di prototipe ini belum diverifikasi sebagai angka Dinkes.
-        </span>
-        <span className="inline-flex items-center gap-1 text-muted-foreground">
-          <ShieldAlert className="size-3.5 shrink-0" aria-hidden />
-          Tanpa autentikasi: semua peran dapat membuka semua halaman.
-        </span>
+        <button
+          type="button"
+          onClick={tutup}
+          aria-label="Tutup pemberitahuan demo"
+          className="shrink-0 rounded p-1 text-muted-foreground transition-colors hover:bg-warning/20 hover:text-foreground"
+        >
+          <X className="size-3.5" aria-hidden />
+        </button>
       </div>
     </div>
   );

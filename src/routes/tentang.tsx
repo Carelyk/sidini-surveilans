@@ -378,7 +378,7 @@ function Tentang() {
         </ul>
       </section>
 
-      <section className="panel p-5 sm:p-6">
+      <section id="acuan-belum-diverifikasi" className="panel scroll-mt-24 p-5 sm:p-6">
         <h2 className="flex items-center gap-2 text-base font-semibold">
           <Database className="size-4 text-primary" /> Data
         </h2>

@@ -99,8 +99,45 @@ describe("label snapshot menggantikan penanda kedaluwarsa", () => {
     const banner = jsx(readFileSync("src/components/BannerDemo.tsx", "utf8"));
     expect(banner).not.toMatch(/jam sejak pembaruan/i);
     expect(banner).not.toMatch(/Data lebih dari/);
+    // Teks banner satu baris memakai tanggal snapshot dari sumber waktu data.
     expect(banner).toContain("labelSnapshot");
-    expect(banner).toMatch(/Tidak ada pembaruan setelah tanggal itu/);
+    expect(banner).toMatch(/bukan laporan kasus sebenarnya/);
+    expect(banner).toMatch(/tanpa login/);
+    expect(banner).toContain("Selengkapnya");
+    // Tombol tutup dengan nama yang bisa dibaca alat bantu.
+    expect(banner).toContain('aria-label="Tutup pemberitahuan demo"');
+    // Kalimat panjang lama tidak boleh kembali.
+    expect(banner).not.toMatch(/Tidak ada pembaruan setelah tanggal itu/);
+  });
+
+  it("label DEMO di header wajib ada (dipakai di layout akar untuk semua halaman)", () => {
+    const nav = jsx(readFileSync("src/components/Navbar.tsx", "utf8")).replace(/\s+/g, " ");
+    expect(nav).toContain("> DEMO <");
+    expect(nav).toContain('title="Data simulasi, bukan laporan kasus sebenarnya"');
+    // Label DEMO ditaruh di komponen header yang dirender layout akar, jadi
+    // selalu tampil di semua halaman tanpa perlu diulang per halaman.
+    const akar = readFileSync("src/routes/__root.tsx", "utf8");
+    expect(akar).toContain("Navbar");
+    expect(akar).toMatch(/<Navbar \/>/);
+  });
+
+  it("banner demo bisa ditutup; status tersimpan dan banner tidak dirender saat dimuat ulang", () => {
+    const banner = jsx(readFileSync("src/components/BannerDemo.tsx", "utf8"));
+    // Ada tombol tutup, dan status dibaca dari sessionStorage lewat lib.
+    expect(banner).toMatch(/tutup/);
+    expect(banner).toContain("bacaStatusTertutup");
+    expect(banner).toContain("tulisStatusTertutup");
+    expect(banner).toContain("haruskahTampil");
+  });
+
+  it("penanda snapshot tetap tampil di banner dan di Konsep", () => {
+    const banner = jsx(readFileSync("src/components/BannerDemo.tsx", "utf8"));
+    // labelSnapshot() di banner menghasilkan "snapshot simulasi per 25 Sep
+    // 2026"; dipakai via fungsi sumber, bukan ditulis mati.
+    expect(banner).toContain("labelSnapshot");
+    expect(labelSnapshot()).toBe("snapshot simulasi per 25 Sep 2026");
+    const konsep = teks(readFileSync("src/routes/tentang.tsx", "utf8"));
+    expect(konsep).toMatch(/snapshot simulasi per 25 Sep 2026/);
   });
 
   it("halaman Konsep menyebut sifat snapshot dan tidak ada unggah", () => {
