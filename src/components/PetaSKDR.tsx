@@ -570,7 +570,7 @@ function Legenda({
               <p>
                 {nf.format(jumlahTitik)} titik digambar, {nf.format(totalTitik)} kasus tercatat,
                 jadi {nf.format(totalTitik - jumlahTitik)} kasus tidak dilukiskan agar titik tidak
-                bertumpuk menjadi satu gumpalan. Titik hanya mewakili sebaran dalam batas kecamatan;
+                bertumpuk menjadi satu gumpalan. Titik hanya mewakili sebaran dalam batas kecamatan,
                 koordinat asli pasien individual tidak ada di sumber publik.
               </p>
             ) : (

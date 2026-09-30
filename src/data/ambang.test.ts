@@ -196,7 +196,7 @@ describe("verifikasi acuan Dinkes: status dibiarkan, angka tidak bergerak", () =
     const isi = readFileSync("src/routes/tentang.tsx", "utf8").replace(/\s+/g, " ");
     expect((isi.match(/direkonsiliasi/g) ?? []).length).toBe(1);
     expect(isi).toContain(
-      "Lapis harian dan lapis SKDR mingguan pada prototipe ini dibangkitkan sebagai dua simulasi terpisah dan belum direkonsiliasi; pada implementasi nyata keduanya bersumber dari data laporan yang sama.",
+      "Lapis harian dan lapis SKDR mingguan pada prototipe ini dibangkitkan sebagai dua simulasi terpisah dan belum direkonsiliasi, pada implementasi nyata keduanya bersumber dari data laporan yang sama.",
     );
   });
 });

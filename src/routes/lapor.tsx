@@ -118,7 +118,7 @@ function LaporWarga() {
             <p className="font-semibold text-success-text">Laporan diterima · nomor {terkirim}</p>
             <p className="text-muted-foreground">
               Status: <strong>Menunggu verifikasi</strong>. Di prototipe ini laporan hanya tersimpan
-              di peramban ini; tidak ada pesan yang dikirim ke petugas dan belum ada target waktu
+              di peramban ini, tidak ada pesan yang dikirim ke petugas dan belum ada target waktu
               verifikasi yang dijalankan.
             </p>
           </div>
@@ -217,7 +217,7 @@ function LaporWarga() {
               className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
             />
             <p className="mt-1 text-justify text-[11px] text-muted-foreground">
-              Nomor yang diketik tidak disimpan; laporan hanya diberi catatan &quot;kontak
+              Nomor yang diketik tidak disimpan, laporan hanya diberi catatan &quot;kontak
               tersedia&quot;. Pada sistem sungguhan nomor kontak adalah data pribadi spesifik yang
               perlu dasar hukum, enkripsi saat transit, dan penghapusan setelah verifikasi selesai.
             </p>

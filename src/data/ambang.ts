@@ -47,10 +47,10 @@ export const AMBANG_SKDR: Record<Penyakit, AmbangSKDR> = {
       "KLB bila insidensi >= 50 per 100.000 per minggu, ATAU >= 2x baseline " +
       "mingguan sendiri dengan minimal 5 kasus, ATAU ada 2 kematian dalam " +
       "satu minggu. Kematian tunggal tidak otomatis memicu KLB karena " +
-      "kematian dengue di Jawa Barat sudah menjadi latar endemik tahunan; " +
+      "kematian dengue di Jawa Barat sudah menjadi latar endemik tahunan, " +
       "satu kematian tetap menaikkan status minimal ke Waspada. Kriteria rasio " +
       "untuk Waspada memerlukan minimal 3 kasus dalam minggu itu, sama untuk " +
-      "semua penyakit; kriteria insidensi dan kematian tidak memakai syarat " +
+      "semua penyakit, kriteria insidensi dan kematian tidak memakai syarat " +
       "itu. Acuan: Pedoman Penanganan Kejadian Luar Biasa Kemenkes.",
     sumber: "Pedoman Penanganan Kejadian Luar Biasa Kemenkes RI.",
     statusSumber: "perlu verifikasi acuan Dinkes",
@@ -66,7 +66,7 @@ export const AMBANG_SKDR: Record<Penyakit, AmbangSKDR> = {
       "relatif terhadap baseline kecamatan itu sendiri (>= 2x selama 2 minggu) " +
       "ditambah lantai insidensi, supaya wilayah besar tidak memicu alarm palsu. " +
       "Kriteria rasio untuk Waspada memerlukan minimal 3 kasus dalam minggu " +
-      "itu, sama untuk semua penyakit; kriteria insidensi tidak memakai syarat itu.",
+      "itu, sama untuk semua penyakit, kriteria insidensi tidak memakai syarat itu.",
     sumber: "Belum tercatat dalam pedoman nasional tunggal (ambang operasional).",
     statusSumber: "perlu verifikasi acuan Dinkes",
   },
@@ -80,7 +80,7 @@ export const AMBANG_SKDR: Record<Penyakit, AmbangSKDR> = {
       "Chikungunya berbagi vektor nyamuk dengan dengue, jadi ambangnya dibuat " +
       "lebih rendah: penyakit ini bisa meledak cepat pada musim hujan. Kriteria " +
       "rasio untuk Waspada memerlukan minimal 3 kasus dalam minggu itu, sama " +
-      "untuk semua penyakit; kriteria insidensi tidak memakai syarat itu.",
+      "untuk semua penyakit, kriteria insidensi tidak memakai syarat itu.",
     sumber: "Belum tercatat dalam pedoman nasional tunggal (ambang operasional).",
     statusSumber: "perlu verifikasi acuan Dinkes",
   },

@@ -57,7 +57,7 @@ function Tentang() {
         </h1>
         <p className="mt-2 max-w-3xl text-justify text-sm text-muted-foreground">
           Prototipe sistem peringatan dini wabah untuk Kabupaten Bandung, Jawa Barat. Batas wilayah,
-          kode kecamatan, dan jumlah penduduk tingkat kabupaten memakai data resmi; jumlah penduduk
+          kode kecamatan, dan jumlah penduduk tingkat kabupaten memakai data resmi, jumlah penduduk
           tingkat desa belum tersedia di prototipe ini, dan seluruh angka kasus penyakit bersifat
           sintetis untuk keperluan studi kasus.
         </p>
@@ -108,7 +108,7 @@ function Tentang() {
             {
               n: "3",
               j: "Ambang otomatis",
-              t: "Sistem menghitung baseline 3 minggu, rasio terhadap baseline sendiri, dan insidensi per 100.000 penduduk, lalu menilai tiap penyakit secara terpisah. Lapis harian memakai status Sinyal atau Waspada; label KLB hanya dipakai untuk hasil rekap SKDR mingguan.",
+              t: "Sistem menghitung baseline 3 minggu, rasio terhadap baseline sendiri, dan insidensi per 100.000 penduduk, lalu menilai tiap penyakit secara terpisah. Lapis harian memakai status Sinyal atau Waspada, label KLB hanya dipakai untuk hasil rekap SKDR mingguan.",
             },
             {
               n: "4",
@@ -213,7 +213,7 @@ function Tentang() {
             <p className="font-semibold text-foreground">Ambang per penyakit</p>
             <p className="mt-1">
               Seluruh ambang dibaca dari satu konfigurasi (src/data/ambang.ts). Nilai angkanya tidak
-              diubah; yang ditambahkan hanya catatan sumber dan status verifikasinya.
+              diubah, yang ditambahkan hanya catatan sumber dan status verifikasinya.
             </p>
             <div className="mt-3 overflow-x-auto rounded-lg border border-border">
               <table className="w-full text-sm">
@@ -373,7 +373,7 @@ function Tentang() {
           </li>
           <li>
             <strong className="text-foreground">Verifikasi manusia.</strong> Narasi AI adalah bahan
-            awal; keputusan tetap diambil petugas.
+            awal, keputusan tetap diambil petugas.
           </li>
         </ul>
       </section>
@@ -400,7 +400,7 @@ function Tentang() {
             Ambang dan jumlah penduduk desa adalah nilai simulasi.
           </strong>{" "}
           Ambang di tabel di atas (rasio, kasus minimum, insidensi) dan jumlah penduduk desa pada
-          tabel referensi belum ditetapkan oleh Dinkes; keduanya berstatus &ldquo;perlu verifikasi
+          tabel referensi belum ditetapkan oleh Dinkes, keduanya berstatus &ldquo;perlu verifikasi
           acuan Dinkes&rdquo; dan sengaja tidak diisi angka. Saat implementasi, angka ambang dan
           angka penduduk desa harus ditetapkan bersama Dinkes Kabupaten Bandung lebih dulu, lalu
           diisikan pada konfigurasi tunggal (
@@ -410,7 +410,7 @@ function Tentang() {
         <p className="mt-3 text-justify text-sm text-muted-foreground">
           Level kasus simulasi per penyakit juga buatan, bukan hasil pembacaan laporan. Untuk diare,
           levelnya justru dibuat lebih rendah dari perkiraan acuan Dinkes Jawa Barat (90.337
-          kasus/tahun) supaya ambang KLB tidak terlewati setiap minggu; bila kasus dibuat sebesar
+          kasus/tahun) supaya ambang KLB tidak terlewati setiap minggu, bila kasus dibuat sebesar
           jangkar penuh, 39 dari 39 minggu di 2026 akan berstatus KLB dan ambang kehilangan makna
           sebagai penanda. Angka itu adalah level simulasi, bukan perkiraan epidemiologi.
         </p>
@@ -423,7 +423,7 @@ function Tentang() {
         <p className="mt-3 text-justify text-sm text-muted-foreground">
           Perkiraan acuan 90.337 kasus/tahun untuk diare diambil dari dataset Dinas Kesehatan Jawa
           Barat per kabupaten/kota (terdaftar di data.go.id dan opendata.jabarprov.go.id, cakupan
-          2016 sampai 2023). Yang bisa dilacak adalah nama dataset dan penerbitnya; nilai persisnya
+          2016 sampai 2023). Yang bisa dilacak adalah nama dataset dan penerbitnya, nilai persisnya
           belum pernah dicocokkan ulang dengan berkas sumber, sehingga di sini disebut perkiraan
           acuan, bukan angka resmi. Tabel BPS setara untuk 2016 juga mencantumkan catatan bahwa
           angka DBD dan diare belum fix 100%.
@@ -460,7 +460,7 @@ function Tentang() {
           </ul>
           <p>
             Empat metrik lain sering diklaim sistem surveilans, tetapi belum bisa dihitung dari data
-            prototipe. Yang belum diukur tidak ditampilkan sebagai angka; cara mengukurnya
+            prototipe. Yang belum diukur tidak ditampilkan sebagai angka, cara mengukurnya
             dicantumkan supaya tidak hilang jejaknya.
           </p>
           <ul className="list-disc space-y-2 pl-5">
@@ -492,7 +492,7 @@ function Tentang() {
           </p>
           <p>
             Karena itu tiga hal berikut penting. Pertama, status KLB tetap mengikuti aturan nasional
-            dan ditetapkan pada rekap mingguan; lapis harian hanya memberi peringatan awal. Kedua,
+            dan ditetapkan pada rekap mingguan, lapis harian hanya memberi peringatan awal. Kedua,
             ambang operasional di prototipe ini perlu diverifikasi terhadap pedoman Dinkes sebelum
             dipakai, dan nilainya sengaja tidak diubah agar perbandingan antar versi tetap terbaca.
             Ketiga, bila nanti kedua sistem ini ditukar datanya, formatnya mengikuti SKDR dan
@@ -500,7 +500,7 @@ function Tentang() {
           </p>
           <p>
             Lapis harian dan lapis SKDR mingguan pada prototipe ini dibangkitkan sebagai dua
-            simulasi terpisah dan belum direkonsiliasi; pada implementasi nyata keduanya bersumber
+            simulasi terpisah dan belum direkonsiliasi, pada implementasi nyata keduanya bersumber
             dari data laporan yang sama.
           </p>
           <p>
@@ -516,7 +516,7 @@ function Tentang() {
             yang belum diverifikasi dan perlu ditetapkan bersama Dinkes. Regulasi yang sama
             menetapkan batas 24 jam untuk pelaporan kasus (Pasal 16) dan untuk penanggulangan dini
             sejak kriteria KLB terpenuhi (Pasal 14). Batas ini menjadi acuan target metrik
-            keterlambatan lapor dan waktu respons; pada prototipe, waktu respons belum diukur.
+            keterlambatan lapor dan waktu respons, pada prototipe, waktu respons belum diukur.
           </p>
         </div>
       </section>

@@ -351,7 +351,7 @@ function Dashboard() {
               terlihat selalu naik (rasio 99).
             </li>
             <li>
-              Ambang rasio 1,5x dan 2x tidak diubah; yang ditambahkan hanya syarat kasus minimum.
+              Ambang rasio 1,5x dan 2x tidak diubah, yang ditambahkan hanya syarat kasus minimum.
             </li>
           </ul>
         </div>
@@ -370,7 +370,7 @@ function Dashboard() {
               </button>
             </div>
             <p className="mt-1 text-justify text-xs text-muted-foreground">
-              Berdasarkan tanggal onset gejala; hanya kasus terverifikasi/terkonfirmasi. Area teal
+              Berdasarkan tanggal onset gejala, hanya kasus terverifikasi/terkonfirmasi. Area teal
               adalah total kasus, tiap garis warna satu penyakit. Tekan Putar animasi untuk melihat
               hari demi hari.
             </p>
@@ -808,7 +808,7 @@ function KartuPenyakit({
       <p className="text-[11px] leading-relaxed text-justify text-muted-foreground">
         Angka {penyakit} di kartu ini hasil simulasi, bukan laporan. Puncaknya berasal dari skenario
         outbreak yang memang dirancang agar ambang terlihat bekerja
-        {pekanOutbreak ? ` (minggu ${pekanOutbreak})` : ""}; minggu lain sengaja dibuat tenang
+        {pekanOutbreak ? ` (minggu ${pekanOutbreak})` : ""}, minggu lain sengaja dibuat tenang
         supaya &ldquo;Mgg KLB&rdquo; berarti sesuatu.
       </p>
     </div>
