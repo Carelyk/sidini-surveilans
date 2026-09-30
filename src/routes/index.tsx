@@ -271,7 +271,7 @@ function Dashboard() {
       <section className="space-y-4">
         <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border pb-2">
           <h2 className="text-lg font-semibold">Pelaporan kasus individu</h2>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-justify text-xs text-muted-foreground">
             7 hari terakhir, s.d. {formatTanggal(TANGGAL_ACUAN)} &middot; data diperbarui{" "}
             {waktuPembaruan()} &middot; sumber: laporan puskesmas &amp; warga
           </p>
@@ -318,7 +318,7 @@ function Dashboard() {
 
         <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground">
           <Info className="mt-px size-3.5 shrink-0" aria-hidden />
-          <span>
+          <span className="text-justify">
             Lapis ini menghitung <strong className="font-semibold">sinyal harian</strong> per
             penyakit dari kasus individu 7 hari. Kata &ldquo;KLB&rdquo; sebagai status resmi hanya
             dipakai di lapis SKDR mingguan di bawah, yang datanya agregat per kecamatan per minggu.
@@ -332,7 +332,7 @@ function Dashboard() {
             <BellRing className="size-3.5 text-primary" aria-hidden /> Syarat kasus minimum
             (pembatas alert fatigue)
           </p>
-          <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-muted-foreground">
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-justify text-xs text-muted-foreground">
             <li>
               <strong className="text-foreground">Sinyal</strong>: rasio minimal 2x baseline dengan
               minimal {ATURAN_HARIAN.kasusMinSinyal} kasus penyakit itu dalam 7 hari, atau insidensi
@@ -369,7 +369,7 @@ function Dashboard() {
                 {bermain ? "Berhenti" : "Putar animasi"}
               </button>
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="mt-1 text-justify text-xs text-muted-foreground">
               Berdasarkan tanggal onset gejala; hanya kasus terverifikasi/terkonfirmasi. Area teal
               adalah total kasus, tiap garis warna satu penyakit. Tekan Putar animasi untuk melihat
               hari demi hari.
@@ -429,7 +429,7 @@ function Dashboard() {
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="panel p-5">
             <h3 className="text-base font-semibold">Komposisi penyakit (7 hari)</h3>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="mt-1 text-justify text-xs text-muted-foreground">
               Pembagian kasus 7 hari terakhir menurut jenis penyakitnya, yaitu berapa persen dari
               seluruh pelaporan yang berasal dari tiap penyakit.
             </p>
@@ -481,7 +481,7 @@ function Dashboard() {
             <h3 className="flex items-center gap-2 text-base font-semibold">
               <Users className="size-4 text-primary" /> Kelompok umur (7 hari)
             </h3>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="mt-1 text-justify text-xs text-muted-foreground">
               Sebaran kasus 7 hari terakhir menurut rentang usia, dipecah per penyakit. Terlihat
               kelompok yang paling banyak terkena dan penyakit apa yang dominan di setiap kelompok.
             </p>
@@ -527,7 +527,7 @@ function Dashboard() {
               rowKey={(s) => s.kode}
               judul={<h3 className="text-base font-semibold">Status per desa (7 hari terakhir)</h3>}
               keterangan={
-                <p className="text-xs text-muted-foreground">
+                <p className="text-justify text-xs text-muted-foreground">
                   Status dihitung per penyakit memakai ambang penyakit itu sendiri (tabel
                   &ldquo;Sumber acuan ambang&rdquo; di bawah). Angka gabungan semua penyakit hanya
                   informasi konteks, bukan penentu status. Insidensi hanya dihitung bila jumlah
@@ -602,7 +602,7 @@ function Dashboard() {
       <section className="space-y-4">
         <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border pb-2">
           <h2 className="text-lg font-semibold">Agregat SKDR mingguan {TAHUN}</h2>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-justify text-xs text-muted-foreground">
             Satu kartu per penyakit &middot; {KECAMATAN.length} kecamatan &middot;{" "}
             {MINGGU_SKDR_TERAKHIR} minggu pertama (label &ldquo;{LABEL_RENTANG_SKDR}&rdquo;)
             &middot; angka antarpenyakit tidak dijumlahkan
@@ -613,7 +613,7 @@ function Dashboard() {
           <p className="text-xs font-semibold">
             Cara membaca &ldquo;Mgg KLB&rdquo; dan &ldquo;Mgg Waspada&rdquo;
           </p>
-          <ul className="list-disc space-y-1 pl-5 text-[11px] text-muted-foreground">
+          <ul className="list-disc space-y-1 pl-5 text-justify text-[11px] text-muted-foreground">
             <li>
               <span className="font-medium text-foreground">Mgg KLB</span>: jumlah minggu dengan
               setidaknya satu kecamatan berstatus KLB.
@@ -643,7 +643,7 @@ function Dashboard() {
 
         <div className="panel p-5">
           <h3 className="text-base font-semibold">Perbandingan antar tahun, rentang minggu sama</h3>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 text-justify text-xs text-muted-foreground">
             Kedua tahun dibandingkan pada minggu 1&ndash;{MINGGU_SKDR_TERAKHIR} saja. Kalau 2026
             dipakai 52 minggu sementara 2025 hanya 39, angka 2026 terlihat naik bukan karena ada
             epidemi, melainkan karena minggu yang dihitung lebih banyak.
@@ -699,7 +699,7 @@ function Dashboard() {
               </tbody>
             </table>
           </div>
-          <p className="mt-2 text-[11px] text-muted-foreground">
+          <p className="mt-2 text-justify text-[11px] text-muted-foreground">
             Kedua tahun berasal dari simulasi yang sama (src/data/skdr.ts), bukan dua sumber data
             berbeda. Angka kasus dan &ldquo;Mgg KLB&rdquo; sudah dipotong di minggu{" "}
             {MINGGU_SKDR_TERAKHIR} untuk kedua tahun.
@@ -771,7 +771,7 @@ function KartuPenyakit({
             kasus {LABEL_RENTANG_SKDR}
           </span>
         </p>
-        <p className="mt-1 text-xs text-muted-foreground">
+        <p className="mt-1 text-justify text-xs text-muted-foreground">
           {nf.format(meninggal)} kematian &middot; rata-rata {insidensi.toFixed(1)}/100k/mgg
         </p>
       </div>
@@ -795,17 +795,17 @@ function KartuPenyakit({
       </dl>
 
       {puncak ? (
-        <p className="border-t border-border pt-3 text-xs text-muted-foreground">
+        <p className="border-t border-border pt-3 text-justify text-xs text-muted-foreground">
           Puncak mingguan (per kecamatan):{" "}
           <span className="font-medium text-foreground">{nf.format(puncak.jumlah)} kasus</span> di{" "}
           {puncak.nama}, minggu {puncak.minggu} ({puncak.insidensi.toFixed(0)}/100k/mgg)
         </p>
       ) : null}
-      <p className="text-[11px] leading-relaxed text-muted-foreground">
+      <p className="text-[11px] leading-relaxed text-justify text-muted-foreground">
         Status dinilai per minggu, bukan dari rata-rata setahun. Rata-rata
         {` ${insidensi.toFixed(1)}`}/100k/mgg sengaja tidak dipakai untuk menetapkan KLB.
       </p>
-      <p className="text-[11px] leading-relaxed text-muted-foreground">
+      <p className="text-[11px] leading-relaxed text-justify text-muted-foreground">
         Angka {penyakit} di kartu ini hasil simulasi, bukan laporan. Puncaknya berasal dari skenario
         outbreak yang memang dirancang agar ambang terlihat bekerja
         {pekanOutbreak ? ` (minggu ${pekanOutbreak})` : ""}; minggu lain sengaja dibuat tenang
@@ -888,7 +888,7 @@ function GrafikPenyakit({
           </AreaChart>
         </ResponsiveContainer>
       </div>
-      <p className="mt-1 pl-[42px] text-[11px] text-muted-foreground">
+      <p className="mt-1 pl-[42px] text-justify text-[11px] text-muted-foreground">
         Grafik: total kasus seluruh kecamatan (kabupaten). Status:{" "}
         {titik.filter((t) => t.level === "KLB").length} minggu dengan minimal satu kecamatan
         berstatus KLB

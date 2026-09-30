@@ -32,7 +32,7 @@ export function AlertBanner({ status }: { status: StatusDesa[] }) {
     return (
       <div className="panel flex items-center gap-2.5 p-3">
         <ShieldCheck className="size-4 shrink-0 text-success-text" aria-hidden />
-        <p className="text-xs text-muted-foreground">
+        <p className="text-justify text-xs text-muted-foreground">
           Tidak ada desa yang melewati ambang. Semua wilayah dalam fluktuasi normal.
         </p>
       </div>
@@ -42,7 +42,7 @@ export function AlertBanner({ status }: { status: StatusDesa[] }) {
   return (
     <div className="space-y-2">
       {adaInsidensiKosong && (
-        <p className="rounded-md border border-border/60 bg-background/40 px-2.5 py-1.5 text-[11px] text-muted-foreground">
+        <p className="rounded-md border border-border/60 bg-background/40 px-2.5 py-1.5 text-justify text-[11px] text-muted-foreground">
           Insidensi per 100.000 tidak dinilai: penduduk desa belum tersedia.
         </p>
       )}
@@ -67,12 +67,14 @@ export function AlertBanner({ status }: { status: StatusDesa[] }) {
                   Dugaan KLB {pemicu.penyakit} di Desa {s.desa}, Kec. {s.kecamatan}:{" "}
                   {pemicu.mingguIni} kasus dalam 7 hari ({pemicu.rasio.toFixed(1)}x baseline)
                 </p>
-                <p className="mt-0.5 text-xs text-muted-foreground">{deskripsiKartu(pemicu)}</p>
+                <p className="mt-0.5 text-justify text-xs text-muted-foreground">
+                  {deskripsiKartu(pemicu)}
+                </p>
                 <details className="mt-1.5 text-[11px] text-muted-foreground">
                   <summary className="cursor-pointer font-medium transition-colors hover:text-foreground">
                     Penerima notifikasi (rencana, tidak dikirim)
                   </summary>
-                  <p className="mt-1">
+                  <p className="mt-1 text-justify">
                     Penerima notifikasi yang direncanakan: Kepala Dinas · Tim
                     Surveilans/Epidemiologi · Kepala {s.puskesmas} · Koordinator Kader {s.desa}.
                     Pada prototipe ini pesan hanya ditampilkan di layar, tidak ada surel, pesan
@@ -101,7 +103,7 @@ export function AlertBanner({ status }: { status: StatusDesa[] }) {
         <div className="panel border-warning/40 bg-warning/10 p-3">
           <div className="flex items-start gap-2.5">
             <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning-text" aria-hidden />
-            <p className="text-xs">
+            <p className="text-justify text-xs">
               <span className="font-semibold text-warning-text">Status waspada:</span>{" "}
               {waspada
                 .map((w) => {

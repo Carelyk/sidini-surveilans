@@ -75,7 +75,7 @@ export function PanelDampak({ kasus }: { kasus: Kasus[] }) {
 
       <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground">
         <Info className="mt-px size-3.5 shrink-0" aria-hidden />
-        <span>
+        <span className="text-justify">
           Keterlambatan lapor di sini adalah <strong>proxy</strong>: yang diukur hanya jarak antara
           tanggal onset gejala dan tanggal laporan, bukan waktu tanggap petugas. Yang kedua butuh
           stempel waktu peristiwa yang belum ada di prototipe.
@@ -90,7 +90,7 @@ export function PanelDampak({ kasus }: { kasus: Kasus[] }) {
           rowKey={(x) => x.kode}
           judul={<span className="text-sm font-semibold">Kapan sinyal harian muncul per desa</span>}
           keterangan={
-            <div className="space-y-1 text-xs text-muted-foreground">
+            <div className="space-y-1 text-justify text-xs text-muted-foreground">
               <p>
                 Tanggal sinyal adalah hari pertama jumlah kasus 7 hari desa itu melewati ambang
                 penyakit pemicunya, memakai ambang yang sama dengan tabel status per desa di atas.
@@ -152,7 +152,7 @@ export function PanelDampak({ kasus }: { kasus: Kasus[] }) {
       </div>
 
       {!adaDeteksi && (
-        <p className="rounded-lg border border-border bg-secondary/40 p-3 text-xs text-muted-foreground">
+        <p className="rounded-lg border border-border bg-secondary/40 p-3 text-justify text-xs text-muted-foreground">
           Tidak ada desa yang berstatus sinyal pada 7 hari terakhir, jadi waktu kemunculan sinyal
           tidak bisa ditampilkan. Angka tidak diisi dengan perkiraan.
         </p>
@@ -161,7 +161,7 @@ export function PanelDampak({ kasus }: { kasus: Kasus[] }) {
       {adaCatatanTidakTerukur(deteksi) && (
         <div className="space-y-1 rounded-lg border border-warning/40 bg-warning/10 p-3 text-xs text-warning">
           <p className="font-semibold">Sebagian baris belum bisa diukur, dan alasannya:</p>
-          <ul className="list-disc space-y-0.5 pl-4">
+          <ul className="list-disc space-y-0.5 pl-4 text-justify">
             {deteksi
               .filter((x) => x.catatan !== null)
               .map((x) => (
@@ -176,11 +176,11 @@ export function PanelDampak({ kasus }: { kasus: Kasus[] }) {
       {/* --- Yang belum bisa diukur --- */}
       <div className="space-y-2 rounded-lg border border-border bg-secondary/30 p-4">
         <p className="text-sm font-semibold">Metrik yang belum diukur di prototipe</p>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-justify text-xs text-muted-foreground">
           Metrik di atas sengaja dibatasi pada yang bisa dihitung dari data yang ada. Daftar berikut
           dicantumkan supaya kekosongannya terlihat, bukan supaya fiturnya dianggap sudah ada.
         </p>
-        <ul className="space-y-2">
+        <ul className="space-y-2 text-justify">
           {METRIK_BELUM_TERUKUR.map((m) => (
             <li key={m.nama} className="text-xs">
               <span className="font-medium text-foreground">{m.nama}</span>
@@ -220,7 +220,7 @@ function AngkaMini({
         {label}
       </p>
       <p className="mt-1.5 text-xl font-bold">{nilai}</p>
-      <p className="mt-0.5 text-[11px] text-muted-foreground">{ket}</p>
+      <p className="mt-0.5 text-justify text-[11px] text-muted-foreground">{ket}</p>
     </div>
   );
 }
