@@ -45,6 +45,30 @@ const FRASA_LAMA = [
   { berkas: "src/lib/skdr.ts", frasa: "readership Dinkes" },
   { berkas: "src/data/skdr.ts", frasa: "Deaths suffers the same problem" },
   { berkas: "src/routes/tentang.tsx", frasa: "mucurkan" },
+  { berkas: "src/data/skdr.ts", frasa: "pasar township" },
+  { berkas: "src/lib/dampak.ts", frasa: "waktuVerifikasi" },
+  { berkas: "src/components/ui/breadcrumb.tsx", frasa: "BreadcrumbElipssis" },
+];
+
+/**
+ * Frasa HARUS ada, supaya perbaikan di atas tidak undone diam-diam.
+ *
+ * Semua bertumpu pada kata yang sama dengan FRASA_LAMA: kalau ada yang
+ * menulis ulang baris tersebut, test ini memastikan perbaikan ikut hilang.
+ */
+const FRASA_PERBAIKAN = [
+  {
+    berkas: "src/data/skdr.ts",
+    frasa: "air di sekitar pasar desa.",
+  },
+  {
+    berkas: "src/lib/dampak.ts",
+    frasa: "Catat satu kolom waktu verifikasi (jam dan menit)",
+  },
+  {
+    berkas: "src/components/ui/breadcrumb.tsx",
+    frasa: 'BreadcrumbEllipsis.displayName = "BreadcrumbEllipsis"',
+  },
 ];
 
 function berkasSumber(dir: string): string[] {
@@ -89,5 +113,32 @@ describe("kebersihan teks repositori", () => {
       }
     }
     expect(tersisa).toEqual([]);
+  });
+
+  it("perbaikan kata rusak masih ada di berkas asalnya", () => {
+    const hilang: string[] = [];
+    for (const target of FRASA_PERBAIKAN) {
+      if (!readFileSync(target.berkas, "utf8").includes(target.frasa)) {
+        hilang.push(`${target.berkas} tidak lagi memuat "${target.frasa}"`);
+      }
+    }
+    expect(hilang).toEqual([]);
+  });
+
+  it("halaman galat server berbahasa Indonesia", () => {
+    // Halaman ini muncul justru saat server sudah rusak, jadi ia tidak lewat
+    // komponen React mana pun dan tidak tertangkap pemindai karakter korup.
+    // Seluruh antarmuka lain berbahasa Indonesia; halaman galat berbahasa
+    // Inggris membuat pengguna mengira aplikasi ini bukan untuk localize.
+    const isi = readFileSync("src/lib/error-page.ts", "utf8");
+    expect(isi).toContain('<html lang="id">');
+    expect(isi).toContain("<title>Halaman gagal dimuat</title>");
+    expect(isi).toContain("<h1>Halaman gagal dimuat</h1>");
+    expect(isi).toContain("Coba lagi");
+    expect(isi).toContain("Kembali ke dashboard");
+    // Tidak boleh ada kalimat Inggris leftover.
+    for (const frasa of ["didn't load", "Something went wrong", "Try again", "Go home"]) {
+      expect(isi.includes(frasa)).toBe(false);
+    }
   });
 });

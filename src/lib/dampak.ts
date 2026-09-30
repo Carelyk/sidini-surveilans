@@ -262,7 +262,7 @@ export const METRIK_BELUM_TERUKUR: MetrikBelumTerukur[] = [
     alasan:
       "Data kasus hanya menyimpan tanggal onset dan tanggal lapor, tidak ada stempel waktu saat petugas memverifikasi.",
     caraMengukur:
-      "Catat satu kolom waktuVerifikasi (jam dan menit) saat status laporan berubah menjadi Terverifikasi di halaman Verifikasi, lalu tampilkan selisihnya terhadap tanggal lapor.",
+      "Catat satu kolom waktu verifikasi (jam dan menit) saat status laporan berubah menjadi Terverifikasi di halaman Verifikasi, lalu tampilkan selisihnya terhadap tanggal lapor.",
   },
   {
     nama: "Waktu tanggap lapis cepat",

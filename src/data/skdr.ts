@@ -213,7 +213,7 @@ export const SEMU_KEJADIAN: SkenarioKejadian[] = [
     pengali: 5,
     cerita:
       "Ledakan dengue di Rancaekek pada musim hujan 2025, terkait genangan" +
-      " air di sekitar pasar township.",
+      " air di sekitar pasar desa.",
   },
   {
     kecamatan: "Cileunyi",
