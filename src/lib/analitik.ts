@@ -73,6 +73,14 @@ export function hitungDalamRentang(kasus: Kasus[], hari: number, offset = 0) {
 export const PENDUDUK_BELUM_TERSEDIA = "penduduk belum tersedia";
 
 /**
+ * Akhir kalimat alasan ketika insidensi tidak dinilai karena penduduk desa
+ * belum tersedia. Diekspor agar tampilan kartu alert bisa menghapus kalimat
+ * yang sama dari deskripsi kartu (info itu sudah diucapkan sekali oleh
+ * catatan di atas daftar alert), tanpa mengubah isi alasan itu sendiri.
+ */
+export const CATATAN_INSIDENSI_TIDAK_DINILAI = ` Aturan insidensi tidak dinilai (${PENDUDUK_BELUM_TERSEDIA}).`;
+
+/**
  * Level lapis harian. Kata "KLB" tidak dipakai sebagai level di sini: KLB
  * adalah status resmi hasil penilaian SKDR mingguan (src/lib/skdr.ts). Lapis
  * harian hanya menyatakan "Sinyal", dan kalimat alert memakai frasa
@@ -184,7 +192,7 @@ function statusPenyakit(
   const angka = `${ini} kasus ${penyakit} dalam 7 hari (${rasio.toFixed(1)}x baseline, ${rataBaseline.toFixed(1)})`;
   const catatanInsidensi =
     insidensi === null
-      ? ` Aturan insidensi tidak dinilai (${PENDUDUK_BELUM_TERSEDIA}).`
+      ? CATATAN_INSIDENSI_TIDAK_DINILAI
       : ` Insidensi ${insidensi.toFixed(1)}/100.000/mgg.`;
   const catatanMinimum =
     ini > 0 && ini < KASUS_MIN_WASPADA_HARIAN

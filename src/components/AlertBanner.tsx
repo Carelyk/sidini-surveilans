@@ -1,5 +1,10 @@
 import { AlertTriangle, BellRing, ShieldCheck } from "lucide-react";
-import { formatInsidensi, type StatusDesa, type StatusPenyakitDesa } from "@/lib/analitik";
+import {
+  CATATAN_INSIDENSI_TIDAK_DINILAI,
+  formatInsidensi,
+  type StatusDesa,
+  type StatusPenyakitDesa,
+} from "@/lib/analitik";
 
 /**
  * Alert lapis harian.
@@ -11,10 +16,17 @@ import { formatInsidensi, type StatusDesa, type StatusPenyakitDesa } from "@/lib
  *
  * Angka yang ditampilkan (jumlah kasus, baseline, rasio, insidensi) semuanya
  * milik penyakit pemicu, bukan total gabungan desa.
+ *
+ * Kotak "Insidensi/100k" hanya dirender bila jumlah penduduk desa tersedia.
+ * Bila belum (null), kotak disembunyikan dan info yang sama diucapkan satu
+ * kali oleh catatan di atas daftar alert -- tidak diulang di deskripsi tiap
+ * kartu.
  */
 export function AlertBanner({ status }: { status: StatusDesa[] }) {
   const sinyal = status.filter((s) => s.level === "Sinyal");
   const waspada = status.filter((s) => s.level === "Waspada");
+
+  const adaInsidensiKosong = sinyal.some((s) => pemicuTertinggi(s).insidensi === null);
 
   if (!sinyal.length && !waspada.length) {
     return (
@@ -29,6 +41,12 @@ export function AlertBanner({ status }: { status: StatusDesa[] }) {
 
   return (
     <div className="space-y-2">
+      {adaInsidensiKosong && (
+        <p className="rounded-md border border-border/60 bg-background/40 px-2.5 py-1.5 text-[11px] text-muted-foreground">
+          Insidensi per 100.000 tidak dinilai: penduduk desa belum tersedia.
+        </p>
+      )}
+
       {sinyal.map((s) => {
         const pemicu = pemicuTertinggi(s);
         return (
@@ -49,19 +67,30 @@ export function AlertBanner({ status }: { status: StatusDesa[] }) {
                   Dugaan KLB {pemicu.penyakit} di Desa {s.desa}, Kec. {s.kecamatan}:{" "}
                   {pemicu.mingguIni} kasus dalam 7 hari ({pemicu.rasio.toFixed(1)}x baseline)
                 </p>
-                <p className="mt-0.5 text-xs text-muted-foreground">{pemicu.alasan}</p>
-                <p className="mt-1.5 text-[11px] text-muted-foreground">
-                  Penerima notifikasi yang direncanakan: Kepala Dinas · Tim Surveilans/Epidemiologi
-                  · Kepala {s.puskesmas} · Koordinator Kader {s.desa}. Pada prototipe ini pesan
-                  hanya ditampilkan di layar, tidak ada surel, pesan WhatsApp, atau tugas lapangan
-                  yang dikirim.
-                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{deskripsiKartu(pemicu)}</p>
+                <details className="mt-1.5 text-[11px] text-muted-foreground">
+                  <summary className="cursor-pointer font-medium transition-colors hover:text-foreground">
+                    Penerima notifikasi (rencana, tidak dikirim)
+                  </summary>
+                  <p className="mt-1">
+                    Penerima notifikasi yang direncanakan: Kepala Dinas · Tim
+                    Surveilans/Epidemiologi · Kepala {s.puskesmas} · Koordinator Kader {s.desa}.
+                    Pada prototipe ini pesan hanya ditampilkan di layar, tidak ada surel, pesan
+                    WhatsApp, atau tugas lapangan yang dikirim.
+                  </p>
+                </details>
               </div>
-              <div className="grid min-w-0 grid-cols-2 gap-1.5 text-center sm:grid-cols-4">
+              <div
+                className={`grid min-w-0 grid-cols-2 gap-1.5 text-center ${
+                  pemicu.insidensi === null ? "sm:grid-cols-3" : "sm:grid-cols-4"
+                }`}
+              >
                 <Metrik label={`${pemicu.penyakit} 7 hari`} nilai={String(pemicu.mingguIni)} />
                 <Metrik label="Baseline" nilai={pemicu.rataBaseline.toFixed(1)} />
                 <Metrik label="Rasio" nilai={`${pemicu.rasio.toFixed(1)}x`} />
-                <Metrik label="Insidensi/100k" nilai={formatInsidensi(pemicu.insidensi)} />
+                {pemicu.insidensi !== null && (
+                  <Metrik label="Insidensi/100k" nilai={formatInsidensi(pemicu.insidensi)} />
+                )}
               </div>
             </div>
           </div>
@@ -87,6 +116,20 @@ export function AlertBanner({ status }: { status: StatusDesa[] }) {
       )}
     </div>
   );
+}
+
+/**
+ * Deskripsi kartu alert.
+ *
+ * Bila insidensi tidak dinilai karena penduduk desa belum tersedia, kalimat
+ * "aturan insidensi tidak dinilai" diangkat dari alasan: info yang sama sudah
+ * diucapkan oleh catatan di atas daftar alert, jadi tidak perlu diulang di
+ * deskripsi tiap kartu. Isi alasan itu sendiri tidak berubah.
+ */
+function deskripsiKartu(pemicu: StatusPenyakitDesa): string {
+  return pemicu.insidensi === null
+    ? pemicu.alasan.replace(CATATAN_INSIDENSI_TIDAK_DINILAI, "")
+    : pemicu.alasan;
 }
 
 /** Status penyakit dengan level tertinggi untuk desa tersebut. */
