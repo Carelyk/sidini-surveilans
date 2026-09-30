@@ -520,7 +520,7 @@ function Dashboard() {
         </div>
 
         <div className="grid gap-4">
-          <div className="panel p-5">
+          <div className="panel min-w-0 p-5">
             <AlatTabel
               baris={d.status}
               nama="status-desa-7-hari"
