@@ -19,13 +19,20 @@ import { kasusValid, rentangHari, type StatusDesa } from "@/lib/analitik";
  *
  * Batasan yang perlu diketahui pembaca:
  *
- *  - Pemeriksaan historis sinyal hanya bisa memakai aturan rasio terhadap
- *    baseline, karena jumlah penduduk desa belum tersedia sehingga insidensi
- *    bernilai null (src/data/populasi-desa.ts). Kalau suatu desa hanya
- *    melewati ambang insidensi, sinyal historisnya tidak akan ditemukan.
- *  - "Hari lebih awal dibanding rekap mingguan" memakai asumsi bahwa rekap
- *    mingguan baru lengkap pada hari Minggu yang menutup minggu ISO. Asumsi
- *    ini ditulis di UI, bukan disembunyikan di sini.
+ *  - "Hari lebih awal dibanding rekap mingguan" DIUKUR DARI ATURAN RASIO
+ *    terhadap baseline saja. Badge status di dashboard memakai dua aturan
+ *    sekaligus (rasio ATAU insidensi, lihat statusPerDesa), jadi ada desa
+ *    yang badge-nya "Sinyal" karena insidensi saja -- kasusnya belum cukup
+ *    untuk aturan rasio. Desa seperti itu tidak bisa ditanggalkan oleh tabel
+ *    ini, dan ditulis "belum diukur" beserta alasannya, bukan diberi tanggal
+ *    hasil tebakan. Angka "lebih awal" yang dipakai di proposal karena itu
+ *    selalu berasal dari desa yang sinyalnya terpicu rasio.
+ *  - Jumlah penduduk desa di sini adalah alokasi proporsional dari penduduk
+ *    kecamatan (perkiraan, lihat src/data/populasi-desa.ts), bukan angka resmi
+ *    per desa. Aturan insidensi yang memakainya tetap dipakai di dashboard,
+ *    dan status sumber datanya ditulis terbuka di UI.
+ *  - Asumsi "lebih awal": rekap mingguan baru lengkap pada hari Minggu yang
+ *    menutup minggu ISO. Asumsi ini ditulis di UI, bukan disembunyikan di sini.
  */
 
 function tambahHari(iso: string, hari: number): string {
@@ -150,6 +157,10 @@ export interface DeteksiDesa {
  * Hari pertama ketika jumlah kasus 7 hari (rasio terhadap tiga jendela
  * sebelumnya, ambang penyakit yang sama) melewati ambang KLB dianggap sebagai
  * hari sinyal muncul.
+ *
+ * Aturan yang dipakai HANYA rasio terhadap baseline. Badge "Sinyal" di
+ * dashboard boleh muncul dari aturan insidensi, dan desa seperti itu tidak
+ * bisa ditanggalkan di sini -- lihat catatan `pemicuDariInsidensi` di bawah.
  */
 export function waktuDeteksi(kasus: Kasus[], status: StatusDesa[]): DeteksiDesa[] {
   const valid = kasusValid(kasus);
@@ -180,6 +191,25 @@ export function waktuDeteksi(kasus: Kasus[], status: StatusDesa[]): DeteksiDesa[
       }
     }
 
+    /**
+     * Badge Sinyal pada 7 hari terakhir berasal dari aturan mana? Dipakai
+     * hanya untuk menulis catatan yang jujur.
+     *
+     * Kalau badge-nya muncul dari aturan insidensi saja (kasus belum cukup
+     * untuk aturan rasio), tabel ini tidak akan pernah menemukan hari
+     * sinyalnya -- dan itu bukan cacat perhitungan, melainkan perbedaan
+     * cakupan yang harus dinyatakan di UI, bukan disembunyikan.
+     */
+    const pemicuHariIni = d.perPenyakit.find((p) => p.penyakit === penyakit);
+    const pemicuDariInsidensi =
+      !!pemicuHariIni &&
+      pemicuHariIni.level === "Sinyal" &&
+      pemicuHariIni.insidensi !== null &&
+      pemicuHariIni.insidensi >= ambang.insidensiMin &&
+      !(
+        pemicuHariIni.rasio >= ambang.rasioKLB && pemicuHariIni.mingguIni >= KASUS_MIN_SINYAL_HARIAN
+      );
+
     let onsetPertama: string | null = null;
     let kasusSaatSinyal = 0;
     if (tanggalSinyal) {
@@ -195,7 +225,9 @@ export function waktuDeteksi(kasus: Kasus[], status: StatusDesa[]): DeteksiDesa[
 
     const catatan = ((): string | null => {
       if (tanggalSinyal === null) {
-        return "Tidak ada hari dalam jendela observasi yang melewati ambang untuk desa dan penyakit ini, sehingga waktu kemunculan sinyal tidak bisa dihitung.";
+        return pemicuDariInsidensi
+          ? `Status Sinyal desa ini berasal dari aturan insidensi (ambang ${ambang.insidensiMin}/100.000/mgg), bukan dari aturan rasio terhadap baseline, sehingga tanggal sinyal tidak bisa dihitung dari tabel ini. Angka "lebih awal dari rekap" sengaja hanya diukur dengan aturan rasio.`
+          : "Tidak ada hari dalam jendela observasi yang melewati ambang untuk desa dan penyakit ini, sehingga waktu kemunculan sinyal tidak bisa dihitung.";
       }
       if (tepiJendela) {
         return "Sinyal sudah melewati ambang pada hari pertama jendela observasi, jadi kemunculannya bisa saja lebih awal dari data yang tersedia.";

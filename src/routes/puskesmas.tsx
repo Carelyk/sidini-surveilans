@@ -3,10 +3,13 @@ import { useMemo, useState } from "react";
 import { Stethoscope, Timer, Zap } from "lucide-react";
 import { toast } from "sonner";
 
+import { ChipPetugas, PintuPetugas } from "@/components/PintuPetugas";
+import { DialogKonfirmasi } from "@/components/DialogKonfirmasi";
 import { useSurveilans } from "@/lib/store";
 import {
   DESA,
   KELOMPOK_UMUR,
+  NAMA_KELOMPOK_UMUR,
   PENYAKIT,
   TANGGAL_ACUAN,
   type KelompokUmur,
@@ -34,21 +37,37 @@ export const Route = createFileRoute("/puskesmas")({
       {
         property: "og:description",
         content:
-          "Pelaporan kasus terkonfirmasi kurang dari 30 detik, langsung masuk dashboard di peramban ini. Prototipe tanpa autentikasi.",
+          "Pelaporan kasus terkonfirmasi kurang dari 30 detik, langsung masuk dashboard di peramban ini. Halaman khusus petugas.",
       },
     ],
   }),
-  component: InputPuskesmas,
+  component: InputPuskesmasTerpantau,
 });
+
+/**
+ * Halaman form dikemas gerbang petugas supaya isi formulir tidak pernah
+ * dirender lebih dulu di peramban yang belum masuk.
+ */
+function InputPuskesmasTerpantau() {
+  return (
+    <PintuPetugas
+      judul="Halaman petugas"
+      keterangan="Input kasus terkonfirmasi dan verifikasi laporan warga hanya untuk petugas surveilans. Warga tidak perlu login untuk mengirim laporan gejala."
+    >
+      <InputPuskesmas />
+    </PintuPetugas>
+  );
+}
 
 function InputPuskesmas() {
   const { kasus, tambah } = useSurveilans();
   const [penyakit, setPenyakit] = useState<Penyakit>("DBD");
   const [kodeDesa, setKodeDesa] = useState(DESA[0]!.kode);
   const [onset, setOnset] = useState(TANGGAL_ACUAN);
-  const [umur, setUmur] = useState<KelompokUmur>("5-14");
+  const [umur, setUmur] = useState<KelompokUmur>("5-9");
   const [jk, setJk] = useState<"L" | "P">("L");
   const [jumlah, setJumlah] = useState(1);
+  const [popup, setPopup] = useState<{ judul: string; pesan: string } | null>(null);
 
   const hariIni = useMemo(() => hitungDalamRentang(kasusValid(kasus), 1).length, [kasus]);
 
@@ -60,9 +79,9 @@ function InputPuskesmas() {
       toast.error(onsetValidasi.pesan);
       return;
     }
-    // Angka yang dipakai untuk menyimpan sekaligus untuk pesan toast. Kalau
-    // toast memakai nilai mentah dari input, petugas bisa melihat "50 kasus
-    // masuk" padahal yang tersimpan hanya 20.
+    // Angka yang dipakai untuk menyimpan sekaligus untuk pesan popup. Kalau
+    // popup memakai nilai mentah dari input, petugas bisa melihat "50 kasus
+    // terkirim" padahal yang tersimpan hanya 20.
     const tersimpan = jumlahKasusTersimpan(jumlah);
     for (let i = 0; i < tersimpan; i++) {
       tambah({
@@ -80,7 +99,11 @@ function InputPuskesmas() {
         gejala: [],
       });
     }
-    toast.success(`${tersimpan} kasus ${penyakit} di Desa ${desa.nama} masuk dashboard seketika.`);
+    toast.success("Kasus berhasil dikirim ke dashboard.");
+    setPopup({
+      judul: "Kasus berhasil dikirim ke dashboard.",
+      pesan: `${tersimpan} kasus ${penyakit} · Desa ${desa.nama} · masuk perhitungan seketika, sudah terverifikasi.`,
+    });
     setJumlah(1);
   };
 
@@ -90,6 +113,7 @@ function InputPuskesmas() {
         <p className="text-xs font-semibold uppercase tracking-wide text-primary">
           Kanal fasilitas
         </p>
+        <ChipPetugas />
         <h1 className="mt-1 text-2xl font-bold sm:text-3xl">Input kasus terkonfirmasi</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           Hanya 6 kolom minimum: penyakit, desa (kode wilayah), tanggal onset, kelompok umur, jenis
@@ -165,7 +189,7 @@ function InputPuskesmas() {
           >
             {KELOMPOK_UMUR.map((u) => (
               <option key={u} value={u}>
-                {u} tahun
+                {NAMA_KELOMPOK_UMUR[u]} · {u === "60+" ? "60 tahun ke atas" : `${u} tahun`}
               </option>
             ))}
           </select>
@@ -208,7 +232,7 @@ function InputPuskesmas() {
             type="submit"
             className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            Kirim ke dashboard sekarang
+            Kirim
           </button>
           <p className="mt-3 text-xs text-muted-foreground">
             Rancangan integrasi (belum berjalan): variabelnya sengaja mengikuti pola variabel
@@ -218,6 +242,16 @@ function InputPuskesmas() {
           </p>
         </div>
       </form>
+
+      <DialogKonfirmasi
+        terbuka={popup !== null}
+        tutup={() => setPopup(null)}
+        nada="sukses"
+        judul={popup?.judul ?? ""}
+        pesan={popup?.pesan ?? ""}
+        aksi={[{ label: "Tutup", jalankan: () => {} }]}
+        tampilkanBatal={false}
+      />
     </div>
   );
 }

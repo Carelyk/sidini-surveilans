@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useSurveilans } from "@/lib/store";
 import { kasusValid, rataKeterlambatan } from "@/lib/analitik";
-import { DESA, PENYAKIT, TANGGAL_ACUAN, type Kasus } from "@/data/dataset";
+import { DESA, NAMA_KELOMPOK_UMUR, PENYAKIT, TANGGAL_ACUAN, type Kasus } from "@/data/dataset";
 import { formatTanggal, waktuPembaruan } from "@/data/kronologi";
 
 export const Route = createFileRoute("/kasus")({
@@ -40,7 +40,15 @@ export const Route = createFileRoute("/kasus")({
 });
 
 const STATUS: Kasus["status"][] = ["Baru", "Investigasi", "Terverifikasi", "Selesai", "Ditolak"];
-const PER_HALAMAN = 25;
+
+/**
+ * Pilihan jumlah baris per halaman.
+ *
+ * Default 25 dipakai supaya tabel tetap terbaca di layar laptop saat
+ * presentasi. Sisanya untuk kasus yang butuh memeriksa tabel lengkap tanpa
+ * menekan tombol berikutnya puluhan kali.
+ */
+const OPSI_PER_HALAMAN = [25, 50, 100] as const;
 
 function DataKasus() {
   const { kasus, reset, adaTambahan } = useSurveilans();
@@ -50,6 +58,12 @@ function DataKasus() {
   const [status, setStatus] = useState("all");
   const [sumber, setSumber] = useState("all");
   const [halaman, setHalaman] = useState(0);
+  const [perHalaman, setPerHalaman] = useState<number>(25);
+  // Isi kotak lompat halaman disimpan terpisah dari state halaman. Kalau
+  // keduanya sama, mengetik angka saja sudah langsung memindahkan halaman di
+  // tengah pengetikan dan kotak ikut terkoreksi sehingga angka yang diketik
+  // tidak pernah selesai ditulis.
+  const [ketikHalaman, setKetikHalaman] = useState("");
 
   const hasil = useMemo(() => {
     const q = cari.trim().toLowerCase();
@@ -69,14 +83,40 @@ function DataKasus() {
       .sort((a, b) => (a.tanggalOnset < b.tanggalOnset ? 1 : -1));
   }, [kasus, cari, desa, penyakit, status, sumber]);
 
-  const totalHal = Math.max(1, Math.ceil(hasil.length / PER_HALAMAN));
+  const totalHal = Math.max(1, Math.ceil(hasil.length / perHalaman));
   const halAman = Math.min(halaman, totalHal - 1);
-  const awal = halAman * PER_HALAMAN;
-  const potong = hasil.slice(awal, awal + PER_HALAMAN);
+  const awal = halAman * perHalaman;
+  const potong = hasil.slice(awal, awal + perHalaman);
 
   const kosongkan = (fn: () => void) => {
     fn();
     setHalaman(0);
+    setKetikHalaman("");
+  };
+
+  /** Ubah jumlah baris per halaman dan kembali ke halaman pertama. */
+  const ubahPerHalaman = (n: number) => {
+    setPerHalaman(n);
+    setHalaman(0);
+    setKetikHalaman("");
+  };
+
+  /**
+   * Lompat ke halaman yang diketik.
+   *
+   * Angka di luar rentang dijepit, bukan ditolak: mengetik "99" saat baru ada 31
+   * halaman harus berakhir di halaman terakhir, bukan diam saja. Teks yang
+   * bukan angka juga tidak boleh membuat state halaman berisi NaN, karena itu
+   * membuat seluruh baris tabel hilang.
+   */
+  const lompatKeHalaman = (nilai: string) => {
+    const angka = Number.parseInt(nilai.trim(), 10);
+    if (Number.isNaN(angka)) {
+      setKetikHalaman("");
+      return;
+    }
+    setHalaman(Math.min(Math.max(1, angka), totalHal) - 1);
+    setKetikHalaman("");
   };
 
   const valid = kasusValid(kasus).length;
@@ -229,7 +269,7 @@ function DataKasus() {
                 <th className="py-2.5 pr-3">Wilayah</th>
                 <th className="py-2.5 pr-3">Onset</th>
                 <th className="py-2.5 pr-3">Lapor</th>
-                <th className="py-2.5 pr-3">Umur</th>
+                <th className="py-2.5 pr-3">Kelompok umur</th>
                 <th className="py-2.5 pr-3">JK</th>
                 <th className="py-2.5 pr-3">Sumber</th>
                 <th className="py-2.5 pr-5">Status</th>
@@ -257,7 +297,12 @@ function DataKasus() {
                   <td className="py-2.5 pr-3 font-mono text-xs text-muted-foreground">
                     {k.tanggalLapor}
                   </td>
-                  <td className="py-2.5 pr-3">{k.kelompokUmur}</td>
+                  <td className="py-2.5 pr-3">
+                    {NAMA_KELOMPOK_UMUR[k.kelompokUmur]}
+                    <span className="block text-xs text-muted-foreground">
+                      {k.kelompokUmur === "60+" ? "60+ tahun" : `${k.kelompokUmur} tahun`}
+                    </span>
+                  </td>
                   <td className="py-2.5 pr-3">{k.jenisKelamin}</td>
                   <td className="py-2.5 pr-3 text-xs text-muted-foreground">{k.sumber}</td>
                   <td className="py-2.5 pr-5">
@@ -269,32 +314,81 @@ function DataKasus() {
           </table>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/70 px-5 py-3 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-border/70 px-5 py-3 text-xs text-muted-foreground">
           <span>
             Menampilkan {hasil.length === 0 ? 0 : awal + 1}–
-            {Math.min(awal + PER_HALAMAN, hasil.length)} dari {hasil.length} kasus ({ditolak}{" "}
+            {Math.min(awal + perHalaman, hasil.length)} dari {hasil.length} kasus ({ditolak}{" "}
             ditolak)
           </span>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setHalaman((h) => Math.max(0, h - 1))}
-              disabled={halAman === 0}
-              className="rounded-lg border border-border px-3 py-1.5 font-medium transition-colors hover:bg-secondary disabled:opacity-40"
+
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <label className="flex items-center gap-2">
+              <span>Baris</span>
+              <select
+                value={perHalaman}
+                onChange={(e) => ubahPerHalaman(Number(e.target.value))}
+                className="rounded-lg border border-border bg-background px-2 py-1.5 font-medium text-foreground outline-none focus:ring-2 focus:ring-ring"
+              >
+                {OPSI_PER_HALAMAN.map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <form
+              className="flex items-center gap-2"
+              // Validasi rentang ditangani sendiri di lompatKeHalaman. Tanpa
+              // noValidate, peramban menolak mengirim form bila angka di luar
+              // rentang, sehingga mengetik "99" hanya memunculkan pesan
+              // peramban dan tabelnya tidak bergerak sama sekali.
+              noValidate
+              onSubmit={(e) => {
+                e.preventDefault();
+                lompatKeHalaman(ketikHalaman);
+              }}
             >
-              Sebelumnya
-            </button>
-            <span className="font-mono">
-              {halAman + 1} / {totalHal}
-            </span>
-            <button
-              type="button"
-              onClick={() => setHalaman((h) => Math.min(totalHal - 1, h + 1))}
-              disabled={halAman >= totalHal - 1}
-              className="rounded-lg border border-border px-3 py-1.5 font-medium transition-colors hover:bg-secondary disabled:opacity-40"
-            >
-              Berikutnya
-            </button>
+              <label htmlFor="lompat-halaman">Halaman</label>
+              <input
+                id="lompat-halaman"
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={totalHal}
+                value={ketikHalaman === "" ? String(halAman + 1) : ketikHalaman}
+                onChange={(e) => setKetikHalaman(e.target.value)}
+                onBlur={() => lompatKeHalaman(ketikHalaman)}
+                aria-label="Nomor halaman yang ingin dilihat"
+                className="w-16 rounded-lg border border-border bg-background px-2 py-1.5 text-center font-mono text-foreground outline-none focus:ring-2 focus:ring-ring"
+              />
+              <span className="font-mono">dari {totalHal}</span>
+              <button
+                type="submit"
+                className="rounded-lg border border-border px-2 py-1.5 font-medium transition-colors hover:bg-secondary"
+              >
+                Lompat
+              </button>
+            </form>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setHalaman((h) => Math.max(0, h - 1))}
+                disabled={halAman === 0}
+                className="rounded-lg border border-border px-3 py-1.5 font-medium transition-colors hover:bg-secondary disabled:opacity-40"
+              >
+                Sebelumnya
+              </button>
+              <button
+                type="button"
+                onClick={() => setHalaman((h) => Math.min(totalHal - 1, h + 1))}
+                disabled={halAman >= totalHal - 1}
+                className="rounded-lg border border-border px-3 py-1.5 font-medium transition-colors hover:bg-secondary disabled:opacity-40"
+              >
+                Berikutnya
+              </button>
+            </div>
           </div>
         </div>
       </section>

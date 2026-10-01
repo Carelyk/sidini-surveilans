@@ -482,8 +482,10 @@ function Dashboard() {
               <Users className="size-4 text-primary" /> Kelompok umur (7 hari)
             </h3>
             <p className="mt-1 text-justify text-xs text-muted-foreground">
-              Sebaran kasus 7 hari terakhir menurut rentang usia, dipecah per penyakit. Terlihat
+              Sebaran kasus 7 hari terakhir menurut kelompok umur, dipecah per penyakit. Terlihat
               kelompok yang paling banyak terkena dan penyakit apa yang dominan di setiap kelompok.
+              Kelompok umur mengikuti pengelompokan Kemenkes: bayi &amp; balita (0-4 tahun), anak
+              (5-9), remaja (10-18), dewasa (19-59), dan lanjut usia (60 tahun ke atas).
             </p>
             <div className="mt-2 h-56">
               <ResponsiveContainer width="100%" height="100%">
@@ -494,7 +496,7 @@ function Dashboard() {
                     vertical={false}
                   />
                   <XAxis
-                    dataKey="kelompok"
+                    dataKey="nama"
                     tick={{ fontSize: 11 }}
                     stroke="var(--color-muted-foreground)"
                   />

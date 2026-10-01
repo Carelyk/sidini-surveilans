@@ -53,7 +53,7 @@ export function BannerDemo() {
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-2 gap-y-0.5 px-4 py-1.5 text-[11px] leading-snug">
         <span className="min-w-0 flex-1">
           DEMO &middot; data simulasi, bukan laporan kasus sebenarnya &middot; {labelSnapshot()}{" "}
-          &middot; tanpa login (semua peran dapat membuka semua halaman){" "}
+          &middot; tanpa autentikasi (login petugas hanya dijaga di peramban){" "}
           <Link
             to="/tentang"
             hash="acuan-belum-diverifikasi"

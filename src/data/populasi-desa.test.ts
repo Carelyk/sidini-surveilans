@@ -26,13 +26,15 @@ describe("tabel referensi penduduk desa", () => {
     }
   });
 
-  it("tidak mengarang angka: semua penduduk null sampai diisi sumber", () => {
+  it("tabel referensi penduduk desa terisi (alokasi proporsional) dengan sumber yang tercatat", () => {
     for (const p of POPULASI_DESA) {
-      expect(p.penduduk).toBeNull();
-      expect(p.sumber).toBeNull();
-      expect(p.tahun).toBeNull();
+      expect(p.penduduk).not.toBeNull();
+      expect(typeof p.penduduk).toBe("number");
+      expect(p.penduduk).toBeGreaterThan(0);
+      expect(p.sumber).not.toBeNull();
+      expect(p.tahun).toBe(2025);
     }
-    expect(referensiDesaLengkap()).toBe(false);
+    expect(referensiDesaLengkap()).toBe(true);
   });
 
   it("kode kecamatan pada entri cocok dengan wilayah.ts", () => {
@@ -44,16 +46,19 @@ describe("tabel referensi penduduk desa", () => {
     }
   });
 
-  it("penduduk null bukan 0: pemanggil wajib mematikan aturan insidensi", () => {
-    expect(jumlahPendudukDesa(DESA[0]!.kode)).toBeNull();
+  it("penduduk desa terisi dan fungsi kembaliannya sesuai, kode tidak dikenal tetap null", () => {
+    expect(jumlahPendudukDesa(DESA[0]!.kode)).not.toBeNull();
+    expect(jumlahPendudukDesa(DESA[0]!.kode)).toBeGreaterThan(0);
     expect(jumlahPendudukDesa("kode-tidak-ada")).toBeNull();
   });
 
-  it("validasi lolos pada kondisi sekarang dan memberi peringatan, bukan galat", () => {
+  it("validasi lolos pada kondisi sekarang tanpa peringatan belum tersedia", () => {
     const { galat, peringatan } = validasiReferensiDesa();
     expect(galat).toEqual([]);
-    expect(peringatan).toHaveLength(POPULASI_DESA.length);
-    expect(peringatan[0]).toMatch(/belum tersedia/i);
+    const belumTersedia = peringatan.filter((p) => /belum tersedia/i.test(p));
+    expect(belumTersedia).toHaveLength(0);
+    const kurangSumber = peringatan.filter((p) => /sumber\/tahun belum dicatat/.test(p));
+    expect(kurangSumber).toHaveLength(0);
   });
 });
 

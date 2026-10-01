@@ -57,9 +57,10 @@ function Tentang() {
         </h1>
         <p className="mt-2 max-w-3xl text-justify text-sm text-muted-foreground">
           Prototipe sistem peringatan dini wabah untuk Kabupaten Bandung, Jawa Barat. Batas wilayah,
-          kode kecamatan, dan jumlah penduduk tingkat kabupaten memakai data resmi, jumlah penduduk
-          tingkat desa belum tersedia di prototipe ini, dan seluruh angka kasus penyakit bersifat
-          sintetis untuk keperluan studi kasus.
+          kode kecamatan, dan jumlah penduduk tingkat kabupaten memakai data resmi. Jumlah penduduk
+          tingkat desa di sini adalah alokasi proporsional dari penduduk kecamatan (perkiraan, perlu
+          verifikasi Dinkes), dan seluruh angka kasus penyakit bersifat sintetis untuk keperluan
+          studi kasus.
         </p>
       </header>
 
@@ -145,15 +146,20 @@ function Tentang() {
               <ul className="mt-2 list-disc space-y-1.5 pl-5">
                 <li>
                   <strong className="text-foreground">Sinyal</strong>: rasio kasus terhadap baseline
-                  3 minggu desa itu sendiri mencapai 2x, dengan minimal{" "}
-                  {ATURAN_HARIAN.kasusMinSinyal}
-                  kasus penyakit itu dalam 7 hari. Sinyal berarti perlu diperiksa petugas, belum
-                  berarti KLB.
+                  3 minggu desa itu sendiri mencapai 2x dengan minimal{" "}
+                  {ATURAN_HARIAN.kasusMinSinyal} kasus penyakit itu dalam 7 hari,{" "}
+                  <strong>atau</strong> insidensi penyakit itu melewati ambang mingguan. Sinyal
+                  berarti perlu diperiksa petugas, belum berarti KLB.
                 </li>
                 <li>
-                  <strong className="text-foreground">Waspada</strong>: rasio mencapai 1,5x, dengan
-                  minimal {KASUS_MIN_WASPADA} kasus penyakit itu dalam 7 hari. Angka ini sama dengan
-                  yang dipakai di lapis SKDR mingguan.
+                  <strong className="text-foreground">Waspada</strong>: rasio mencapai 1,5x dengan
+                  minimal {KASUS_MIN_WASPADA} kasus penyakit itu dalam 7 hari, atau insidensi
+                  mencapai 60% ambang. Rasio 1,5x sama dengan yang dipakai di lapis SKDR mingguan.
+                </li>
+                <li>
+                  Aturan insidensi tidak memakai syarat kasus minimum, jadi desa kecil bisa naik ke
+                  Sinyal dengan kasus sedikit — itulah sebabnya angka penduduk desa ditulis terbuka
+                  di tabel referensi.
                 </li>
                 <li>
                   <strong className="text-foreground">Aman</strong>: belum ada ambang yang
@@ -166,9 +172,12 @@ function Tentang() {
                   99, sehingga petugas mengejar angka yang tidak berarti.
                 </li>
                 <li>
-                  Insidensi per 100.000 penduduk baru dihitung bila jumlah penduduk desa diisi pada
-                  tabel referensi. Selama kolom itu kosong, sistem menulis "penduduk belum tersedia"
-                  dan tidak memakai ambang insidensi.
+                  Insidensi per 100.000 penduduk dihitung menggunakan jumlah penduduk desa dari
+                  tabel referensi. Untuk keperluan prototipe ini, nilai penduduk per desa diisi
+                  dengan alokasi proporsional dari penduduk kecamatan resmi BPS (estimasi),
+                  sumbernya dicatat pada tabel referensi ("perkiraan; perlu verifikasi Dinkes"),
+                  bukan angka resmi per desa. Sistem tetap menunjukkan insidensi secara terbuka
+                  beserta status sumber datanya.
                 </li>
               </ul>
             </div>
@@ -352,10 +361,12 @@ function Tentang() {
             analisis AI hanya memakai angka agregat per desa.
           </li>
           <li>
-            <strong className="text-foreground">Belum ada autentikasi.</strong> Prototipe ini tidak
-            memiliki login, sehingga siapa pun yang membuka alamatnya dapat mengirim laporan,
-            memverifikasi, dan membaca seluruh data. Pada sistem nyata, halaman petugas wajib berada
-            di balik autentikasi dan data individual tidak boleh keluar dari peran petugas.
+            <strong className="text-foreground">Login petugas bukan autentikasi.</strong> Dua
+            halaman petugas (input puskesmas dan verifikasi) dijaga kartu masuk, tetapi kredensial
+            contoh tertulis di dalam berkas dan diperiksa di peramban. Siapa pun yang membuka
+            devtools bisa membacanya, dan sesi bisa dihapus dari panel penyimpanan. Yang belum ada:
+            pemeriksaan di server, basis data pengguna, hashing sandi, dan pencadangan. Membuka
+            laporan warga dan membaca seluruh data tetap bisa dilakukan siapa pun tanpa masuk.
           </li>
           <li>
             <strong className="text-foreground">Ringkasan dibangun di server.</strong> Ringkasan

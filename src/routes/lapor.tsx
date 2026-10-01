@@ -4,7 +4,14 @@ import { CheckCircle2, Lock, WifiOff } from "lucide-react";
 import { toast } from "sonner";
 
 import { useSurveilans } from "@/lib/store";
-import { DESA, GEJALA_UMUM, KELOMPOK_UMUR, TANGGAL_ACUAN, type KelompokUmur } from "@/data/dataset";
+import {
+  DESA,
+  GEJALA_UMUM,
+  KELOMPOK_UMUR,
+  NAMA_KELOMPOK_UMUR,
+  TANGGAL_ACUAN,
+  type KelompokUmur,
+} from "@/data/dataset";
 import { formatTanggal } from "@/data/kronologi";
 import { onsetTerawal, validasiOnset } from "@/lib/formulir";
 
@@ -30,7 +37,7 @@ export const Route = createFileRoute("/lapor")({
 function LaporWarga() {
   const { tambah } = useSurveilans();
   const [kodeDesa, setKodeDesa] = useState(DESA[0]!.kode);
-  const [umur, setUmur] = useState<KelompokUmur>("15-44");
+  const [umur, setUmur] = useState<KelompokUmur>("10-18");
   const [gejala, setGejala] = useState<string[]>([]);
   const [onset, setOnset] = useState(TANGGAL_ACUAN);
   const [kluster, setKluster] = useState(false);
@@ -86,9 +93,7 @@ function LaporWarga() {
         .join(" · "),
     });
     setTerkirim(baru.id);
-    toast.success(
-      "Laporan tersimpan di peramban ini dan masuk antrean verifikasi. Tidak ada pesan dikirim ke petugas.",
-    );
+    toast.success("Terima kasih sudah mengirim laporan.");
     setGejala([]);
     setKluster(false);
     setKontak("");
@@ -115,11 +120,14 @@ function LaporWarga() {
         <div className="panel flex items-start gap-3 border-success/40 bg-success/10 p-4">
           <CheckCircle2 className="mt-0.5 size-5 text-success-text" />
           <div className="text-sm">
-            <p className="font-semibold text-success-text">Laporan diterima · nomor {terkirim}</p>
-            <p className="text-muted-foreground">
-              Status: <strong>Menunggu verifikasi</strong>. Di prototipe ini laporan hanya tersimpan
-              di peramban ini, tidak ada pesan yang dikirim ke petugas dan belum ada target waktu
-              verifikasi yang dijalankan.
+            <p className="font-semibold text-success-text">
+              Terima kasih, laporan Anda sudah kami terima.
+            </p>
+            <p className="text-justify text-muted-foreground">
+              Laporan sedang menunggu verifikasi petugas puskesmas. Statusnya{" "}
+              <strong>Menunggu verifikasi</strong> dan belum dihitung sebagai kasus, sehingga
+              laporan yang belum diperiksa tidak ikut masuk ke dashboard. Jika diperlukan, petugas
+              akan menghubungi Anda.
             </p>
           </div>
         </div>
@@ -190,7 +198,7 @@ function LaporWarga() {
               >
                 {KELOMPOK_UMUR.map((u) => (
                   <option key={u} value={u}>
-                    {u} tahun
+                    {NAMA_KELOMPOK_UMUR[u]} · {u === "60+" ? "60 tahun ke atas" : `${u} tahun`}
                   </option>
                 ))}
               </select>

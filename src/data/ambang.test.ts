@@ -136,13 +136,16 @@ describe("verifikasi acuan Dinkes: status dibiarkan, angka tidak bergerak", () =
     }
   });
 
-  it("penduduk desa tetap kosong: tidak ada angka yang dikarang", () => {
+  it("penduduk desa terisi dengan sumber tertera (perkiraan prototipe) dan referensi lengkap", () => {
     for (const p of POPULASI_DESA) {
-      expect(p.penduduk).toBeNull();
-      expect(p.sumber).toBeNull();
-      expect(p.tahun).toBeNull();
+      expect(p.penduduk).not.toBeNull();
+      expect(typeof p.penduduk).toBe("number");
+      expect(p.penduduk).toBeGreaterThan(0);
+      expect(p.sumber).not.toBeNull();
+      expect(p.sumber).toMatch(/perkiraan|alokasi|verifikasi Dinkes/i);
+      expect(p.tahun).toBe(2025);
     }
-    expect(referensiDesaLengkap()).toBe(false);
+    expect(referensiDesaLengkap()).toBe(true);
   });
 
   it("halaman menyebut ambang dan penduduk desa sebagai nilai simulasi Dinkes", () => {

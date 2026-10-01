@@ -47,9 +47,34 @@ export interface Kasus {
   catatan?: string;
 }
 
-export type KelompokUmur = "0-4" | "5-14" | "15-44" | "45-64" | "65+";
+/**
+ * Kelompok umur kasus, mengikuti pengelompokan usia yang lazim
+ * dipakai Kemenkes: bayi & balita di bawah 5 tahun, anak, remaja sampai 18
+ * tahun, dewasa, dan lanjut usia.
+ *
+ * Batas kelompok tidak pernah tumpang tindih. Usia 18 tahun sengaja masuk
+ * kelompok remaja, jadi kelompok dewasa dimulai dari 19 tahun. Kalau batasnya
+ * dibikin tumpang tindih, satu kasus bisa punya dua kelompok umur sekaligus dan
+ * jumlah kasus per kelompok tidak akan sama dengan jumlah kasus keseluruhan.
+ */
+export type KelompokUmur = "0-4" | "5-9" | "10-18" | "19-59" | "60+";
 
-export const KELOMPOK_UMUR: KelompokUmur[] = ["0-4", "5-14", "15-44", "45-64", "65+"];
+export const KELOMPOK_UMUR: KelompokUmur[] = ["0-4", "5-9", "10-18", "19-59", "60+"];
+
+/** Nama kelompok umur untuk tampilan. Dipakai di formulir, tabel, dan grafik. */
+export const NAMA_KELOMPOK_UMUR: Record<KelompokUmur, string> = {
+  "0-4": "Bayi & balita",
+  "5-9": "Anak",
+  "10-18": "Remaja",
+  "19-59": "Dewasa",
+  "60+": "Lansia",
+};
+
+/** Label dropdown formulir: nama kelompok Disertai batas usianya. */
+export function labelKelompokUmur(u: KelompokUmur): string {
+  return `${NAMA_KELOMPOK_UMUR[u]} · ${u === "60+" ? "60 tahun ke atas" : `${u} tahun`}`;
+}
+
 export const PENYAKIT: Penyakit[] = ["DBD", "Diare", "Chikungunya", "Hepatitis A"];
 
 export const GEJALA_UMUM = [
@@ -420,9 +445,9 @@ export function buatDataset(): Kasus[] {
         const umur: KelompokUmur =
           penyakit === "DBD"
             ? r() < 0.42
-              ? "5-14"
+              ? "5-9"
               : r() < 0.7
-                ? "15-44"
+                ? "10-18"
                 : pick(r, KELOMPOK_UMUR)
             : penyakit === "Diare"
               ? r() < 0.45

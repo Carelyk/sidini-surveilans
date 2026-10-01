@@ -17,7 +17,7 @@ function kasusDariPeramban(overrides: Record<string, unknown> = {}): Record<stri
     tanggalOnset: "2026-09-20",
     tanggalLapor: "2026-09-25",
     kodeDesa: DESA_A.kode,
-    kelompokUmur: "5-14",
+    kelompokUmur: "5-9",
     jenisKelamin: "L",
     status: "Terverifikasi",
     sumber: "Puskesmas",

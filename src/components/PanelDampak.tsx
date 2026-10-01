@@ -69,7 +69,7 @@ export function PanelDampak({ kasus }: { kasus: Kasus[] }) {
               ? "belum diukur"
               : `${deteksi.filter((x) => x.tanggalSinyal !== null && !x.tepiJendela).length} / ${deteksi.length}`
           }
-          ket="Sisa desa sinyalnya sudah aktif sebelum jendela observasi dimulai"
+          ket="Sisa desa sinyalnya terpicu aturan insidensi, atau sudah aktif sebelum jendela observasi dimulai"
         />
       </div>
 
@@ -93,9 +93,10 @@ export function PanelDampak({ kasus }: { kasus: Kasus[] }) {
             <div className="space-y-1 text-justify text-xs text-muted-foreground">
               <p>
                 Tanggal sinyal adalah hari pertama jumlah kasus 7 hari desa itu melewati ambang
-                penyakit pemicunya, memakai ambang yang sama dengan tabel status per desa di atas.
-                Penentuan status memakai aturan rasio terhadap baseline, karena jumlah penduduk desa
-                belum tersedia sehingga insidensi tidak bisa dihitung.
+                rasio terhadap baseline, memakai ambang penyakit yang sama dengan tabel status per
+                desa di atas. Desa yang badge Sinyalnya muncul dari aturan insidensi tidak bisa
+                ditanggalkan dengan cara ini, jadi barisnya ditulis &ldquo;belum diukur&rdquo; --
+                bukan diberi tanggal hasil tebakan.
               </p>
               <p>
                 <strong className="font-semibold text-foreground">

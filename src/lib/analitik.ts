@@ -2,6 +2,7 @@ import { AMBANG, KASUS_MIN_SINYAL_HARIAN, KASUS_MIN_WASPADA_HARIAN } from "@/dat
 import {
   DESA,
   KELOMPOK_UMUR,
+  NAMA_KELOMPOK_UMUR,
   PENYAKIT,
   TANGGAL_ACUAN,
   type Kasus,
@@ -289,12 +290,14 @@ export function perPenyakit(kasus: Kasus[]) {
 export function perUmur(kasus: Kasus[]) {
   return KELOMPOK_UMUR.map((u) => ({
     kelompok: u,
+    nama: NAMA_KELOMPOK_UMUR[u],
     jumlah: kasus.filter((k) => k.kelompokUmur === u).length,
   }));
 }
 
 export interface TitikUmurPenyakit {
   kelompok: string;
+  nama: string;
   jumlah: number;
   DBD: number;
   Diare: number;
@@ -309,6 +312,7 @@ export function perUmurPenyakit(kasus: Kasus[]): TitikUmurPenyakit[] {
     const dalam = kasus.filter((k) => k.kelompokUmur === u);
     const titik: TitikUmurPenyakit = {
       kelompok: u,
+      nama: NAMA_KELOMPOK_UMUR[u],
       jumlah: dalam.length,
       DBD: 0,
       Diare: 0,

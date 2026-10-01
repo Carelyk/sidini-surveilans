@@ -37,6 +37,14 @@ export const Route = createFileRoute("/peta")({
 
 const nf = new Intl.NumberFormat("id-ID");
 
+/**
+ * Periode yang dibuka pertama kali: skenario puncak musim hujan 2026.
+ *
+ * Dipilih supaya demo langsung menunjukkan ambang KLB bekerja. Kalau dibuka
+ * di minggu terakhir, semua kecamatan hijau dan peta tidak menunjukkan apa pun.
+ * Karena kedua lapis data memang tidak direkonsiliasi, periode yang "sepadan"
+ * dengan dashboard bukan alasan yang cukup untuk membuat peta sepi.
+ */
 const AWAL: FilterState = {
   tahun: 2026,
   mingguDari: 5,
@@ -80,6 +88,17 @@ function Peta() {
           Chikungunya, atau Hepatitis A). Intensitas warna menggambarkan kedekatan kecamatan dengan
           ambang KLB, warna yang lebih tua menandakan risiko yang lebih tinggi. Klik satu kecamatan
           untuk memperbesar dan melihat titik kasus simulasi.
+        </p>
+        <p className="mt-2 max-w-3xl rounded-lg border border-border bg-secondary/50 p-3 text-justify text-xs text-muted-foreground">
+          <strong className="font-medium text-foreground">Perhatikan lapis datanya.</strong> Halaman
+          ini memakai <strong>rekap SKDR mingguan per kecamatan</strong> — inilah lapisan yang
+          berwenang menetapkan label KLB. Dashboard memakai <strong>kasus harian per desa</strong>{" "}
+          dengan label Sinyal/Waspada/Aman. Keduanya sumber simulasi yang terpisah dan belum
+          direkonsiliasi, jadi angkanya tidak boleh dijumlahkan atau dibandingkan langsung. Periode
+          yang dibuka di bawah adalah{" "}
+          <strong>skenario puncak musim hujan, minggu 5&ndash;9 2026</strong>, yaitu outbreak yang
+          sengaja disimulasikan supaya ambang KLB terlihat menyala. Untuk melihat rekap SKDR pada
+          periode yang sama dengan snapshot kasus harian di dashboard, pilih minggu 33&ndash;39.
         </p>
       </header>
 

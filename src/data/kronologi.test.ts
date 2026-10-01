@@ -102,7 +102,10 @@ describe("label snapshot menggantikan penanda kedaluwarsa", () => {
     // Teks banner satu baris memakai tanggal snapshot dari sumber waktu data.
     expect(banner).toContain("labelSnapshot");
     expect(banner).toMatch(/bukan laporan kasus sebenarnya/);
-    expect(banner).toMatch(/tanpa login/);
+    // Banner tidak boleh menjanjikan keamanan terhadap data pelapor: login
+    // petugas dijaga di peramban, bukan di server.
+    expect(banner).toMatch(/tanpa autentikasi/);
+    expect(banner).not.toMatch(/tanpa login/);
     expect(banner).toContain("Selengkapnya");
     // Tombol tutup dengan nama yang bisa dibaca alat bantu.
     expect(banner).toContain('aria-label="Tutup pemberitahuan demo"');

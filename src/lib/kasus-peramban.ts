@@ -1,4 +1,4 @@
-import { DESA, type Kasus, type Desa } from "@/data/dataset";
+import { DESA, KELOMPOK_UMUR, type Kasus, type Desa } from "@/data/dataset";
 import { bersihkanTeks } from "@/lib/teks-tak-terpercaya";
 
 /**
@@ -37,7 +37,10 @@ const MAKS_ID = 60;
 const MAKS_GEJALA_PER_KASUS = 12;
 
 const PENYAKIT_VALID = new Set(["DBD", "Diare", "Chikungunya", "Hepatitis A"]);
-const UMUR_VALID = new Set(["0-4", "5-14", "15-44", "45-64", "65+"]);
+// Diturunkan dari tabel kelompok umur yang dipakai modul kasus, bukan ditulis
+// ulang di sini. Kalau daftar ini menyimpang dari tabelnya, kasus yang
+// ditolak server dan yang diterima bisa berbeda untuk kelompok umur yang sama.
+const UMUR_VALID = new Set<string>(KELOMPOK_UMUR);
 const STATUS_VALID = new Set(["Baru", "Investigasi", "Terverifikasi", "Ditolak"]);
 const SUMBER_VALID = new Set(["Puskesmas", "Warga"]);
 const JK_VALID = new Set(["L", "P"]);

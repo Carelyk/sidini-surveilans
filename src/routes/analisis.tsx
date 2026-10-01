@@ -308,13 +308,28 @@ function Analisis() {
             Analisis gagal
           </p>
           <p className="mt-1 text-sm text-muted-foreground">{galat}</p>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Untuk mode demo lokal, isi kunci API di berkas <code className="font-mono">.env</code>{" "}
-            lalu jalankan ulang server:
-          </p>
-          <pre className="mt-2 overflow-x-auto rounded-lg border border-border bg-background/50 p-3 font-mono text-[11px] text-muted-foreground">
-            {`GROQ_API_KEY=gsk_...\nGROQ_MODEL=openai/gpt-oss-120b`}
-          </pre>
+          {/rate limit|terlalu banyak|coba lagi/i.test(galat) ? (
+            // Batas kuota model adalah kondisi normal, bukan kesalahan
+            // konfigurasi. Menyarankan mengisi ulang kunci API di sini hanya
+            // membuat angka terlihat salah dan wastes presenter time.
+            <p className="mt-2 text-xs text-muted-foreground">
+              Ini batas kuota provider AI, bukan kerusakan aplikasi. Tunggu sekitar 20 detik, lalu
+              tekan <strong className="font-semibold text-foreground">Tanyakan</strong> sekali lagi.
+              Satu analisis memuat ringkasan surveilans lengkap, jadi hanya satu permintaan analisis
+              yang muat per menit.
+            </p>
+          ) : (
+            <>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Untuk mode demo lokal, isi kunci API di berkas{" "}
+                <code className="font-mono">.env</code> lalu jalankan ulang server. Model sudah
+                diatur di <code className="font-mono">GROQ_MODEL</code>, tidak perlu diubah.
+              </p>
+              <pre className="mt-2 overflow-x-auto rounded-lg border border-border bg-background/50 p-3 font-mono text-[11px] text-muted-foreground">
+                {"GROQ_API_KEY=gsk_...\nGROQ_MODEL=qwen/qwen3.8-27b"}
+              </pre>
+            </>
+          )}
         </div>
       )}
 

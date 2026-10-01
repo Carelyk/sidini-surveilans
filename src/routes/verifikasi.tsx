@@ -3,10 +3,56 @@ import { useMemo, useState } from "react";
 import { Check, Search, X } from "lucide-react";
 import { toast } from "sonner";
 
+import { DialogKonfirmasi } from "@/components/DialogKonfirmasi";
+import { ChipPetugas, PintuPetugas } from "@/components/PintuPetugas";
+import { NAMA_KELOMPOK_UMUR, type Kasus } from "@/data/dataset";
 import { useSurveilans } from "@/lib/store";
 
 /** Jumlah laporan per halaman pada antrean verifikasi. */
 const UKUR_HALAMAN = 10;
+
+/** Aksi triase yang sedang menunggu konfirmasi petugas. */
+type Aksi = "sahkan" | "tolak" | "investigasi" | null;
+
+/**
+ * Kalimat konfirmasi per aksi.
+ *
+ * Setiap aksi punya akibat berbeda terhadap angka dashboard, jadi kalimatnya
+ * menjelaskan akibat itu, bukan hanya mengulang label tombol. Aksi "tolak"
+ * memakai nada bahaya karena laporan yang ditolak keluar dari antrean dan
+ * tidak bisa dikembalikan dari halaman mana pun di prototipe ini.
+ */
+const AKSI_DIALOG: Record<
+  Exclude<Aksi, null>,
+  {
+    nada: "sukses" | "bahaya" | "info";
+    judul: string;
+    konfirmasi: string;
+    pesan: (k: Kasus) => string;
+  }
+> = {
+  sahkan: {
+    nada: "sukses",
+    judul: "Yakin sahkan laporan ini?",
+    konfirmasi: "Ya, sahkan",
+    pesan: (k) =>
+      `Laporan ${k.id} · Dugaan ${k.penyakit} di Desa ${k.desa} akan dihitung sebagai kasus resmi dan langsung masuk ke angka dashboard.`,
+  },
+  investigasi: {
+    nada: "info",
+    judul: "Tandai perlu investigasi lapangan?",
+    konfirmasi: "Ya, tandai investigasi",
+    pesan: (k) =>
+      `Laporan ${k.id} tetap menunggu di antrean dan BELUM dihitung sebagai kasus. Statusnya berubah menjadi Investigasi dan pencatatan petugas berikutnya belum ada di prototipe ini.`,
+  },
+  tolak: {
+    nada: "bahaya",
+    judul: "Yakin tolak laporan ini?",
+    konfirmasi: "Ya, tolak",
+    pesan: (k) =>
+      `Laporan ${k.id} akan dikeluarkan dari antrean verifikasi dan tidak dihitung sebagai kasus. Tindakan ini tidak dapat dibatalkan dari halaman mana pun, jadi pastikan alasan penolakan sudah tercatat manual.`,
+  },
+};
 
 export const Route = createFileRoute("/verifikasi")({
   head: () => ({
@@ -20,12 +66,28 @@ export const Route = createFileRoute("/verifikasi")({
       { property: "og:title", content: "Verifikasi Laporan Warga | SIDINI" },
       {
         property: "og:description",
-        content: "Alur triase laporan komunitas sebelum dihitung sebagai kasus resmi.",
+        content:
+          "Alur triase laporan komunitas sebelum dihitung sebagai kasus resmi. Halaman khusus petugas.",
       },
     ],
   }),
-  component: Verifikasi,
+  component: VerifikasiTerpantau,
 });
+
+/**
+ * Antrean verifikasi hanya dirender setelah login petugas, supaya isi halaman
+ * ini tidak pernah muncul di peramban yang belum masuk.
+ */
+function VerifikasiTerpantau() {
+  return (
+    <PintuPetugas
+      judul="Halaman petugas"
+      keterangan="Verifikasi laporan warga hanya untuk petugas surveilans. Warga sendiri mengirim laporan tanpa perlu login."
+    >
+      <Verifikasi />
+    </PintuPetugas>
+  );
+}
 
 function Verifikasi() {
   const { kasus, ubahStatus } = useSurveilans();
@@ -61,10 +123,40 @@ function Verifikasi() {
   const skorPrioritas = (gejalaJumlah: number, kluster: boolean) =>
     (kluster ? 2 : 0) + (gejalaJumlah >= 3 ? 2 : 1);
 
+  // Aksi tidak dijalankan langsung saat tombol ditekan: nama laporan yang
+  // dipilih disimpan dulu, lalu DialogKonfirmasi menanyakan akibatnya. Setelah
+  // petugas mengonfirmasi, barulah ubahStatus dipanggil.
+  const [aksi, setAksi] = useState<Aksi>(null);
+  const [dipilih, setDipilih] = useState<Kasus | null>(null);
+
+  const mintaKonfirmasi = (a: Aksi, k: Kasus) => {
+    setDipilih(k);
+    setAksi(a);
+  };
+
+  const jalankan = () => {
+    if (!dipilih || !aksi) return;
+    if (aksi === "sahkan") {
+      ubahStatus(dipilih.id, "Terverifikasi");
+      toast.success(`${dipilih.id} disahkan sebagai kasus dan masuk hitungan dashboard.`);
+      return;
+    }
+    if (aksi === "tolak") {
+      ubahStatus(dipilih.id, "Ditolak");
+      toast(
+        "Laporan ditolak. Prototipe tidak mendeteksi duplikat, jadi alasan penolakan dicatat manual petugas.",
+      );
+      return;
+    }
+    ubahStatus(dipilih.id, "Investigasi");
+    toast("Ditandai berstatus Investigasi. Belum ada petugas yang ditugaskan.");
+  };
+
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-8">
       <header>
         <p className="text-xs font-semibold uppercase tracking-wide text-primary">Triase</p>
+        <ChipPetugas />
         <h1 className="mt-1 text-2xl font-bold sm:text-3xl">Verifikasi laporan warga</h1>
         <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
           Laporan warga tidak langsung menjadi kasus. Petugas memutuskan: sahkan, investigasi, atau
@@ -72,7 +164,7 @@ function Verifikasi() {
         </p>
         <p className="mt-1 max-w-3xl text-xs text-muted-foreground">
           Yang belum ada di prototipe: pendeteksian laporan duplikat otomatis, penugasan petugas,
-          dan membatasi akses per peran. Halaman ini terbuka tanpa autentikasi.
+          dan pemeriksaan peran di server. Akses ke halaman ini dijaga di sisi peramban.
         </p>
       </header>
 
@@ -126,8 +218,8 @@ function Verifikasi() {
                   Dugaan {k.penyakit} · Desa {k.desa}, Kec. {k.kecamatan}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Onset {k.tanggalOnset} · dilaporkan {k.tanggalLapor} · umur {k.kelompokUmur} th ·{" "}
-                  {k.puskesmas}
+                  Onset {k.tanggalOnset} · dilaporkan {k.tanggalLapor} ·{" "}
+                  {NAMA_KELOMPOK_UMUR[k.kelompokUmur]} · {k.puskesmas}
                 </p>
                 <p className="mt-1.5 text-sm text-muted-foreground">
                   Gejala: {k.gejala.length ? k.gejala.join(", ") : "tidak dirinci"}
@@ -141,30 +233,19 @@ function Verifikasi() {
 
               <div className="flex flex-wrap gap-2">
                 <button
-                  onClick={() => {
-                    ubahStatus(k.id, "Terverifikasi");
-                    toast.success(`${k.id} disahkan sebagai kasus dan masuk hitungan dashboard.`);
-                  }}
+                  onClick={() => mintaKonfirmasi("sahkan", k)}
                   className="inline-flex items-center gap-1.5 rounded-lg bg-success/20 px-3 py-2 text-sm font-semibold text-success-text transition-colors hover:bg-success/30"
                 >
                   <Check className="size-4" /> Sahkan
                 </button>
                 <button
-                  onClick={() => {
-                    ubahStatus(k.id, "Investigasi");
-                    toast("Ditandai berstatus Investigasi. Belum ada petugas yang ditugaskan.");
-                  }}
+                  onClick={() => mintaKonfirmasi("investigasi", k)}
                   className="rounded-lg border border-border px-3 py-2 text-sm font-medium transition-colors hover:bg-secondary"
                 >
                   Investigasi
                 </button>
                 <button
-                  onClick={() => {
-                    ubahStatus(k.id, "Ditolak");
-                    toast(
-                      "Laporan ditolak. Prototipe tidak mendeteksi duplikat, jadi alasan penolakan dicatat manual petugas.",
-                    );
-                  }}
+                  onClick={() => mintaKonfirmasi("tolak", k)}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-destructive/40 px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
                 >
                   <X className="size-4" /> Tolak
@@ -174,6 +255,28 @@ function Verifikasi() {
           );
         })}
       </div>
+
+      <DialogKonfirmasi
+        terbuka={aksi !== null}
+        tutup={() => {
+          setAksi(null);
+          setDipilih(null);
+        }}
+        nada={AKSI_DIALOG[aksi ?? "sahkan"].nada}
+        judul={AKSI_DIALOG[aksi ?? "sahkan"].judul}
+        pesan={dipilih ? AKSI_DIALOG[aksi ?? "sahkan"].pesan(dipilih) : ""}
+        aksi={
+          aksi === null
+            ? []
+            : [
+                {
+                  label: AKSI_DIALOG[aksi].konfirmasi,
+                  nada: AKSI_DIALOG[aksi].nada,
+                  jalankan: jalankan,
+                },
+              ]
+        }
+      />
 
       {semua.length > UKUR_HALAMAN && (
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4 text-xs text-muted-foreground">

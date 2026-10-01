@@ -25,7 +25,7 @@ function kasusBaru(
     kodeDesa: DESA[0]!.kode,
     desa: DESA[0]!.nama,
     kecamatan: DESA[0]!.kecamatan,
-    kelompokUmur: "5-14",
+    kelompokUmur: "5-9",
     jenisKelamin: "L",
     status: "Terverifikasi",
     sumber: "Puskesmas",
@@ -128,6 +128,20 @@ describe("waktu deteksi per desa", () => {
     const angka = hasil.map((b) => b.hariLebihAwal ?? -1);
     const terurut = [...angka].sort((a, b) => b - a);
     expect(angka).toEqual(terurut);
+  });
+
+  it("desa yang Sinyalnya terpicu insidensi ditulis belum diukur, bukan diberi tanggal", () => {
+    // Rancaekek Kulon naik ke Sinyal karena insidensi (7 kasus DBD, insidensi
+    // 50,8/100.000/mgg >= ambang 50), bukan karena rasio: kasusnya belum
+    // mencapai minimal 10 sehingga aturan rasio tidak pernah menyala. Tabel
+    // ini hanya mengukur aturan rasio, jadi barisnya harus jujur menyebut
+    // alasannya -- bukan diam saja seolah tidak ada yang perlu dijelaskan.
+    const baris = hasil.find((b) => b.desa === "Rancaekek Kulon");
+    expect(baris).toBeDefined();
+    expect(baris!.tanggalSinyal).toBeNull();
+    expect(baris!.hariLebihAwal).toBeNull();
+    expect(baris!.catatan).toMatch(/aturan insidensi/i);
+    expect(baris!.catatan).toMatch(/tidak bisa dihitung/i);
   });
 
   it("menandai sinyal yang tidak bisa dihitung, bukan mengarang angka", () => {

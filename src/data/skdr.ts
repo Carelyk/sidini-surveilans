@@ -25,10 +25,14 @@
 import { KECAMATAN, TOTAL_PENDUDUK } from "./wilayah";
 
 export type Penyakit = "DBD" | "Diare" | "Chikungunya" | "Hepatitis A";
-export type KelompokUmur = "0-4" | "5-14" | "15-44" | "45-64" | "65+";
 
 export const PENYAKIT: Penyakit[] = ["DBD", "Diare", "Chikungunya", "Hepatitis A"];
-export const KELOMPOK_UMUR: KelompokUmur[] = ["0-4", "5-14", "15-44", "45-64", "65+"];
+
+// Kelompok umur TIDAK didefinisikan di sini. Rekap SKDR dipakai per kecamatan
+// dan tidak pernah menyimpan usia kasus, jadi definisinya satu-satu di
+// src/data/dataset.ts. Duplikatnya di sini pernah berbeda dari yang dipakai
+// modul kasus, sehingga dua modul bisa menampilkan kelompok umur yang
+// tidak sama untuk kasus yang sama.
 
 export const TAHUN_SKDR: number[] = [2025, 2026];
 export const JUMLAH_MINGGU = 52;
