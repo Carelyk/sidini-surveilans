@@ -75,6 +75,48 @@ export function labelKelompokUmur(u: KelompokUmur): string {
   return `${NAMA_KELOMPOK_UMUR[u]} · ${u === "60+" ? "60 tahun ke atas" : `${u} tahun`}`;
 }
 
+/**
+ * Peta kelompok umur versi lama ke kelompok versi sekarang.
+ *
+ * SKDR dulu memakai lima kelompok dengan batas berbeda. Setelah tabel di atas
+ * diganti mengikuti pengelompokan Kemenkes, kasus yang sudah tersimpan di
+ * peramban masih memakai label lama. Karena `localStorage` bertahan antar
+ * kunjungan, data lama itu ikut terbaca dan tidak cocok dengan kelompok yang
+ * sekarang: perhitungannya bernilai nol untuk semua kelompok selain "0-4",
+ * sehingga grafik kelompok umur hanya menampilkan satu batang.
+ *
+ * Setiap label lama dipetakan ke kelompok baru yang memuat rentang usianya,
+ * dengan batas atas yang sama atau lebih kecil supaya tidak ada kasus yang
+ * jatuh di luar kelompok mana pun. Hasilnya tidak ada kasus hilang hanya
+ * karena labelnya usang.
+ */
+const PEMETAAN_LAMA: Record<string, KelompokUmur> = {
+  "0-4": "0-4",
+  "0-5": "0-4",
+  "5-14": "5-9",
+  "15-44": "10-18",
+  "45-64": "19-59",
+  "65+": "60+",
+  "60+": "60+",
+  "25-44": "19-59",
+  "15-24": "10-18",
+  "10-14": "10-18",
+};
+
+/**
+ * Ubah kelompok umur versi lama menjadi versi sekarang.
+ *
+ * Nilai yang sudah dikenal dikembalikan apa adanya. Nilai lama dipetakan lewat
+ * PEMETAAN_LAMA. Nilai yang tidak dikenal whatsoever dikembalikan null supaya
+ * pemanggil bisa memutuskan membuang atau menyimpan apa adanya — bukan menebak
+ * kelompok yang salah.
+ */
+export function selaraskanKelompokUmur(nilai: string | null | undefined): KelompokUmur | null {
+  if (typeof nilai !== "string") return null;
+  if ((KELOMPOK_UMUR as string[]).includes(nilai)) return nilai as KelompokUmur;
+  return PEMETAAN_LAMA[nilai] ?? null;
+}
+
 export const PENYAKIT: Penyakit[] = ["DBD", "Diare", "Chikungunya", "Hepatitis A"];
 
 export const GEJALA_UMUM = [

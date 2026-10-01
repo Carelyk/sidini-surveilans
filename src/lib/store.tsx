@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { DATASET_AWAL, type Kasus } from "@/data/dataset";
+import { DATASET_AWAL, selaraskanKelompokUmur, type Kasus } from "@/data/dataset";
 
 interface Ctx {
   kasus: Kasus[];
@@ -36,6 +36,29 @@ const KUNCI = "sigap-bandung-v2";
  */
 const PETA_AWAL = new Map(DATASET_AWAL.map((k) => [k.id, k]));
 
+/**
+ * Selaraskan kelompok umur pada kasus yang dibaca dari penyimpanan.
+ *
+ * Data tersimpan bisa saja dibuat saat aplikasi masih memakai kelompok umur
+ * versi lama. Label lamanya tidak ada lagi di `KELOMPOK_UMUR`, sehingga
+ * perhitungan per kelompok umur bernilai nol dan grafik hanya menampilkan
+ * kelompok yang kebetulan memakai label yang sama. Memetakan label lama ke
+ * kelompok sekarang memperbaiki data lama tanpa harus meminta pengguna
+ * membersihkan penyimpanan, dan tanpa mengubah ambang atau perhitungan.
+ *
+ * Kasus dengan label yang tidak dikenal dan tidak bisa dipetakan dibuang dari
+ * hasil bacaan, sama seperti kalau field wajibnya kosong.
+ */
+function selaraskanKasus(kasus: Kasus[]): Kasus[] {
+  const hasil: Kasus[] = [];
+  for (const k of kasus) {
+    const kelompok = selaraskanKelompokUmur(k.kelompokUmur);
+    if (!kelompok) continue;
+    hasil.push(kelompok === k.kelompokUmur ? k : { ...k, kelompokUmur: kelompok });
+  }
+  return hasil;
+}
+
 function muatTersimpan(): Kasus[] | null {
   if (typeof window === "undefined") return null;
   try {
@@ -43,7 +66,7 @@ function muatTersimpan(): Kasus[] | null {
     if (!raw) return null;
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed) || parsed.length === 0) return null;
-    return parsed as Kasus[];
+    return selaraskanKasus(parsed as Kasus[]);
   } catch {
     return null;
   }
