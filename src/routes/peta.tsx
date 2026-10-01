@@ -89,17 +89,6 @@ function Peta() {
           ambang KLB, warna yang lebih tua menandakan risiko yang lebih tinggi. Klik satu kecamatan
           untuk memperbesar dan melihat titik kasus simulasi.
         </p>
-        <p className="mt-2 max-w-3xl rounded-lg border border-border bg-secondary/50 p-3 text-justify text-xs text-muted-foreground">
-          <strong className="font-medium text-foreground">Perhatikan lapis datanya.</strong> Halaman
-          ini memakai <strong>rekap SKDR mingguan per kecamatan</strong> — inilah lapisan yang
-          berwenang menetapkan label KLB. Dashboard memakai <strong>kasus harian per desa</strong>{" "}
-          dengan label Sinyal/Waspada/Aman. Keduanya sumber simulasi yang terpisah dan belum
-          direkonsiliasi, jadi angkanya tidak boleh dijumlahkan atau dibandingkan langsung. Periode
-          yang dibuka di bawah adalah{" "}
-          <strong>skenario puncak musim hujan, minggu 5&ndash;9 2026</strong>, yaitu outbreak yang
-          sengaja disimulasikan supaya ambang KLB terlihat menyala. Untuk melihat rekap SKDR pada
-          periode yang sama dengan snapshot kasus harian di dashboard, pilih minggu 33&ndash;39.
-        </p>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[22rem_1fr]">
@@ -275,6 +264,18 @@ function Peta() {
           </section>
         </div>
       </div>
+
+      <aside className="rounded-lg border border-border bg-secondary/50 p-4 text-justify text-xs leading-relaxed text-muted-foreground">
+        <strong className="font-medium text-foreground">Perhatikan lapis datanya.</strong> Halaman
+        ini memakai <strong>rekap SKDR mingguan per kecamatan</strong> — inilah lapisan yang
+        berwenang menetapkan label KLB. Dashboard memakai <strong>kasus harian per desa</strong>{" "}
+        dengan label Sinyal/Waspada/Aman. Keduanya sumber simulasi yang terpisah dan belum
+        direkonsiliasi, jadi angkanya tidak boleh dijumlahkan atau dibandingkan langsung. Periode
+        yang dibuka di atas adalah{" "}
+        <strong>skenario puncak musim hujan, minggu 5&ndash;9 2026</strong>, yaitu outbreak yang
+        sengaja disimulasikan supaya ambang KLB terlihat menyala. Untuk melihat rekap SKDR pada
+        periode yang sama dengan snapshot kasus harian di dashboard, pilih minggu 33&ndash;39.
+      </aside>
     </div>
   );
 }
