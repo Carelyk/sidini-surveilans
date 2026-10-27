@@ -178,6 +178,9 @@ Yang belum ada dan harus dibangun lebih dulu: autentikasi petugas, penyimpanan a
 
 ## Menjalankan
 
+1. Salin berkas contoh env lalu isi kunci API Groq.
+2. Pasang dependensi dan jalankan server pengembangan.
+3. Buka halaman Tanya AI dan tekan tombol Tanyakan.
 
 ```sh
 cp .env.example .env
